@@ -73,6 +73,13 @@ def fetch_unseen_emails(mail, seen_ids, assistant_email):
 
     return new_messages
 
+def formatProduct(product):
+    out = ""
+
+    for i, p in enumerate(product):
+        out += f"Product {i}) {p['name']} : {p['description']}\n"
+    return out
+
 # @tool
 def monitor_emails(email_user, email_pass, imap_server, user):
     """Monitor unseen emails and process them.
@@ -90,24 +97,26 @@ def monitor_emails(email_user, email_pass, imap_server, user):
     new_emails = fetch_unseen_emails(mail, seen_ids, email_user)
     for email_data in new_emails:
         print(f"New email from {email_data['from']}")
-        
-        user_lead = get_lead_with_email(user['id'], email=email_data['from'])
+
+        user_lead = get_lead_with_email(user['email'], email=email_data['from'])
         if user_lead:
             addLeads(
                 email=email_data['from'],
                 message=email_data['body'],
-                status="contacted",
-                user_id=user['id']
+                status="Contacted",
+                user_email=user['email']
             )
             response_leads()
+            print("User lead found.")
         else:
-            result = analyze_email(f"Subject: {email_data['subject']}\nBody: {email_data['body']}")
+            result = analyze_email(f"Subject: {email_data['subject']}\nBody: {email_data['body']}", user['companyDescription'], formatProduct(user['products']))
             if result["is_lead"]:
                 addLeads(
                     email=email_data['from'],
                     message=email_data['body'],
-                    status="new",
-                    user_id=user['id']
+                    status="New",
+                    user_email=user['email'],
+                    content=result["extracted_content"]
                 )
                 response_leads()
             

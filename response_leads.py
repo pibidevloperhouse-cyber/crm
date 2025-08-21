@@ -14,16 +14,25 @@ load_dotenv()
 response_schemas = [
     ResponseSchema(name="subject", description="Subject of the response email", type="string"),
     ResponseSchema(name="body", description="Body of the response email", type="string"),
-    ResponseSchema(name="status", description="Status of the lead (type: 'new' | 'contacted' | 'qualified' | 'closed' | 'lost')", type="string"),
+    ResponseSchema(name="status", description="Status of the lead (type: 'New' | 'In progress' | 'Contact Attempted' | 'Contacted' | 'Meeting Booked' | 'Qualified' | 'Unqualified')", type="string"),
 ]
 
 output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
 
 prompt_template = """
-You are a professional AI sales assistant working for {company_name}, representing the brand in email conversations. Your task is to draft a personalized, human-sounding, and professional reply to an current email. Give some random name in the salutations of your mail. Make sure that the name suits the company demographics.
+You are a professional AI sales assistant working for {company_name}, representing the brand in email conversations. Your task is to draft a personalized, human-sounding, and professional reply to an current email. Give some random name in the salutations of your mail. Make sure that the name suits the company demographics.Your name is {sender_name} and position is {sender_role}.
 
 Company Description:
 {company_description}
+
+Products Offerings:
+{company_products}
+
+Company Website:
+{company_website}
+
+Company Phone Number:
+{company_number}
 
 Previous Conversation (if any):
 {conversation_history}
@@ -57,7 +66,7 @@ llm = ChatGoogleGenerativeAI(
 
 chain = prompt | llm | output_parser
 
-def lead_response(company_name, company_description, conversation_history, email_content, email, user) -> Dict:
+def lead_response(email_content,company_name,company_description,company_products,company_website,company_number,sender_name,sender_role,conversation_history,email,user) -> Dict:
     """
     Generate a response to an email based on company details and conversation history.
     
@@ -74,6 +83,11 @@ def lead_response(company_name, company_description, conversation_history, email
         response = chain.invoke({
             "company_name": company_name,
             "company_description": company_description,
+            "company_products": company_products,
+            "company_website": company_website,
+            "company_number": company_number,
+            "sender_name": sender_name,
+            "sender_role": sender_role,
             "conversation_history": conversation_history,
             "email_content": email_content,
         })
@@ -87,16 +101,23 @@ def lead_response(company_name, company_description, conversation_history, email
             email=email,
             message=response.get('body', ''),
             status=response.get('status', ''),
-            user_id=user['id'],
+            user_email=user['email'],
             type="assistant"
         )
+        
     except Exception as e:
         print(f"Error analyzing email: {e}")
         return {
             "is_lead": False,
             "confidence": 0.0
         }
-        
+
+def formatProduct(product):
+    out = ""
+
+    for i, p in enumerate(product):
+        out += f"Product {i}) {p['name']} : {p['description']}\n"
+    return out
         
 def send_email(to_email, subject, body, from_email, password):
     """
@@ -128,23 +149,34 @@ def response_leads():
     users = get_users()
 
     for user in users:
-        leads = get_leads(user['id'])
+        leads = get_leads(user['email'])
         for lead in leads:
-            if lead['messages'][-1]['type'] == 'assistant':
-                continue
-            company_name = user['name']
-            company_description = user.get('description', 'No description available.')
-            conversation_history = lead.get('messages', [])
-            email_content = lead.get('email', '')
+            if lead['messages']:
+                if lead['messages'][-1]['type'] == 'assistant':
+                    continue
+                company_name = user['companyName']
+                company_description = user.get('companyDescription', 'No description available.')
+                company_products = formatProduct(user.get('products', []))
+                company_website = user.get('companyWebsite', 'No website available.')
+                company_number = user.get('companyNumber', 'No number available.')
+                sender_name = user.get('name', 'Sales Team')
+                sender_role = user.get('role', 'Sales Representative')
+                conversation_history = lead.get('messages', [])
+                email_content = lead.get('email', '')
 
-            response = lead_response(
-                company_name=company_name,
-                company_description=company_description,
-                conversation_history=conversation_history,
-                email_content=email_content,
-                email=lead['email'],
-                user=user
-            )
-            
-            print(f"Response for {lead['email']}: {response}")
+                response = lead_response(
+                    email_content=email_content,
+                    company_name=company_name,
+                    company_description=company_description,
+                    company_products=company_products,
+                    company_website=company_website,
+                    company_number=company_number,
+                    sender_name=sender_name,
+                    sender_role=sender_role,
+                    conversation_history=conversation_history,
+                    email=lead['email'],
+                    user=user
+                )
+                
+                print(f"Response for {lead['email']}: {response}")
         
