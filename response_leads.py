@@ -7,6 +7,9 @@ from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from googleapiclient.discovery import build
+import base64
+from google.oauth2.credentials import Credentials
 from typing import Dict
 
 load_dotenv()
@@ -14,7 +17,7 @@ load_dotenv()
 response_schemas = [
     ResponseSchema(name="subject", description="Subject of the response email", type="string"),
     ResponseSchema(name="body", description="Body of the response email", type="string"),
-    ResponseSchema(name="status", description="Status of the lead (type: 'New' | 'In progress' | 'Contact Attempted' | 'Contacted' | 'Meeting Booked' | 'Qualified' | 'Unqualified')", type="string"),
+    ResponseSchema(name="status", description="Status of the lead (type: 'New' | 'In progress' | 'Contact Attempted' | 'Contacted' | 'Meeting Booked' | 'Unqualified')", type="string"),
 ]
 
 output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
@@ -66,7 +69,7 @@ llm = ChatGoogleGenerativeAI(
 
 chain = prompt | llm | output_parser
 
-def lead_response(email_content,company_name,company_description,company_products,company_website,company_number,sender_name,sender_role,conversation_history,email,user) -> Dict:
+def lead_response(email_content,company_name,company_description,company_products,company_website,company_number,sender_name,sender_role,conversation_history,email,user, refresh_token) -> Dict:
     """
     Generate a response to an email based on company details and conversation history.
     
@@ -91,11 +94,18 @@ def lead_response(email_content,company_name,company_description,company_product
             "conversation_history": conversation_history,
             "email_content": email_content,
         })
-        
-        subject = response.get("subject", response.get("body", "Re: Inquiry"))
-        body = response.get("body", "Thank you for reaching out. We will get back to you shortly.")
 
-        send_email(email, subject, body, user['email'], user['password'])
+        send_email(
+            refresh_token,
+            to_email=email,
+            subject=response.get('subject', 'Re: Inquiry'),
+            body=format_html_email(
+    response.get('subject', 'Re: Inquiry'),
+    response.get('body', 'Thank you for reaching out. We will get back to you shortly.'),
+    response.get('status', 'New')
+),
+            from_email=user['email']
+        )
 
         addLeads(
             email=email,
@@ -118,40 +128,75 @@ def formatProduct(product):
     for i, p in enumerate(product):
         out += f"Product {i}) {p['name']} : {p['description']}\n"
     return out
-        
-def send_email(to_email, subject, body, from_email, password):
+
+def format_html_email(subject, body, status):
+    return f"""
+    <html>
+      <head>
+        <style>
+          body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+          .container {{ border: 1px solid #ddd; border-radius: 8px; padding: 20px; max-width: 600px; margin: auto; }}
+          .header {{ font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 15px; }}
+          .body {{ margin-bottom: 20px; white-space: pre-line; }}
+          .status {{ font-size: 14px; color: #555; background: #f4f4f4; padding: 8px; border-radius: 5px; display: inline-block; }}
+          .footer {{ font-size: 12px; color: #999; margin-top: 20px; }}
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">{subject}</div>
+          <div class="body">{body}</div>
+          <div class="status">Lead Status: <b>{status}</b></div>
+          <div class="footer">This email was sent automatically by your AI Sales Assistant.</div>
+        </div>
+      </body>
+    </html>
     """
-    Send an email response.
-    
-    Args:
-        to_email (str): Recipient's email address.
-        subject (str): Subject of the email.
-        body (str): Body content of the email.
-    """
-    
+
+
+def send_email(refresh_token,to_email, subject, body, from_email):
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
     msg['Subject'] = subject
-    
-    msg.attach(MIMEText(body, 'plain'))
-    
+    # msg.attach(MIMEText(body, 'plain'))
+    msg.attach(MIMEText(body, 'html'))
+
+
+    creds = Credentials(
+            None,
+            refresh_token=refresh_token,
+            client_id=os.getenv("GOOGLE_CLIENT_ID"),
+            client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+            token_uri="https://oauth2.googleapis.com/token",
+            scopes=["https://www.googleapis.com/auth/gmail.send"]
+        )
+
+    service = build("gmail", "v1", credentials=creds)
+
+    raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
+
     try:
-        with smtplib.SMTP(os.getenv("SMTP_SERVER"), int(os.getenv("SMTP_PORT"))) as server:
-            server.starttls()
-            server.login(from_email, password)
-            server.sendmail(from_email, to_email, msg.as_string())
-            print(f"Email sent to {to_email}")
+        message = (
+            service.users()
+            .messages()
+            .send(userId="me", body={"raw": raw_message})
+            .execute()
+        )
+        print(f"✅ Email sent to {to_email}, Message ID: {message['id']}")
+
+        return True
     except Exception as e:
-        print(f"Failed to send email: {e}")
-        
-def response_leads():
+        print(f"❌ Failed to send email: {e}")
+        return False
+
+def response_leads(refresh_token):
     users = get_users()
 
     for user in users:
         leads = get_leads(user['email'])
         for lead in leads:
-            if lead['messages']:
+            if lead['source'] == "Email" and lead['messages']:
                 if lead['messages'][-1]['type'] == 'assistant':
                     continue
                 company_name = user['companyName']
@@ -175,7 +220,8 @@ def response_leads():
                     sender_role=sender_role,
                     conversation_history=conversation_history,
                     email=lead['email'],
-                    user=user
+                    user=user,
+                    refresh_token=refresh_token
                 )
                 
                 print(f"Response for {lead['email']}: {response}")
