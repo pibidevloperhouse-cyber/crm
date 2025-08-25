@@ -48,7 +48,7 @@ def generate_response(message):
     parser = StructuredOutputParser.from_response_schemas(response_schemas)
     format_instructions = parser.get_format_instructions()
     model = ChatGoogleGenerativeAI(
-        model="gemini-2.5-pro",
+        model="gemini-2.5-flash",
         temperature=0.25,
         api_key=os.getenv("GOOGLE_API_KEY"),
     )
