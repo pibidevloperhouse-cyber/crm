@@ -13,6 +13,10 @@ dotenv.load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "Welcome to the ICP Generation API!"})
+
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json
