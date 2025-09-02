@@ -19,9 +19,6 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json
-
-    if not user_message or "message" not in user_message:
-        return jsonify({"error": "Invalid input, 'message' field is required."}), 400
     response = generate_response(user_message)
     return jsonify({"response": response}),200
 
