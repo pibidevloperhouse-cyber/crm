@@ -4,10 +4,10 @@ from langchain.prompts import ChatPromptTemplate
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import dotenv
+from dotenv import load_dotenv
 import json
 
-dotenv.load_dotenv()
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -20,7 +20,7 @@ def home():
 def chat():
     user_message = request.json
     response = generate_response(user_message)
-    return jsonify({"response": response}),200
+    return jsonify({"response": response}), 200
 
 def generate_response(message):
     description=message
@@ -49,7 +49,8 @@ def generate_response(message):
     format_instructions = parser.get_format_instructions()
     model = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
-        temperature=0.25
+        temperature=0.25,
+        api_key=os.getenv("GOOGLE_API_KEY")
     )
     prompt_template = ChatPromptTemplate.from_messages([
         ("system", """You are a world-class marketing analyst AI. Your primary function is to derive precise, data-driven Ideal Customer Profiles (ICPs) from company information.
