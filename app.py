@@ -1,5 +1,4 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.schema import SystemMessage, HumanMessage
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from langchain.prompts import ChatPromptTemplate
 import os
@@ -20,6 +19,9 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json
+
+    if not user_message or "message" not in user_message:
+        return jsonify({"error": "Invalid input, 'message' field is required."}), 400
     response = generate_response(user_message)
     return jsonify({"response": response}),200
 
@@ -86,4 +88,4 @@ def generate_response(message):
     return parsed_response
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=5000)
