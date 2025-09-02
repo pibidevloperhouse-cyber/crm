@@ -15,11 +15,8 @@ CORS(app)
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    print("Request Recieved")
     user_message = request.json
-    print("User Message:", user_message)
     response = generate_response(user_message)
-    print("Generated Response:", response)
     return jsonify({"response": response}),200
 
 def generate_response(message):
@@ -49,8 +46,7 @@ def generate_response(message):
     format_instructions = parser.get_format_instructions()
     model = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
-        temperature=0.25,
-        api_key=os.getenv("GOOGLE_API_KEY"),
+        temperature=0.25
     )
     prompt_template = ChatPromptTemplate.from_messages([
         ("system", """You are a world-class marketing analyst AI. Your primary function is to derive precise, data-driven Ideal Customer Profiles (ICPs) from company information.
@@ -77,8 +73,6 @@ def generate_response(message):
     description = json.dumps(description, indent=2)
 
     chain = prompt_template | model | parser
-    
-    print("--- Invoking Chain with Data ---")
     
     parsed_response = chain.invoke({
         "description": description, 
