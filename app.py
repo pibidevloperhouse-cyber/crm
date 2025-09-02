@@ -74,15 +74,12 @@ def generate_response(message):
         """)
     ])
     
-    # To make the input cleaner for the LLM, convert the description dictionary to a JSON string
     description = json.dumps(description, indent=2)
 
-    # Create the chain for easier invocation
     chain = prompt_template | model | parser
     
     print("--- Invoking Chain with Data ---")
     
-    # The chain automatically handles formatting, invoking the model, and parsing
     parsed_response = chain.invoke({
         "description": description, 
         "format_instructions": format_instructions
