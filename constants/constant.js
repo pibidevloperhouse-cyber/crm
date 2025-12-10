@@ -1,10 +1,6 @@
-import { Arrow } from "@radix-ui/react-dropdown-menu";
-import { healthcare } from "googleapis/build/src/apis/healthcare";
-import { SlActionRedo } from "react-icons/sl";
 import {
   BarChart3,
   Bell,
-  Calendar,
   Coffee,
   Cog,
   Database,
@@ -14,7 +10,6 @@ import {
   ListChecks,
   Megaphone,
   SquareUser,
-  UserRoundCog,
   Users,
   Wrench,
 } from "lucide-react";
