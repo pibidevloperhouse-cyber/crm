@@ -9,18 +9,16 @@ export default function TopProductsChart() {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const local = localStorage.getItem("session");
-        const user = JSON.parse(local)?.user;
-        if (user?.email) {
-          setUserEmail(user.email);
-        } else {
-          console.warn("⚠️ No user email found in session");
-        }
-      } catch (e) {
-        console.error("Failed to parse session:", e);
+    try {
+      const local = localStorage.getItem("session");
+      const user = JSON.parse(local)?.user;
+      if (user?.email) {
+        setUserEmail(user.email);
+      } else {
+        console.warn("⚠️ No user email found in session");
       }
+    } catch (e) {
+      console.error("Failed to parse session:", e);
     }
   }, []);
 

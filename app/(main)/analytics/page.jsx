@@ -18,10 +18,24 @@ import TopReferring from "@/components/charts/TopReffering";
 import NewReturningVisitors from "@/components/charts/NewReturningVisitors";
 import TrafficByCampaign from "@/components/charts/TrafficByCampaign";
 import { analyticsData } from "@/constants/constant";
-import LeadSourcesChart from "@/components/LeadSourcesChart";
-import TopPerformingChart from "@/components/charts/TopPerformingChart";
-import TopIndustriesCard from "@/components/charts/TopIndustryCard";
-import CustomerSegmentCharts from "@/components/charts/CustomerChart";
+import dynamic from "next/dynamic";
+
+const LeadSourcesChart = dynamic(
+  () => import("@/components/LeadSourcesChart"),
+  { ssr: false }
+);
+const TopPerformingChart = dynamic(
+  () => import("@/components/charts/TopPerformingChart"),
+  { ssr: false }
+);
+const TopIndustriesCard = dynamic(
+  () => import("@/components/charts/TopIndustryCard"),
+  { ssr: false }
+);
+const CustomerSegmentCharts = dynamic(
+  () => import("@/components/charts/CustomerChart"),
+  { ssr: false }
+);
 // import {
 //   Dialog,
 //   DialogContent,
