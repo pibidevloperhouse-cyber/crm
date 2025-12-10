@@ -117,7 +117,7 @@ export default function Layout({ children }) {
             } px-4`}
           >
             {sidebarOpen && (
-              <span className="text-3xl pt-8 font-bold bg-gradient-to-r from-teal-600 to-sky-700 dark:from-teal-200 dark:to-sky-300 bg-clip-text text-transparent">
+              <span className="text-2xl pt-8 font-bold bg-gradient-to-r from-teal-600 to-sky-700 dark:from-teal-200 dark:to-sky-300 bg-clip-text text-transparent">
                 Smart Manufacturing
               </span>
             )}
@@ -506,7 +506,7 @@ export default function Layout({ children }) {
                   </Button>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent className="w-48">
+                <DropdownMenuContent className="w-56 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-white/30 dark:border-slate-700/50">
                   <DropdownMenuItem onClick={() => router.push("/prospects")}>
                     Company Details
                   </DropdownMenuItem>
@@ -516,11 +516,11 @@ export default function Layout({ children }) {
                   ></DropdownMenuItem>
                   <TemplateCreator />
 
-                  <DropdownMenuItem
+                  {/* <DropdownMenuItem
                     onClick={() => router.push("/configuration")}
                   >
                     Configuration Settings
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                 </DropdownMenuContent>
               </DropdownMenu>
 

@@ -259,59 +259,79 @@ export const navigation = [
       //   href: "/vendormanagement",
       //   icon: <Users />,
       // },
+      // {
+      //   key: "revenueengine",
+      //   name: "Revenue Engine",
+      //   href: "/revenueengine/pricing",
+      //   icon: <DollarSign />,
+      //   subpages: [
+      //     // {
+      //     //   name: "Pricing",
+      //     //   href: "/revenueengine/pricing",
+      //     //   icon: <DollarSign />,
+      //     // },
+      //     // {
+      //     //   name: "Configuration settings",
+      //     //   href: "/revenueengine/configureproducts",
+      //     //   icon: <Cog />,
+      //     // },
+      //     // {
+      //     //   name: "Price",
+      //     //   href: "/revenueengine/pricingdetails",
+      //     //   icon: <DollarSign />,
+      //     // },
+      //     // {
+      //     //   name: "Configure",
+      //     //   href: "/revenueengine/configureproduct2",
+      //     //   icon: <Cog />,
+      //     // },
+      //     // {
+      //     //   name: "Quote",
+      //     //   href: "/revenueengine/previewquote",
+      //     //   icon: <FileText />,
+      //     // },
+      //   ],
+      // },
       {
-        key: "revenueengine",
-        name: "Revenue Engine",
-        href: "/revenueengine/pricing",
+        name: "Configuration settings",
+        href: "/revenueengine/configureproducts",
+        icon: <Cog />,
+      },
+      {
+        name: "Price",
+        href: "/revenueengine/pricingdetails",
         icon: <DollarSign />,
-        subpages: [
-          // {
-          //   name: "Pricing",
-          //   href: "/revenueengine/pricing",
-          //   icon: <DollarSign />,
-          // },
-          {
-            name: "Configuration settings",
-            href: "/revenueengine/configureproducts",
-            icon: <Cog />,
-          },
-          {
-            name: "Price",
-            href: "/revenueengine/pricingdetails",
-            icon: <DollarSign />,
-          },
-          {
-            name: "Configure",
-            href: "/revenueengine/configureproduct2",
-            icon: <Cog />,
-          },
-          {
-            name: "Quote",
-            href: "/revenueengine/previewquote",
-            icon: <FileText />,
-          },
-        ],
+      },
+      {
+        name: "Configure",
+        href: "/revenueengine/configureproduct2",
+        icon: <Cog />,
+      },
+      {
+        name: "Quote",
+        href: "/revenueengine/previewquote",
+        icon: <FileText />,
       },
       {
         name: "Inventory",
         href: "/inventory",
         icon: <Database />,
       },
-      {
-        name: "Invoice",
-        href: "/invoice",
-        icon: <FileText />,
-      },
-      {
-        name: "Quotation",
-        href: "/quotation",
-        icon: <FileText />,
-      },
-      {
-        name: "Sales Order",
-        href: "/salesorder",
-        icon: <FileText />,
-      },
+      // {
+      //   name: "Invoice",
+      //   href: "/invoice",
+      //   icon: <FileText />,
+      // },
+      // {
+      //   name: "Quotation",
+      //   href: "/quotation",
+      //   icon: <FileText />,
+      // },
+      // {
+      //   name: "Sales Order",
+      //   href: "/salesorder",
+      //   icon: <FileText />,
+      // },
     ],
   },
 
@@ -332,13 +352,13 @@ export const navigation = [
         href: "/hrms",
         icon: <SquareUser />,
       },
+      // {
+      //   name: "Task Management",
+      //   href: "/tasks",
+      //   icon: <ListChecks />,
+      // },
       {
-        name: "Task Management",
-        href: "/tasks",
-        icon: <ListChecks />,
-      },
-      {
-        name: "Analysis",
+        name: "Analytics",
         href: "/analytics",
         icon: <BarChart3 />,
       },
