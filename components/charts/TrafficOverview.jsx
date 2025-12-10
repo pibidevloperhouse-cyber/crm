@@ -137,7 +137,7 @@ export default function TrafficLineChart() {
         () => fetchData()
       )
       .subscribe();
-
+    if (typeof window === "undefined") return;
     const handleResize = () => myChart.resize();
     window.addEventListener("resize", handleResize);
 

@@ -113,6 +113,7 @@ export default function TrafficSourcesPie() {
     };
 
     myChart.setOption(option);
+    if (typeof window === "undefined") return;
     const handleResize = () => myChart.resize();
     window.addEventListener("resize", handleResize);
 

@@ -120,6 +120,7 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
   // FIX: wrap selection with span to persist styles
   const applyStyle = useCallback((command, value = null) => {
     if (!form.body) return;
+    if (typeof window === "undefined") return;
 
     const sel = window.getSelection();
     if (!sel.rangeCount) return;

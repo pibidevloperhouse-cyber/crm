@@ -47,7 +47,13 @@ export default function CampaignBubbleChart() {
           ],
           itemStyle: {
             color: (params) => {
-              const colors = ["#14b8a6", "#0ea5e9", "#6366f1", "#06b6d4", "#8b5cf6"];
+              const colors = [
+                "#14b8a6",
+                "#0ea5e9",
+                "#6366f1",
+                "#06b6d4",
+                "#8b5cf6",
+              ];
               return colors[params.dataIndex % colors.length];
             },
             opacity: 0.8,
@@ -57,7 +63,7 @@ export default function CampaignBubbleChart() {
     };
 
     chart.setOption(option);
-
+    if (typeof window === "undefined") return;
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
 

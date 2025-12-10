@@ -25,7 +25,9 @@ export default function CustomerSatisfactionHalfDonut() {
 
       const { data, error } = await supabase
         .from("Customers")
-        .select("status, issues, price, industry, customFields, messages, purchase_history")
+        .select(
+          "status, issues, price, industry, customFields, messages, purchase_history"
+        )
         .eq("user_email", userEmail);
 
       if (error) {
@@ -42,7 +44,7 @@ export default function CustomerSatisfactionHalfDonut() {
       // You can adjust this logic based on real fields in your Customers table.
       const metrics = {
         "Product Quality": 0,
-        "Pricing": 0,
+        Pricing: 0,
         "Delivery Speed": 0,
         "Customer Support": 0,
         "Ease of Use": 0,
@@ -131,19 +133,14 @@ export default function CustomerSatisfactionHalfDonut() {
             length2: 10,
           },
           data: chartData,
-          color: [
-            "#14b8a6",
-            "#0ea5e9",
-            "#38bdf8",
-            "#2dd4bf",
-            "#7dd3fc",
-          ],
+          color: ["#14b8a6", "#0ea5e9", "#38bdf8", "#2dd4bf", "#7dd3fc"],
         },
       ],
     };
 
     myChart.setOption(option);
     const handleResize = () => myChart.resize();
+    if (typeof window === "undefined") return;
     window.addEventListener("resize", handleResize);
 
     return () => {

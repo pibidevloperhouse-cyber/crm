@@ -80,11 +80,19 @@ export default function TrafficAreaChart() {
     const channels = [
       supabase
         .channel("realtime:Users")
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "Users" }, fetchTrafficData)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "Users" },
+          fetchTrafficData
+        )
         .subscribe(),
       supabase
         .channel("realtime:Deals")
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "Deals" }, fetchTrafficData)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "Deals" },
+          fetchTrafficData
+        )
         .subscribe(),
     ];
 
@@ -141,6 +149,7 @@ export default function TrafficAreaChart() {
     };
 
     myChart.setOption(option);
+    if (typeof window === "undefined") return;
     const handleResize = () => myChart.resize();
     window.addEventListener("resize", handleResize);
 

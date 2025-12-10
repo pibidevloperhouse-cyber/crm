@@ -57,6 +57,7 @@ export default function TrafficSourceDonutChart() {
   // ✅ Initialize ECharts
   useEffect(() => {
     if (!chartRef.current || chartData.length === 0) return;
+    if (typeof window === "undefined") return;
     const chartDom = chartRef.current;
     const myChart = echarts.init(chartDom);
 

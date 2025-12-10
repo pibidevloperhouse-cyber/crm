@@ -63,7 +63,7 @@ export default function TopReferrers() {
     };
 
     myChart.setOption(option);
-
+    if (typeof window === "undefined") return;
     const handleResize = () => myChart.resize();
     window.addEventListener("resize", handleResize);
 

@@ -126,7 +126,7 @@ export default function SalesOverviewBarChart() {
     };
 
     myChart.setOption(option);
-
+    if (typeof window === "undefined") return;
     const handleResize = () => myChart.resize();
     window.addEventListener("resize", handleResize);
 

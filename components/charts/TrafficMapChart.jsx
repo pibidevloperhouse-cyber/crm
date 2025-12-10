@@ -19,7 +19,15 @@ export default function TrafficBarChart() {
       grid: { left: "3%", right: "4%", bottom: "8%", containLabel: true },
       xAxis: {
         type: "category",
-        data: ["USA", "India", "China", "Germany", "Brazil", "France", "Australia"],
+        data: [
+          "USA",
+          "India",
+          "China",
+          "Germany",
+          "Brazil",
+          "France",
+          "Australia",
+        ],
         axisLabel: { color: "#475569" },
         axisLine: { lineStyle: { color: "#94a3b8" } },
       },
@@ -45,7 +53,7 @@ export default function TrafficBarChart() {
     };
 
     chart.setOption(option);
-
+    if (typeof window === "undefined") return;
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
     return () => {

@@ -33,9 +33,9 @@ export default function AvgSessionGauge() {
             lineStyle: {
               width: 15,
               color: [
-                [0.2, "#14b8a6"],   // teal-500 for low engagement
-                [0.6, "#0ea5e9"],   // sky-500 for medium
-                [1, "#0c4a6e"],     // dark sky for high
+                [0.2, "#14b8a6"], // teal-500 for low engagement
+                [0.6, "#0ea5e9"], // sky-500 for medium
+                [1, "#0c4a6e"], // dark sky for high
               ],
             },
           },
@@ -64,7 +64,7 @@ export default function AvgSessionGauge() {
     };
 
     myChart.setOption(option);
-
+    if (typeof window === "undefined") return;
     const handleResize = () => myChart.resize();
     window.addEventListener("resize", handleResize);
 
