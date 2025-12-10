@@ -1,16 +1,22 @@
 import {
   BarChart3,
   Bell,
+  Calendar,
+  CalendarX2,
   Coffee,
   Cog,
   Database,
   DollarSign,
   FileText,
+  FileUser,
   Home,
+  IdCard,
   ListChecks,
   Megaphone,
+  PersonStandingIcon,
   SquareUser,
   Users,
+  WalletCards,
   Wrench,
 } from "lucide-react";
 
@@ -343,9 +349,32 @@ export const navigation = [
         icon: <Database />,
       },
       {
+        key: "HRMS",
         name: "HRMS",
-        href: "/hrms",
-        icon: <SquareUser />,
+        href: "/hrms/Calendar",
+        icon: <IdCard />,
+        subpages: [
+          {
+            name: "Calendar",
+            href: "/hrms/Calendar",
+            icon: <Calendar />,
+          },
+          {
+            name: "Employee",
+            href: "/hrms/Employee",
+            icon: <FileUser />,
+          },
+          {
+            name: "Leave",
+            href: "/hrms/Leave",
+            icon: <CalendarX2 />,
+          },
+          {
+            name: "Payroll",
+            href: "/hrms/Payroll",
+            icon: <WalletCards />,
+          },
+        ],
       },
       // {
       //   name: "Task Management",
