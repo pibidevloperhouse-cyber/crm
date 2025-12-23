@@ -62,7 +62,7 @@ export default function OurProspects() {
     <div className="bg-gradient-to-br  from-[#E9FDF9] via-[#C8F4EE] to-[#2e3a86]">
       <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-gradient-to-r from-[#25C2A0] via-[#318477] to-[#1c4f65] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
         {/* <Wallet className="w-8 h-8 text-transparent bg-gradient-to-r from-[#25C2A0] via-[#2AD4B7] to-[#38BDF8] bg-clip-text" /> */}
-        Ideal Customer Profile (ICP)
+        Company Details
       </h1>
       <UpdateCompanyDetails />
     </div>

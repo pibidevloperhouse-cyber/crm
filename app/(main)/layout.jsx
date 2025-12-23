@@ -112,9 +112,8 @@ export default function Layout({ children }) {
  backdrop-blur-xl"
         >
           <div
-            className={`flex h-16 items-center ${
-              sidebarOpen ? "justify-between" : "justify-center"
-            } px-4`}
+            className={`flex h-16 items-center ${sidebarOpen ? "justify-between" : "justify-center"
+              } px-4`}
           >
             {sidebarOpen && (
               <span className="text-2xl pt-8 font-bold bg-gradient-to-r from-teal-600 to-sky-700 dark:from-teal-200 dark:to-sky-300 bg-clip-text text-transparent">
@@ -155,9 +154,8 @@ export default function Layout({ children }) {
                   >
                     <Link
                       href={item.href}
-                      className={`group flex flex-1 items-center h-max ${
-                        sidebarOpen ? "" : "justify-center"
-                      }`}
+                      className={`group flex flex-1 items-center h-max ${sidebarOpen ? "" : "justify-center"
+                        }`}
                       onClick={(e) => {
                         if (hasSubpages) {
                           e.preventDefault();
@@ -229,9 +227,8 @@ export default function Layout({ children }) {
                               >
                                 {subpage.icon}
                                 <span
-                                  className={`ml-2 ${
-                                    sidebarOpen ? "" : "hidden"
-                                  }`}
+                                  className={`ml-2 ${sidebarOpen ? "" : "hidden"
+                                    }`}
                                 >
                                   {subpage.name}
                                 </span>
@@ -263,9 +260,8 @@ export default function Layout({ children }) {
                                     <span className="flex items-center gap-2">
                                       {nestedPage.icon}
                                       <span
-                                        className={`ml-2 ${
-                                          sidebarOpen ? "" : "hidden"
-                                        }`}
+                                        className={`ml-2 ${sidebarOpen ? "" : "hidden"
+                                          }`}
                                       >
                                         {nestedPage.name}
                                       </span>
@@ -507,7 +503,7 @@ export default function Layout({ children }) {
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent className="w-56 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-white/30 dark:border-slate-700/50">
-                  <DropdownMenuItem onClick={() => router.push("/prospects")}>
+                  <DropdownMenuItem onClick={() => router.push("/company_details")}>
                     Company Details
                   </DropdownMenuItem>
 
