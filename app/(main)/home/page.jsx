@@ -270,7 +270,7 @@ export default function Home() {
 
     return (
       <div className="h-64 flex flex-col items-center justify-center space-y-4">
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <svg
             width="160"
             height="160"
@@ -525,10 +525,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7] p-8 space-y-6">
+    <div className="min-h-screen bg-linear-to-br from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7] p-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
+          <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-linear-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
             {/* <Wallet className="w-8 h-8 text-transparent bg-gradient-to-r from-[#25C2A0] via-[#2AD4B7] to-[#38BDF8] bg-clip-text" /> */}
             Dashboard
           </h1>

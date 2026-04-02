@@ -31,6 +31,9 @@ import { Label } from "@/components/ui/label";
 import { employeeNavigation, navigation } from "@/constants/constant";
 import Hamburger from "hamburger-react";
 import OurProspects from "./prospects/page";
+import ChatPage from "@/components/chatbot/chat_page";
+
+
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -43,6 +46,7 @@ export default function Layout({ children }) {
   const [type, setType] = useState(null);
   const [navigationItems, setNavigationItems] = useState(navigation);
   const router = useRouter();
+  const [botOpen, setBotOpen] = useState(false);
 
   useEffect(() => {
     const type = localStorage.getItem("type");
@@ -560,14 +564,21 @@ export default function Layout({ children }) {
         </main>
       </div>
 
+      
+
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           size="lg"
+          onClick={() => setBotOpen(true)}
           className="h-14 w-14 rounded-full bg-gradient-to-r from-teal-600 to-sky-600 hover:from-teal-700 hover:to-sky-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
         >
           <Bot className="h-8 w-8" />
         </Button>
-      </div>
+      </div> 
+      {botOpen && <ChatPage onClose={() => setBotOpen(false)} />}
+   
+
+
     </div>
   );
 }
