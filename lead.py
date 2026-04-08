@@ -1,11 +1,11 @@
 import os
 from dotenv import load_dotenv
-from langchain.prompts import PromptTemplate
 # from langchain_huggingface import HuggingFaceEndpoint
-from langchain_google_genai import ChatGoogleGenerativeAI
 # from langchain_openai import ChatOpenAI
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from typing import Dict
+from langchain_core.prompts import PromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.output_parsers import StructuredOutputParser, ResponseSchema
 
 load_dotenv()
 

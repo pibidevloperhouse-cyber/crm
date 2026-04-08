@@ -1,16 +1,35 @@
-from database import get_leads, addLeads, get_users
+# from database import get_leads, addLeads, get_users
+# import os
+# from dotenv import load_dotenv
+# from langchain_core.prompts import PromptTemplate
+# from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+# import smtplib
+# from email.mime.text import MIMEText
+# from email.mime.multipart import MIMEMultipart
+# from googleapiclient.discovery import build
+# import base64
+# from google.oauth2.credentials import Credentials
+# from typing import Dict
+
 import os
-from dotenv import load_dotenv
-from langchain.prompts import PromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+import base64
 import smtplib
+
+from dotenv import load_dotenv
+from typing import Dict
+
+from database import get_leads, addLeads, get_users
+
+from langchain_core.prompts import PromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.output_parsers import StructuredOutputParser, ResponseSchema
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
 from googleapiclient.discovery import build
-import base64
 from google.oauth2.credentials import Credentials
-from typing import Dict
 
 load_dotenv()
 
