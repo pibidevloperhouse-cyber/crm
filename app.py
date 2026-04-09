@@ -10,6 +10,9 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+@app.route("/")
+def home():
+    return "CRM Bot Running 🚀"
 
 def CRMBot():
     print("CRMBot is running...")

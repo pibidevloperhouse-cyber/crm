@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from lead import analyze_email
 from database import addLeads, get_lead_with_email
 from response_leads import response_leads
-
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 load_dotenv()
 
 def decode_subject(subject_header):

@@ -12,22 +12,39 @@
 # from google.oauth2.credentials import Credentials
 # from typing import Dict
 
+# import os
+# import base64
+# import smtplib
+# from dotenv import load_dotenv
+# from typing import Dict
+# from database import get_leads, addLeads, get_users
+# from langchain_core.prompts import PromptTemplate
+# from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_core.output_parsers import StructuredOutputParser, ResponseSchema
+# from email.mime.text import MIMEText
+# from email.mime.multipart import MIMEMultipart
+# from googleapiclient.discovery import build
+# from google.oauth2.credentials import Credentials
+
 import os
 import base64
 import smtplib
-
-from dotenv import load_dotenv
 from typing import Dict
 
+from dotenv import load_dotenv
+
+# DB
 from database import get_leads, addLeads, get_users
 
+# LangChain (CORRECT for 0.0.350)
 from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.output_parsers import StructuredOutputParser, ResponseSchema
-
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+# Email
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+# Gmail API
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 
