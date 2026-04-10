@@ -4,16 +4,29 @@ from dotenv import load_dotenv
 # from langchain_openai import ChatOpenAI
 from typing import Dict
 from langchain_core.prompts import PromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 
 
 load_dotenv()
 
 response_schemas = [
-    ResponseSchema(name="is_lead", description="Boolean indicating if the email is a potential lead", type="boolean"),
-    ResponseSchema(name="confidence", description="Confidence score for the classification (0 to 1)", type="float"),
-    ResponseSchema(name="extracted_content", description="Extracted content if the email is a lead and provide in json", type="json", optional=True)
+    ResponseSchema(
+        name="is_lead",
+        description="Boolean indicating if the email is a potential lead",
+        type="boolean",
+    ),
+    ResponseSchema(
+        name="confidence",
+        description="Confidence score for the classification (0 to 1)",
+        type="float",
+    ),
+    ResponseSchema(
+        name="extracted_content",
+        description="Extracted content if the email is a lead and provide in json",
+        type="json",
+        optional=True,
+    ),
 ]
 
 output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
@@ -52,31 +65,33 @@ Return the response in JSON format as specified by the output parser.
 prompt = PromptTemplate(
     template=prompt_template,
     input_variables=["email_content"],
-    partial_variables={"format_instructions": output_parser.get_format_instructions()}
+    partial_variables={"format_instructions": output_parser.get_format_instructions()},
 )
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    temperature=0,
+llm = ChatGroq(
+    model="llama-3.1-8b-instant", temperature=0, api_key=os.getenv("GROQ_API_KEY")
 )
-
 chain = prompt | llm | output_parser
+
 
 def analyze_email(email_content: str, description: str, products: str) -> Dict:
     """
     Analyze an email to determine if it's a potential lead.
-    
+
     Args:
         email_content (str): The content of the email to analyze
-        
+
     Returns:
         Dict: JSON containing is_lead (bool) and confidence (float)
     """
     try:
-        return chain.invoke({"email_content": email_content, "description": description, "products": products})
+        return chain.invoke(
+            {
+                "email_content": email_content,
+                "description": description,
+                "products": products,
+            }
+        )
     except Exception as e:
         print(f"Error analyzing email: {e}")
-        return {
-            "is_lead": False,
-            "confidence": 0.0
-        }
+        return None
