@@ -494,35 +494,31 @@ export default function Layout({ children }) {
                 </div>
               )}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="lm"
-                    className="hidden sm:flex items-center space-x-2 whitespace-nowrap"
-                  >
-                    <Settings className="h-4 w-4" />
-                    <span className="hidden md:inline">Settings</span>
-                  </Button>
-                </DropdownMenuTrigger>
+             <div className="flex items-center space-x-2 sm:space-x-4">
 
-                <DropdownMenuContent className="w-56 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-white/30 dark:border-slate-700/50">
-                  <DropdownMenuItem onClick={() => router.push("/company_details")}>
-                    Company Details
-                  </DropdownMenuItem>
+  {/* SETTINGS */}
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="ghost"
+        size="lm"
+        className="hidden sm:flex items-center space-x-2 whitespace-nowrap"
+      >
+        <Settings className="h-4 w-4" />
+        <span className="hidden md:inline">Settings</span>
+      </Button>
+    </DropdownMenuTrigger>
 
-                  <DropdownMenuItem
-                    onClick={() => router.push("/generate-quote")}
-                  ></DropdownMenuItem>
-                  <TemplateCreator />
+    <DropdownMenuContent className="w-56 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-white/30 dark:border-slate-700/50">
+      <DropdownMenuItem onClick={() => router.push("/company_details")}>
+        Company Details
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
 
-                  {/* <DropdownMenuItem
-                    onClick={() => router.push("/configuration")}
-                  >
-                    Configuration Settings
-                  </DropdownMenuItem> */}
-                </DropdownMenuContent>
-              </DropdownMenu>
+  {/* CONTACT US (keep if exists) */}
+  <span className="hidden md:inline">Contact Us</span>
+</div>
 
               <Button
                 variant="ghost"

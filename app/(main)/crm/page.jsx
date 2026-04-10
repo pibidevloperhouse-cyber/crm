@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRef } from "react";
 import Papa from "papaparse";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,7 +44,7 @@ import {
 import { redirect } from "next/navigation";
 
 export default function CRM() {
-  const [activeTab, setActiveTab] = useState("Customers");
+  const [activeTab, setActiveTab] = useState("Leads");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All statuses");
   const [sourceFilter, setSourceFilter] = useState("All sources");
@@ -72,7 +73,7 @@ export default function CRM() {
       user?.products?.map((product) => ({
         value: product.name,
         label: product.name,
-      })) || []
+      })) || [],
     );
 
     getSession();
@@ -217,7 +218,7 @@ export default function CRM() {
           </p>
         </div>
 
-        <div className="flex sm:flex-col py-5 md:py-0 md:flex-row md:ml-auto gap-2 mr-2">
+        {/* <div className="flex sm:flex-col py-5 md:py-0 md:flex-row md:ml-auto gap-2 mr-2">
           <Sheet>
             <SheetTrigger asChild>
               <Button className="bg-gradient-to-r px-3 py-2 rounded-xl from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white w-full md:ml-5 cursor-pointer">
@@ -530,9 +531,9 @@ export default function CRM() {
               </SheetHeader>
             </SheetContent>
           </Sheet>
-        </div>
+        </div> */}
 
-        <Sheet>
+        {/* <Sheet>
           <SheetTrigger asChild>
             <Button className="bg-gradient-to-r px-3 py-2 rounded-xl from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white md:ml-5">
               Add New {activeTab}
@@ -570,7 +571,7 @@ export default function CRM() {
               </SheetDescription>
             </SheetHeader>
           </SheetContent>
-        </Sheet>
+        </Sheet> */}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -610,7 +611,105 @@ export default function CRM() {
           icon={DollarSign}
         />
       </div>
+      {/* 🔍 SEARCH BAR (NOW ABOVE) */}
+      <Card className="backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
+        <CardContent>
+          <div className="flex w-full gap-3 flex-col md:flex-row justify-between items-center h-auto">
+            {/* Search */}
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+              <Input
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white dark:bg-slate-800/50 border-black/20 dark:border-slate-700/50"
+              />
+            </div>
 
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="bg-white dark:bg-slate-800/50 border-black/20 cursor-pointer dark:border-slate-700/50 w-full md:w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All statuses">All statuses</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Upload CSV Button */}
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button className="bg-gradient-to-r px-3 py-2 rounded-xl from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white w-full md:w-auto cursor-pointer whitespace-nowrap">
+                  Upload {activeTab} CSV
+                </Button>
+              </SheetTrigger>
+
+              <SheetContent className="space-y-6 overflow-y-auto min-h-[80vh] backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 mb-6">
+                <SheetHeader>
+                  <SheetTitle>Upload {activeTab} CSV</SheetTitle>
+                  <SheetDescription>
+                    <>{/* keep your existing content here */}</>
+                  </SheetDescription>
+                </SheetHeader>
+              </SheetContent>
+            </Sheet>
+            
+
+          
+
+            {/* Add New Button */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button className="bg-gradient-to-r px-3 py-2 rounded-xl from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white w-full md:w-auto whitespace-nowrap">
+                  Add New {activeTab}
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 mb-6">
+                <SheetHeader>
+                  <SheetTitle>Add New {activeTab}</SheetTitle>
+                  <SheetDescription>
+                    <>
+                      {activeTab === "Customers" && (
+                        <CustomerForm
+                          session={session}
+                          fetchCustomers={fetchCustomers}
+                          setCustomersData={setCustomersData}
+                        />
+                      )}
+                      {activeTab === "Leads" && (
+                        <LeadForm
+                          session={session}
+                          fetchDeals={fetchDeals}
+                          fetchLeads={fetchLeads}
+                          setLeadsData={setLeadsData}
+                        />
+                      )}
+                      {activeTab === "Deals" && (
+                        <DealForm
+                          fetchDeals={fetchDeals}
+                          session={session}
+                          products={products}
+                          setDealsData={setDealsData}
+                        />
+                      )}
+                    </>
+                  </SheetDescription>
+                </SheetHeader>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </CardContent>
+      </Card>
+      {/* 🔥 TABS BELOW */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(e) => {
+          setActiveTab(e);
+          sessionStorage.setItem("activeTab", e);
+        }}
+        className="space-y-6"
+      ></Tabs>
       <Tabs
         value={activeTab}
         onValueChange={(e) => {
@@ -619,108 +718,63 @@ export default function CRM() {
         }}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-3 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border border-white/20">
+        <TabsList className="flex gap-3 w-full bg-transparent border-none">
+          <TabsTrigger
+            value="Leads"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl font-medium
+    data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-700 data-[state=active]:to-teal-500
+    data-[state=active]:text-white
+    bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300
+    hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
+          >
+            <TrendingUp className="w-4 h-4" />
+            Leads
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="Deals"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl font-medium
+    data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-700 data-[state=active]:to-teal-500
+    data-[state=active]:text-white
+    bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300
+    hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
+          >
+            <DollarSign className="w-4 h-4" />
+            Deals
+          </TabsTrigger>
+
           <TabsTrigger
             value="Customers"
-            className="flex items-center space-x-2"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl font-medium
+    data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-700 data-[state=active]:to-teal-500
+    data-[state=active]:text-white
+    bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300
+    hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
           >
             <Users className="w-4 h-4" />
-            <span>Customers</span>
-          </TabsTrigger>
-          <TabsTrigger value="Leads" className="flex items-center space-x-2">
-            <TrendingUp className="w-4 h-4" />
-            <span>Leads</span>
-          </TabsTrigger>
-          <TabsTrigger value="Deals" className="flex items-center space-x-2">
-            <DollarSign className="w-4 h-4" />
-            <span>Deals</span>
+            Customers
           </TabsTrigger>
         </TabsList>
 
-        <Card className="backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
-          <CardContent>
-            <div className="flex w-full gap-5 flex-col md:flex-row justify-between items-center h-auto">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
-                <Input
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 max-w-[60vh] bg-white dark:bg-slate-800/50 border-black/20 dark:border-slate-700/50"
-                />
-              </div>
-              <div className="flex w-full justify-end">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="bg-white dark:bg-slate-800/50 border-black/20 cursor-pointer dark:border-slate-700/50">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All statuses">All statuses</SelectItem>
-                    {activeTab === "Customers" ? (
-                      <>
-                        {customerStatus.map((state, index) => (
-                          <SelectItem key={index} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </>
-                    ) : activeTab === "Leads" ? (
-                      <>
-                        {leadStatus.map((state, index) => (
-                          <SelectItem key={index} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </>
-                    ) : (
-                      <>
-                        {dealStatus.map((state, index) => (
-                          <SelectItem key={index} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50">
-                  <SelectValue placeholder="Filter by source" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All sources">All sources</SelectItem>
-                  {leadSources.map((source, index) => (
-                    <SelectItem key={index} value={source}>
-                      {source}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
-                <SelectTrigger className="bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50">
-                  <SelectValue placeholder="Filter by month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {monthFilters.map((month, index) => (
-                    <SelectItem key={index} value={month}>
-                      {month}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> */}
-            </div>
-          </CardContent>
-        </Card>
-
         <TabsContent value="Customers" className="space-y-6">
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-4">
             {customersData
-              .filter(
-                (customer) =>
+              .filter((customer) => {
+                const matchesStatus =
                   statusFilter === "All statuses" ||
-                  customer.status === statusFilter
-              )
+                  customer.status === statusFilter;
+
+                const matchesSearch =
+                  customer.name
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                  customer.email
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                  customer.number?.toString().includes(searchTerm);
+
+                return matchesStatus && matchesSearch;
+              })
               .map((customer) => (
                 <CustomerCard
                   key={customer.id}
@@ -732,13 +786,22 @@ export default function CRM() {
         </TabsContent>
 
         <TabsContent value="Leads" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-4">
             {leadsData
-              .filter(
-                (lead) =>
+              .filter((lead) => {
+                const matchesStatus =
                   statusFilter === "All statuses" ||
-                  lead.status === statusFilter
-              )
+                  lead.status === statusFilter;
+
+                const matchesSearch =
+                  lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  lead.email
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                  lead.number?.toString().includes(searchTerm);
+
+                return matchesStatus && matchesSearch;
+              })
               .map((lead) => (
                 <LeadCard
                   key={lead.id}
@@ -752,13 +815,23 @@ export default function CRM() {
         </TabsContent>
 
         <TabsContent value="Deals" className="space-y-6">
-          <div className="grid grid-cols-1  md:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-4">
             {dealsData
-              .filter(
-                (deal) =>
+              .filter((deal) => {
+                const matchesStatus =
                   statusFilter === "All statuses" ||
-                  deal.status === statusFilter
-              )
+                  deal.status === statusFilter;
+
+                const matchesSearch =
+                  deal.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  deal.email
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                  deal.number?.toString().includes(searchTerm) ||
+                  deal.title?.toLowerCase().includes(searchTerm.toLowerCase());
+
+                return matchesStatus && matchesSearch;
+              })
               .map((deal) => (
                 <DealCard
                   key={deal.id}

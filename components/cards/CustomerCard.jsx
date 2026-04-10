@@ -106,8 +106,7 @@ export default function CustomerCard({ customer, onChange }) {
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-start mt-4 gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-            <div className="gap-6 flex w-full justify-between">
+<div className="flex flex-col items-start mt-4 gap-3 transition-opacity">            <div className="gap-6 flex w-full justify-between">
               <div>
                 <Dialog>
                   <DialogTrigger asChild>

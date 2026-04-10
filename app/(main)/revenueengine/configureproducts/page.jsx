@@ -196,157 +196,32 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen relative">
-      <div className="flex flex-col md:flex-row justify-between w-full gap-6 items-center ">
-        <div>
-          <h1 className="text-3xl font-bold text-start ">
-            Configure Your Products.
-          </h1>
-          <p className="text-start text-slate-800 text-md">
-            {" "}
-            Make sure to have the right plan for your needs.
-          </p>
-        </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-500 hover:bg-blue-600 text-white cursor-pointer">
-              Add New Product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 bg-white/70 mb-6">
-            <DialogTitle>Add New Product</DialogTitle>
-            <DialogDescription>
-              Please fill in the details of the new product you want to add.
-            </DialogDescription>
-            <div className="flex flex-col gap-4 py-4">
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="name">Product Name</Label>
-                <Input
-                  id="name"
-                  value={newProduct.name}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="description">Product Description</Label>
-                <Input
-                  id="description"
-                  value={newProduct.description}
-                  onChange={(e) =>
-                    setNewProduct({
-                      ...newProduct,
-                      description: e.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="stock">Product Stock</Label>
-                <Input
-                  id="stock"
-                  value={newProduct.stock}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, stock: e.target.value })
-                  }
-                />
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="category">Product Category</Label>
-                <Input
-                  id="category"
-                  value={newProduct.category}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, category: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label className="mb-2 text-slate-700 dark:text-slate-300">
-                  Base Price
-                </Label>
-                <div className="flex flex-col gap-2 ">
-                  <div className="flex mt-2 gap-2">
-                    <Label className="mb-2 text-slate-700 dark:text-slate-300 w-1/5">
-                      Currency
-                    </Label>
-                    <CurrencyDropDown
-                      value={newProduct.currency}
-                      onValueChange={(value) =>
-                        setNewProduct((prev) => ({
-                          ...prev,
-                          currency: value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="flex mt-2 gap-2">
-                    <Label className="mb-2 text-slate-700 dark:text-slate-300 w-1/5">
-                      Monetary Value
-                    </Label>
-                    <Input
-                      value={newProduct.price}
-                      onChange={(e) =>
-                        setNewProduct((prev) => ({
-                          ...prev,
-                          price: e.target.value,
-                        }))
-                      }
-                      className={`bg-white/70 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50 text-slate-900 dark:text-white ${
-                        errors.newProduct.price ? "border-red-500" : ""
-                      } w-1/2`}
-                      placeholder="e.g., 99 or 99.99"
-                    />
-                  </div>
-                  <div className="flex mt-2">
-                    <Label className="mb-2 text-slate-700 dark:text-slate-300 w-1/5">
-                      Billing Cycle
-                    </Label>
-                    <BillingCycleSelect
-                      value={newProduct.billingCycle}
-                      onChange={(value) =>
-                        setNewProduct((prev) => ({
-                          ...prev,
-                          billingCycle: value,
-                        }))
-                      }
-                      className=" bg-white/70 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50 text-slate-900 dark:text-white"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label htmlFor="isConfigurable">
-                  Enable Product Configuration
-                </Label>
-                <div className="flex items-center">
-                  <Switch
-                    id="isConfigurable"
-                    checked={newProduct.isConfigurable}
-                    onCheckedChange={(checked) =>
-                      setNewProduct((prev) => ({
-                        ...prev,
-                        isConfigurable: checked,
-                      }))
-                    }
-                  />
-                  <span className="ml-2">
-                    {newProduct.isConfigurable ? "Enabled" : "Disabled"}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                className="bg-blue-500 hover:bg-blue-600 text-white"
-                onClick={addProduct}
-              >
-                Add Product
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+     <div className="flex flex-col md:flex-row justify-between w-full gap-6 items-center">
+
+  {/* LEFT SIDE */}
+  <div>
+    <h1 className="text-3xl font-bold text-start">
+      Configure Your Products.
+    </h1>
+    <p className="text-start text-slate-800 text-md">
+      Make sure to have the right plan for your needs.
+    </p>
+  </div>
+
+  {/* RIGHT SIDE */}
+  <div className="flex items-center gap-4">
+
+    {/* EXISTING BUTTON */}
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="bg-blue-500 hover:bg-blue-600 text-white cursor-pointer">
+          Add New Product
+        </Button>
+      </DialogTrigger>
+    </Dialog>
+
+  </div>
+</div>
       <div className="mt-10 relative">
         {products.map((product, index) => (
           <Card
