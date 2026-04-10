@@ -10,16 +10,21 @@ key = os.environ.get("SUPABASE_KEY")
 supabase = create_client(url, key)
 
 def get_users():
-    """Fetch all users from the database.
-    Returns:
-        list: A list of users with their details.
-    """
-    try:
-        response = supabase.table("Users").select("*").execute()
-        return response.data
-    except Exception as e:
-        print(e)
-        return []
+    return [get_user_by_email("kikuu737@gmail.com")]
+    # """Fetch all users from the database.
+    # Returns:
+    #     list: A list of users with their details.
+    # """
+    # try:
+    #     response = supabase.table("Users").select("*").execute()
+    #     return response.data
+    # except Exception as e:
+    #     print(e)
+    #     return []
+    
+def get_user_by_email(email):
+    response = supabase.table("Users").select("*").eq("email", email).execute()
+    return response.data[0] if response.data else None    
 
 def addLeads(email, message, status, user_email, content= None, type="customer"):
     try:

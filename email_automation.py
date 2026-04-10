@@ -36,10 +36,28 @@ def clean_email_body(body, assistant_email):
 
     return body
 
+def is_junk(email_data):
+    sender = (email_data.get('from') or "").lower()
+    subject = (email_data.get('subject') or "").lower()
+
+    junk_keywords = [
+        "newsletter", "no-reply", "noreply",
+        "jobs", "webinar", "unsubscribe",
+        "notification", "alert", "glassdoor",
+        "linkedin", "simplilearn"
+    ]
+
+    if any(k in sender for k in junk_keywords):
+        return True
+    if any(k in subject for k in junk_keywords):
+        return True
+
+    return False
+
 
 def fetch_unseen_emails(service, assistant_email):
     results = service.users().messages().list(userId="me", labelIds=["INBOX"], q="is:unread").execute()
-    messages = results.get("messages", [])
+    messages = results.get("messages", [])[:5]
 
     new_messages = []
 
@@ -83,7 +101,6 @@ def formatProduct(product):
         out += f"Product {i}) {p['name']} : {p['description']}\n"
     return out
 
-
 def monitor_emails(refresh_token, client_id, client_secret, user):
     """
     Monitor unseen emails using Gmail API (OAuth2).
@@ -99,33 +116,100 @@ def monitor_emails(refresh_token, client_id, client_secret, user):
         client_id=client_id,
         client_secret=client_secret,
         token_uri="https://oauth2.googleapis.com/token",
-        scopes=["https://www.googleapis.com/auth/gmail.modify"]
+        scopes=["https://mail.google.com/"]
     )
 
     service = build("gmail", "v1", credentials=creds)
     new_emails = fetch_unseen_emails(service, user["email"])
+    
+    
+    import time
 
-    for email_data in new_emails:
-        print(f"New email from {email_data['from']}")
+    for i, email_data in enumerate(new_emails, start=1):
 
+        print("\n==============================")
+        print(f"📩 Email #{i}")
+        print(f"From: {email_data['from']}")
+        print(f"Subject: {email_data['subject']}")
+        print("==============================")
+
+        # 🚫 STEP 1: Skip junk emails
+        if is_junk(email_data):
+            print("🚫 Skipping junk email")
+            continue
+
+        # 🔁 STEP 2: Check existing lead
         user_lead = get_lead_with_email(user['email'], email=email_data['from'])
+
         if user_lead:
+            print("🔁 Existing lead → updating")
+
             addLeads(
                 email=email_data['from'],
                 message=email_data['body'],
                 status="Contacted",
                 user_email=user['email']
             )
+
             response_leads(refresh_token)
-            print("User lead found.")
+            continue
+
+        # 🧠 STEP 3: Run LLM (LIMITED)
+        if i > 3:
+            print("⛔ Skipping remaining emails (quota protection)")
+            break
+
+        print("🧠 Running LLM analysis...")
+
+        result = analyze_email(
+            f"Subject: {email_data['subject']}\nBody: {email_data['body']}",
+            user['companyDescription'],
+            formatProduct(user['products'])
+        )
+
+        print("LLM RESULT →")
+        print("Is Lead:", result.get("is_lead"))
+        print("Confidence:", result.get("confidence"))
+
+        if result.get("is_lead"):
+            print("✅ Lead detected → saving")
+
+            addLeads(
+                email=email_data['from'],
+                message=email_data['body'],
+                status="New",
+                user_email=user['email'],
+                content=result["extracted_content"]
+            )
+
+            response_leads(refresh_token)
         else:
-            result = analyze_email(f"Subject: {email_data['subject']}\nBody: {email_data['body']}", user['companyDescription'], formatProduct(user['products']))
-            if result["is_lead"]:
-                addLeads(
-                    email=email_data['from'],
-                    message=email_data['body'],
-                    status="New",
-                    user_email=user['email'],
-                    content=result["extracted_content"]
-                )
-                response_leads(refresh_token)
+            print("❌ Not a lead")
+
+        # ⏳ STEP 4: Delay (VERY IMPORTANT)
+        time.sleep(12)
+
+    # for email_data in new_emails:
+    #     print(f"New email from {email_data['from']}")
+
+    #     user_lead = get_lead_with_email(user['email'], email=email_data['from'])
+    #     if user_lead:
+    #         addLeads(
+    #             email=email_data['from'],
+    #             message=email_data['body'],
+    #             status="Contacted",
+    #             user_email=user['email']
+    #         )
+    #         response_leads(refresh_token)
+    #         print("User lead found.")
+    #     else:
+    #         result = analyze_email(f"Subject: {email_data['subject']}\nBody: {email_data['body']}", user['companyDescription'], formatProduct(user['products']))
+    #         if result["is_lead"]:
+    #             addLeads(
+    #                 email=email_data['from'],
+    #                 message=email_data['body'],
+    #                 status="New",
+    #                 user_email=user['email'],
+    #                 content=result["extracted_content"]
+    #             )
+    #             response_leads(refresh_token)

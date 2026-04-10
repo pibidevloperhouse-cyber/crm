@@ -205,7 +205,7 @@ def send_email(refresh_token,to_email, subject, body, from_email):
             client_id=os.getenv("GOOGLE_CLIENT_ID"),
             client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
             token_uri="https://oauth2.googleapis.com/token",
-            scopes=["https://www.googleapis.com/auth/gmail.send"]
+            scopes=["https://mail.google.com/"]
         )
 
     service = build("gmail", "v1", credentials=creds)

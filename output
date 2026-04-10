@@ -1,0 +1,138 @@
+PS F:\crm> python app.py
+Starting scheduler...
+C:\Users\dhanu\AppData\Local\Programs\Python\Python311\Lib\site-packages\apscheduler\util.py:113: PytzUsageWarning: The zone attribute is specific to pytz's interface; please migrate to a new time zone provider. For more details on how to do so, see https://pytz-deprecation-shim.readthedocs.io/en/latest/migration.html
+  elif hasattr(obj, "zone"):
+C:\Users\dhanu\AppData\Local\Programs\Python\Python311\Lib\site-packages\apscheduler\util.py:115: PytzUsageWarning: The zone attribute is specific to pytz's interface; please migrate to a new time zone provider. For more details on how to do so, see https://pytz-deprecation-shim.readthedocs.io/en/latest/migration.html
+  if obj.zone:
+C:\Users\dhanu\AppData\Local\Programs\Python\Python311\Lib\site-packages\apscheduler\util.py:116: PytzUsageWarning: The zone attribute is specific to pytz's interface; please migrate to a new time zone provider. For more details on how to do so, see https://pytz-deprecation-shim.readthedocs.io/en/latest/migration.html
+  return ZoneInfo(obj.zone)
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+CRMBot is running...
+Monitoring emails for kikuu737@gmail.com
+
+==============================
+📩 Email #1
+From: Simplilearn Webinars  <updates@simplilearnmailer.com>
+Subject: Follow a Live Predictive Dashboard Build
+==============================
+🚫 Skipping junk email
+
+==============================
+📩 Email #2
+From: Kaggle <no-reply@kaggle.com>
+Subject: Hackathon Launch: The Gemma 4 Good Hackathon
+==============================
+🚫 Skipping junk email
+
+==============================
+📩 Email #3
+From: Roboflow <hello@roboflow.com>
+Subject: Gemini 3.1 Pro vs Claude Opus 4.6
+==============================
+🧠 Running LLM analysis...
+LLM RESULT →
+Is Lead: False
+Confidence: 1.0
+❌ Not a lead
+
+==============================
+📩 Email #4
+From: Towards Data Science <newsletter@towardsdatascience.com>
+Subject: March Must-Reads: Claude Skills, Contextual RAG, and More
+==============================
+🚫 Skipping junk email
+CRMBot is running...
+Monitoring emails for kikuu737@gmail.com
+
+==============================
+📩 Email #1
+From: Glassdoor Jobs <noreply@glassdoor.com>
+Subject: SDE2 at Amazon and 12 more jobs in Bengaluru for you. Apply Now.
+==============================
+🚫 Skipping junk email
+
+==============================
+📩 Email #2
+From: The LangChain Team <hello@langchain.dev>
+Subject: [March] NVIDIA integration, Interrupt 2026 speakers, LangSmith Fleet, and more
+==============================
+🧠 Running LLM analysis...
+LLM RESULT →
+Is Lead: False
+Confidence: 1.0
+❌ Not a lead
+
+==============================
+📩 Email #3
+From: Victor Coisne <victor.coisne@strapi.io>
+Subject: Strapi Logbook - Q1 releases, n8n, ISR Revalidation and more! 
+==============================
+🧠 Running LLM analysis...
+Retrying langchain_google_genai.chat_models._chat_with_retry.<locals>._chat_with_retry in 2.0 seconds as it raised ResourceExhausted: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 14.820847263s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 14
+}
+].
+Error analyzing email: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash
+Please retry in 12.267454248s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 20
+}
+, retry_delay {
+  seconds: 12
+}
+]
+LLM RESULT →
+Is Lead: False
+Confidence: 0.0
+❌ Not a lead
+
+==============================
+📩 Email #4
+From: Towards Data Science <newsletter@towardsdatascience.com>
+Subject: TDS Daily | April 1
+==============================
+🚫 Skipping junk email
+
+==============================
+📩 Email #5
+From: The Code <thecode@mail.joinsuperhuman.ai>
+Subject: ⚡ Anthropic leaks Claude Code by accident
+==============================
+⛔ Skipping remaining emails (quota protection)

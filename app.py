@@ -27,11 +27,11 @@ scheduler = BackgroundScheduler()
 def start_scheduler():
     print("Starting scheduler...")
     try:
-        scheduler.add_job(CRMBot, 'interval', minutes=1)  
+        scheduler.add_job(CRMBot, 'interval', minutes=3)  
         scheduler.start()
     except Exception as e:
         print(f"Error starting scheduler: {e}")
-
+CRMBot()
 start_scheduler()
 
 if __name__ == '__main__':
