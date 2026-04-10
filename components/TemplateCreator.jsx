@@ -523,13 +523,6 @@ export default function TemplateCreator() {
                           </div>
                         )}
 
-                        {t.header_image_url && (
-                          <img
-                            src={t.header_image_url}
-                            alt="Header"
-                            className="w-32 h-20 object-cover rounded border"
-                          />
-                        )}
                         <div className="flex-1">
                           <p className="font-semibold">{t.name}</p>
                           <p className="text-xs text-gray-500">
