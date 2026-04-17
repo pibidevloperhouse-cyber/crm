@@ -78,11 +78,10 @@ def is_junk(email_data: dict) -> bool:
         k in subject for k in JUNK_KEYWORDS
     )
 
-
 def fetch_unseen_emails(service, assistant_email: str) -> list:
     """
-    Fetch ALL unread emails, sorted by newest first.
-    No artificial limit (removes the old [:15]).
+    Fetch ALL unread and read emails, sorted by newest first.
+    Limit to 6 valid emails.
     """
     results = (
         service.users()
@@ -90,8 +89,7 @@ def fetch_unseen_emails(service, assistant_email: str) -> list:
         .list(
             userId="me",
             labelIds=["INBOX"],
-            q="is:unread",
-            maxResults=20,  # You can increase to 100 if you get 50+ emails at once
+            maxResults=50,  # Fetch a larger batch to account for skipped emails
         )
         .execute()
     )
@@ -101,6 +99,9 @@ def fetch_unseen_emails(service, assistant_email: str) -> list:
     new_messages = []
 
     for msg in messages:  # Gmail already returns newest → oldest
+        if len(new_messages) >= 6:
+            break
+            
         m = service.users().messages().get(userId="me", id=msg["id"]).execute()
         headers = m["payload"].get("headers", [])
 

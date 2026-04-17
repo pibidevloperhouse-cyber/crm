@@ -4,6 +4,14 @@ from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning, module="apscheduler")
+try:
+    from pytz_deprecation_shim import PytzUsageWarning
+    warnings.filterwarnings("ignore", category=PytzUsageWarning)
+except ImportError:
+    pass
 
 from database import get_users, get_leads
 from email_automation import monitor_emails
@@ -33,21 +41,9 @@ def add_log(msg):
 # ====================== PAGES ======================
 @app.route("/")
 def dashboard():
-    return render_template("index.html")
+    return jsonify({"status": "CRM Server Running 🚀", "frontend": "Next.js"})
 
-
-@app.route("/detail/lead/<int:lead_id>")
-def lead_detail(lead_id):
-    try:
-        # Fetch lead details
-        response = supabase.table("Leads").select("*").eq("id", lead_id).execute()
-        lead = response.data[0] if response.data else None
-    except Exception as e:
-        add_log(f"Error fetching lead details: {e}")
-        lead = None
-
-    # Render the detail page with lead details
-    return render_template("detail.html", lead_id=lead_id, lead=lead)
+# Removed lead_detail HTML endpoint as UI is migrating to Next.js
 
 
 # ====================== API ======================
@@ -72,6 +68,22 @@ def api_logs():
     return jsonify(logs[-150:])
 
 
+@app.route("/api/logs/stream")
+def stream_logs():
+    def generate():
+        last_idx = 0
+        while True:
+            import time
+            if len(logs) > last_idx:
+                for idx in range(last_idx, len(logs)):
+                    yield f"data: {logs[idx]}\n\n"
+                last_idx = len(logs)
+            time.sleep(1)
+            
+    from flask import Response
+    return Response(generate(), mimetype="text/event-stream")
+
+
 # ====================== BOT ======================
 def crm_bot():
     add_log("\n🤖 CRMBot triggered...")
@@ -94,9 +106,9 @@ scheduler = BackgroundScheduler()
 
 
 def start_scheduler():
-    add_log("⏰ Starting scheduler (every 3 minutes)...")
+    add_log("⏰ Starting scheduler (every 2 minutes)...")
     try:
-        scheduler.add_job(crm_bot, "interval", minutes=3)
+        scheduler.add_job(crm_bot, "interval", minutes=2)
         scheduler.start()
         add_log("✅ Scheduler started")
     except Exception as e:

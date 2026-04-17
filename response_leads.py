@@ -94,27 +94,55 @@ def send_email(refresh_token, to_email, subject, body, sender_email):
 
 
 def format_html_email(
-    subject: str, body: str, company_name: str, company_number: str
+    subject: str, 
+    body: str, 
+    company_name: str, 
+    company_number: str, 
+    company_logo: str = None, 
+    company_address: str = None, 
+    company_website: str = None
 ) -> str:
+    # Build Header Content
+    logo_html = f'<img src="{company_logo}" alt="{company_name} Logo" style="max-height: 50px; margin-bottom: 10px;"/><br>' if company_logo else ''
+    header_html = f"""
+        {logo_html}
+        <h2 style="margin: 0;">{company_name}</h2>
+    """
+
+    # Build Footer Content
+    address_html = f"{company_address}<br>" if company_address else ""
+    website_html = f'<a href="{company_website}" style="color: #4CAF50;">{company_website}</a><br>' if company_website else ""
+    
+    footer_html = f"""
+        {address_html}
+        {website_html}
+        Phone: {company_number}<br>
+        <br>
+        <span style="font-size: 10px; color: #aaa;">This email was sent by your AI Sales Assistant.</span>
+    """
+
     return f"""
     <html>
     <head>
         <style>
-            body {{font-family: Arial, sans-serif; line-height: 1.6; color: #333;}}
-            .header {{background: #2c3e50; color: white; padding: 20px; text-align: center;}}
-            .body {{padding: 30px;}}
-            .footer {{font-size: 12px; color: #777; margin-top: 30px; text-align: center;}}
+            body {{font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; padding: 20px;}}
+            .email-container {{max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;}}
+            .header {{background: #fdfdfd; border-bottom: 1px solid #eee; padding: 20px; text-align: center; color: #333;}}
+            .body {{padding: 30px; font-size: 15px;}}
+            .footer {{background: #fafafa; border-top: 1px solid #eee; padding: 20px; font-size: 12px; color: #777; text-align: center; line-height: 1.8;}}
         </style>
     </head>
     <body>
-        <div class="header">
-            <h2>{company_name}</h2>
-            <p>Professional Reply • AI Sales Assistant</p>
-        </div>
-        <div class="body">{body}</div>
-        <div class="footer">
-            This email was sent automatically by your CRM AI Assistant.<br>
-            Questions? Reply directly or call {company_number}
+        <div class="email-container">
+            <div class="header">
+                {header_html}
+            </div>
+            <div class="body">
+                {body}
+            </div>
+            <div class="footer">
+                {footer_html}
+            </div>
         </div>
     </body>
     </html>
@@ -146,10 +174,13 @@ def generate_and_send_reply(
     ).model_dump()
 
     html_body = format_html_email(
-        response["subject"],
-        response["body"],
-        user.get("companyName", ""),
-        user.get("companyNumber", ""),
+        subject=response["subject"],
+        body=response["body"],
+        company_name=user.get("companyName", "Our Company"),
+        company_number=user.get("companyNumber", ""),
+        company_logo=user.get("logo_url", ""),
+        company_address=user.get("address", ""),
+        company_website=user.get("companyWebsite", "")
     )
 
     sent = send_email(
