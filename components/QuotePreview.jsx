@@ -336,11 +336,11 @@ function QuotePreview({ dealId, children }) {
 
                   {/* Header */}
                   {template?.header_image_url ? (
-                    <div className="w-full mb-6">
+                    <div className="w-full mb-6 h-[150px] overflow-hidden">
                       <img
                         src={template.header_image_url}
                         alt="Company Header"
-                        className="w-full h-auto object-contain max-h-[150px] mx-auto"
+                        className="w-full h-full object-cover"
                         crossOrigin="anonymous"
                       />
                     </div>
@@ -534,11 +534,11 @@ function QuotePreview({ dealId, children }) {
 
                   {/* Footer */}
                   {template?.footer_image_url ? (
-                    <div className="w-full mt-8">
+                    <div className="w-full mt-8 h-[120px] overflow-hidden">
                       <img
                         src={template.footer_image_url}
                         alt="Company Footer"
-                        className="w-full h-auto object-contain max-h-[120px] mx-auto"
+                        className="w-full h-full object-cover"
                         crossOrigin="anonymous"
                       />
                     </div>

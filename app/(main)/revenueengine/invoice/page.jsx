@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
-import QuotePreview from "@/components/QuotePreview";
+import InvoicePreview from "@/components/InvoicePreview";
 import { FileText, Package, DollarSign, Calendar, TrendingUp, Search, Filter, X, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
@@ -432,15 +432,15 @@ export default function PreviewQuotePage() {
                                             <div className="mt-12 flex items-center justify-end pt-6 border-t border-slate-100/80 dark:border-slate-800/50">
 
 
-                                                <QuotePreview dealId={deal.id}>
+                                                <InvoicePreview dealId={deal.id}>
                                                     <Button
                                                         className="bg-blue-900 dark:bg-white hover:bg-indigo-600 dark:hover:bg-indigo-100 text-white dark:text-slate-900 font-black px-8 h-12 rounded-2xl shadow-xl shadow-slate-200 dark:shadow-none transition-all active:scale-95 flex items-center gap-2 group/btn"
                                                     >
                                                         <FileText className="h-5 w-5 group-hover/btn:rotate-12 transition-transform" />
-                                                        PREVIEW QUOTE
+                                                        PREVIEW INVOICE
                                                         <ArrowRight className="h-4 w-4 opacity-0 group-hover/btn:opacity-100 -translate-x-2 group-hover/btn:translate-x-0 transition-all ml-1" />
                                                     </Button>
-                                                </QuotePreview>
+                                                </InvoicePreview>
                                             </div>
                                         </CardContent>
                                     </Card>
