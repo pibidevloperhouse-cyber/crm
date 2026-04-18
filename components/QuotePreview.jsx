@@ -1,3 +1,4 @@
+//quote preview
 "use client";
 
 import { useState } from "react";
@@ -19,6 +20,21 @@ function QuotePreview({ dealId, children }) {
   const [deal, setDeal] = useState(null);
   const [loading, setLoading] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [template, setTemplate] = useState(null);
+
+  const subtotal =
+    deal?.products?.reduce((sum, _, i) => {
+      return (
+        sum +
+        Number(deal.value?.[i] || 0) *
+        Number(deal.quantity?.[i] || 1)
+      );
+    }, 0) || 0;
+
+
+  const taxRate = 0.0625;
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
 
   const handlePreview = async () => {
     setOpen(true);
@@ -29,18 +45,37 @@ function QuotePreview({ dealId, children }) {
     if (!dealId) return;
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("Deals")
-      .select("*")
-      .eq("id", dealId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("Deals")
+        .select("*")
+        .eq("id", dealId)
+        .single();
 
-    if (error) {
-      console.error("Error fetching deal:", error);
-    } else {
-      setDeal(data);
+      if (error) {
+        console.error("Error fetching deal:", error);
+      } else {
+        setDeal(data);
+      }
+
+      // Fetch the latest template to get header/footer images
+      const { data: templateData, error: templateError } = await supabase
+        .from("quote_templates")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (templateError) {
+        console.error("Error fetching template:", templateError);
+      } else {
+        setTemplate(templateData);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching data:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   /* IMPROVED PDF DOWNLOAD HANDLER */
@@ -60,54 +95,59 @@ function QuotePreview({ dealId, children }) {
         return;
       }
 
-      // Add loading state
       toast.info("Generating PDF, please wait...");
 
-      // Force a reflow to ensure content is properly rendered
-      element.style.display = "block";
+      // Small delay for stability and DOM settling
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 1.5, // Slightly lower for better memory reliability
         useCORS: true,
-        logging: true,
+        allowTaint: false,
+        logging: true, // Keep logging enabled to catch errors in dev console
         backgroundColor: "#ffffff",
-        allowTaint: true,
-        width: element.scrollWidth,
-        height: element.scrollHeight,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
+        // Optional onclone to ensure visibility
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById("quote-pdf-content");
+          if (clonedElement) {
+            clonedElement.style.visibility = "visible";
+            clonedElement.style.display = "block";
+          }
+        }
       });
 
-      const imgData = canvas.toDataURL("image/png", 1.0);
+      // Using JPEG with quality 0.8 can be more memory efficient than PNG for large canvases
+      const imgData = canvas.toDataURL("image/jpeg", 0.8);
       const pdf = new jsPDF("p", "mm", "a4");
 
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      // Check if content fits on one page, otherwise add multiple pages
-      let heightLeft = pdfHeight;
+      let heightLeft = imgHeight;
       let position = 0;
 
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pdf.internal.pageSize.getHeight();
+      // Add the first page
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
 
-      // Add additional pages if content is too long
-      while (heightLeft >= 0) {
-        position = heightLeft - pdfHeight;
+      // Add extra pages if needed
+      let pageCount = 1;
+      while (heightLeft > 0 && pageCount < 10) { // Limit to 10 pages for safety
+        position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+        pageCount++;
       }
 
-      // Save the PDF
       pdf.save(`Quote-${dealId}-${new Date().getTime()}.pdf`);
-
       toast.success("PDF downloaded successfully!");
     } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF. Please try again.");
+      console.error("PDF generation detailed error:", error);
+      toast.error(`PDF Error: ${error.message || "Unknown error"}. Try again.`);
     } finally {
       setGeneratingPDF(false);
     }
@@ -291,166 +331,231 @@ function QuotePreview({ dealId, children }) {
           ) : (
             <div className="mt-6 space-y-6">
               {/* PDF Content */}
-              <div
-                id="quote-pdf-content"
-                className="space-y-6 text-sm w-[800px] mx-auto p-6 bg-white border border-gray-200"
-                style={{ display: "block" }}
-              >
-                {/* Company Info */}
-                <div className="flex justify-between">
-                  <div>
-                    <p className="font-bold text-lg">
-                      {deal.title || "[Company Name]"}
-                    </p>
-                    <p>{deal.address || "[Street Address]"}</p>
-                    <p>{deal.city || "[City, ST ZIP]"}</p>
-                    <p>Phone: {deal.number || "(000) 000-0000"}</p>
-                    <p>Email: {deal.email || "company@email.com"}</p>
+              <div className="bg-white min-h-screen p-10 flex justify-center">
+                <div id="quote-pdf-content" className="bg-white w-[900px] p-8 shadow-md text-gray-900 border">
+
+                  {/* Header */}
+                  {template?.header_image_url ? (
+                    <div className="w-full mb-6">
+                      <img
+                        src={template.header_image_url}
+                        alt="Company Header"
+                        className="w-full h-auto object-contain max-h-[150px] mx-auto"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <div className="bg-blue-300 w-10 h-10 flex items-center justify-center text-xs font-bold text-black">
+                            LOGO
+                          </div>
+                          <h1 className="text-2xl font-bold text-blue-900">
+                            {deal.title || "Company Name"}
+                          </h1>
+                        </div>
+
+                        <div className="text-sm mt-3 leading-6 font-medium">
+                          <p>{deal.address || "[Street Address]"}</p>
+                          <p>{deal.city || "[City, ST ZIP]"}</p>
+                          <p>{deal.email || "[email]"}</p>
+                          <p>Website: {deal.website || "somedomain.com"}</p>
+                          <p>Phone: {deal.number || "[000-000-0000]"}</p>
+                          <p>Fax: {deal.fax || "[000-000-0000]"}</p>
+                          <p>Prepared by: {deal.salesperson || "[salesperson name]"}</p>
+                        </div>
+                      </div>
+
+                      {/* Quote Box */}
+                      <div className="text-right">
+                        <h2 className="text-3xl text-blue-800 font-bold mb-2">QUOTE</h2>
+                        <table className="text-sm border border-gray-700">
+                          <tbody>
+                            <tr>
+                              <td className="border border-gray-700 px-2 font-semibold">DATE</td>
+                              <td className="border border-gray-700 px-2">{deal.created_at
+                                ? new Date(deal.created_at).toLocaleDateString()
+                                : "N/A"}</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-gray-700 px-2 font-semibold">QUOTE #</td>
+                              <td className="border border-gray-700 px-2">{deal.id}</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-gray-700 px-2 font-semibold">CUSTOMER ID</td>
+                              <td className="border border-gray-700 px-2">{deal.customer_id || "N/A"}</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-gray-700 px-2 font-semibold">VALID UNTIL</td>
+                              <td className="border border-gray-700 px-2">{deal.valid_until
+                                ? new Date(deal.valid_until).toLocaleDateString()
+                                : "N/A"}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* If image exists, we still want to show the Quote Plate (Date, ID, etc) below the image if it's not and the customer info */}
+                  {template?.header_image_url && (
+                    <div className="flex justify-between mt-4">
+                      <div>
+                        {/* Optionally show text address here if preferred, but usually image header contains it */}
+                      </div>
+                      <div className="text-right">
+                        <h2 className="text-3xl text-blue-800 font-bold mb-2">QUOTE</h2>
+                        <table className="text-sm border border-gray-700">
+                          <tbody>
+                            <tr>
+                              <td className="border border-gray-700 px-2 font-semibold">DATE</td>
+                              <td className="border border-gray-700 px-2">{deal.created_at
+                                ? new Date(deal.created_at).toLocaleDateString()
+                                : "N/A"}</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-gray-700 px-2 font-semibold">QUOTE #</td>
+                              <td className="border border-gray-700 px-2">{deal.id}</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-gray-700 px-2 font-semibold">CUSTOMER ID</td>
+                              <td className="border border-gray-700 px-2">{deal.customer_id || "N/A"}</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-gray-700 px-2 font-semibold">VALID UNTIL</td>
+                              <td className="border border-gray-700 px-2">{deal.valid_until
+                                ? new Date(deal.valid_until).toLocaleDateString()
+                                : "N/A"}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Customer */}
+                  <div className="mt-6">
+                    <div className="bg-blue-900 text-white px-3 py-1 text-sm font-semibold">
+                      CUSTOMER
+                    </div>
+                    <div className="text-sm mt-2 leading-6 font-medium">
+                      <p>{deal.name}</p>
+                      <p>{deal.customer_company || "-"}</p>
+                      <p>{deal.customer_address || deal.address}</p>
+                    </div>
                   </div>
 
-                  <div className="text-right text-sm">
-                    <table className="border border-gray-300 text-xs w-[250px] mx-auto">
+                  {/* Table */}
+                  <table className="w-full mt-6 border border-gray-700 text-sm">
+                    <thead className="bg-blue-900 text-white">
+                      <tr>
+                        <th className="border border-gray-700 px-2 py-1 text-left">DESCRIPTION</th>
+                        <th className="border border-gray-700 px-2">UNIT PRICE</th>
+                        <th className="border border-gray-700 px-2">QTY</th>
+                        <th className="border border-gray-700 px-2">TAXED</th>
+                        <th className="border border-gray-700 px-2">AMOUNT</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deal.products?.length > 0 ? (
+                        deal.products.map((item, index) => {
+                          const qty = deal.quantity?.[index] || 1;
+                          const price = Number(deal.value?.[index]) || 0;
+                          const amount = qty * price;
+
+                          return (
+                            <tr key={index}>
+                              <td className="border px-2">{item}</td>
+                              <td className="border px-2 text-right">{price.toFixed(2)}</td>
+                              <td className="border px-2 text-center">{qty}</td>
+                              <td className="border px-2 text-center">-</td>
+                              <td className="border px-2 text-right">{amount.toFixed(2)}</td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan="5" className="text-center">No items</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+
+                  {/* Summary */}
+                  <div className="flex justify-end mt-4">
+                    <table className="text-sm w-64">
                       <tbody>
                         <tr>
-                          <td className="border px-2 py-1 font-semibold bg-gray-100">
-                            QUOTE #
-                          </td>
-                          <td className="border px-2 py-1">{deal.id}</td>
+                          <td className="font-medium">Subtotal</td>
+                          <td className="text-right">₹{subtotal.toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="border px-2 py-1 font-semibold bg-gray-100">
-                            DATE
-                          </td>
-                          <td className="border px-2 py-1">
-                            {new Date(deal.created_at).toLocaleDateString()}
-                          </td>
+                          <td className="font-medium">Taxable</td>
+                          <td className="text-right">₹{subtotal.toFixed(2)}</td>
                         </tr>
                         <tr>
-                          <td className="border px-2 py-1 font-semibold bg-gray-100">
-                            VALID UNTIL
-                          </td>
-                          <td className="border px-2 py-1">2/15/2025</td>
+                          <td className="font-medium">Tax rate</td>
+                          <td className="text-right">{(taxRate * 100).toFixed(2)}%</td>
+                        </tr>
+                        <tr>
+                          <td className="font-medium">Tax due</td>
+                          <td className="text-right">₹{tax.toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                          <td className="font-medium">Other</td>
+                          <td className="text-right">-</td>
+                        </tr>
+                        <tr className="font-bold border-t border-gray-700">
+                          <td>TOTAL</td>
+                          <td className="text-right">₹{total.toFixed(2)}</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
-                </div>
 
-                {/* Customer Info */}
-                <div>
-                  <h3 className="font-semibold bg-gray-100 px-2 py-1 border border-gray-300">
-                    CUSTOMER INFO
-                  </h3>
-                  <div className="p-2 border border-gray-300 border-t-0">
-                    <p className="font-medium">
-                      {deal.name || "[Customer Name]"}
-                    </p>
-                    <p>{deal.address || "[Customer Address]"}</p>
-                    <p>{deal.user_email || "[Customer Email]"}</p>
-                  </div>
-                </div>
+                  {/* Terms */}
+                  <div className="mt-6">
+                    <div className="bg-blue-900 text-white px-3 py-1 text-sm font-semibold">
+                      TERMS AND CONDITIONS
+                    </div>
+                    <div className="text-sm mt-2 space-y-1 font-medium">
+                      <p>1. Customer will be billed after indicating acceptance of this quote</p>
+                      <p>2. Payment will be due prior to delivery of service and goods</p>
+                      <p>3. Please fax or mail the signed price quote to the address above</p>
+                    </div>
 
-                {/* Description */}
-                <div>
-                  <h3 className="font-semibold bg-gray-100 px-2 py-1 border border-gray-300">
-                    DESCRIPTION OF WORK
-                  </h3>
-                  <div className="p-2 min-h-20 border border-gray-300 border-t-0">
-                    {deal.description || "Provide project details here..."}
-                  </div>
-                </div>
-
-                {/* Itemized Cost Table */}
-                <div>
-                  <h3 className="font-semibold bg-gray-100 px-2 py-1 border border-gray-300">
-                    ITEMIZED COSTS
-                  </h3>
-
-                  <table className="w-full border border-gray-300 text-sm">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="border border-gray-300 px-2 py-1 text-left">
-                          ITEM
-                        </th>
-                        <th className="border border-gray-300 px-2 py-1">
-                          QTY
-                        </th>
-                        <th className="border border-gray-300 px-2 py-1">
-                          UNIT PRICE
-                        </th>
-                        <th className="border border-gray-300 px-2 py-1">
-                          AMOUNT
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {deal.products?.map((item, index) => (
-                        <tr key={index}>
-                          <td className="border border-gray-300 px-2 py-1">
-                            {item}
-                          </td>
-                          <td className="border border-gray-300 px-2 py-1 text-center">
-                            {deal.quantity?.[index] || 1}
-                          </td>
-                          <td className="border border-gray-300 px-2 py-1 text-right">
-                            ${deal.value?.[index] || "0.00"}
-                          </td>
-                          <td className="border border-gray-300 px-2 py-1 text-right">
-                            $
-                            {(
-                              Number(deal.value?.[index] || 0) *
-                              Number(deal.quantity?.[index] || 1)
-                            ).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* TOTALS */}
-                  <div className="border border-gray-300 border-t-0 flex justify-between px-2 py-1">
-                    <span>SUBTOTAL</span>
-                    <span>
-                      {deal.finalPrice
-                        ? `$${deal.finalPrice}`
-                        : "$" +
-                          (
-                            deal.products?.reduce((sum, _, i) => {
-                              return (
-                                sum +
-                                Number(deal.value?.[i] || 0) *
-                                  Number(deal.quantity?.[i] || 1)
-                              );
-                            }, 0) || 0
-                          ).toFixed(2)}
-                    </span>
+                    <div className="mt-4 text-sm font-medium">
+                      <p>Customer Acceptance (sign below):</p>
+                      <div className="border-b border-gray-700 mt-6 w-1/2"></div>
+                      <p className="mt-2">Print Name:</p>
+                    </div>
                   </div>
 
-                  <div className="border border-gray-300 border-t-0 flex justify-between px-2 py-1 font-semibold bg-gray-100">
-                    <span>TOTAL QUOTE</span>
-                    <span>
-                      {deal.finalPrice
-                        ? `$${deal.finalPrice}`
-                        : "$" +
-                          (
-                            deal.products?.reduce((sum, _, i) => {
-                              return (
-                                sum +
-                                Number(deal.value?.[i] || 0) *
-                                  Number(deal.quantity?.[i] || 1)
-                              );
-                            }, 0) || 0
-                          ).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
+                  {/* Footer */}
+                  {template?.footer_image_url ? (
+                    <div className="w-full mt-8">
+                      <img
+                        src={template.footer_image_url}
+                        alt="Company Footer"
+                        className="w-full h-auto object-contain max-h-[120px] mx-auto"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-center text-sm mt-8 font-medium">
+                      <p>If you have any questions about this price quote, please contact</p>
+                      <p>[Name, Phone #, E-mail]</p>
+                      <p className="italic font-semibold mt-2">
+                        Thank You For Your Business!
+                      </p>
+                    </div>
+                  )}
 
-                <p className="text-xs text-gray-500 text-center mt-4">
-                  This quotation is an estimate. Payment is due prior to
-                  delivery of services.
-                </p>
+                </div>
               </div>
+
+
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 w-[800px] mx-auto">
