@@ -28,6 +28,8 @@ import {
   prepareTemplateForEditing,
 } from "@/lib/templates";
 
+import { redirect } from "next/navigation";
+
 export default function TemplateCreator() {
   const [openPreview, setOpenPreview] = useState(false);
   const [openPastTemplates, setOpenPastTemplates] = useState(false);
@@ -36,6 +38,8 @@ export default function TemplateCreator() {
   const [templateName, setTemplateName] = useState("Untitled Template");
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [session, setSession] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
 
   const [data, setData] = useState({
     headerTitle: "Your Company Name",
@@ -64,10 +68,27 @@ export default function TemplateCreator() {
     footerDisclaimer: "This quotation is valid for 30 days.",
   });
 
+  useEffect(() => {
+    const getSession = () => {
+      const sessionJSON = JSON.parse(localStorage.getItem("session"));
+      setSession(sessionJSON);
+      setUserEmail(sessionJSON.user.email);
+    };
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!user) {
+      redirect("/");
+    }
+
+    getSession();
+  }, []);
+
   // Load templates from Supabase on mount
   useEffect(() => {
-    loadTemplates();
-  }, []);
+    if (userEmail) {
+      loadTemplates();
+    }
+  }, [userEmail]);
 
   const loadTemplates = async () => {
     setIsLoading(true);
