@@ -22,6 +22,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Loader2, PackageSearch, Box } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default function InventoryPage() {
   const [products, setProducts] = useState([]);
@@ -30,11 +31,34 @@ export default function InventoryPage() {
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState("name-asc");
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
 
-  // Fetch all products
+  // Initialize session from localStorage
+  useEffect(() => {
+    const getSession = () => {
+      const sessionJSON = JSON.parse(localStorage.getItem("session"));
+      setSession(sessionJSON);
+      setUserEmail(sessionJSON.user.email);
+    };
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!user) {
+      redirect("/");
+    }
+
+    getSession();
+  }, []);
+
+  // Fetch products for the logged-in user
   const fetchProducts = async () => {
+    if (!userEmail) return;
     setLoading(true);
-    const { data, error } = await supabase.from("products").select("*");
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("user_email", userEmail)
+      .order("created_at", { ascending: false });
 
     if (!error) {
       setProducts(data);
@@ -44,8 +68,10 @@ export default function InventoryPage() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (userEmail) {
+      fetchProducts();
+    }
+  }, [userEmail]);
 
   // Apply search & filters
   useEffect(() => {
