@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SkeletonCard = () => (
-    <div className="mb-6 border border-slate-200 dark:border-slate-700 rounded-xl p-6 bg-white dark:bg-slate-800 animate-pulse">
+    <div className="mb-6 border border-[#25C2A0]/10 dark:border-slate-700 rounded-3xl p-6 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md animate-pulse">
         <div className="flex justify-between mb-8">
             <div>
                 <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-48 mb-2"></div>
@@ -46,7 +46,7 @@ const SkeletonCard = () => (
     </div>
 );
 
-export default function PreviewQuotePage() {
+export default function InvoicePage() {
     const [dealsData, setDealsData] = useState([]);
     const [userEmail, setUserEmail] = useState("");
     const [products, setProducts] = useState([]);
@@ -180,25 +180,25 @@ export default function PreviewQuotePage() {
     }, [searchTerm, showSuggestions, dealsData, selectedProduct]);
 
     return (
-        <div className="w-full min-h-[70vh] relative p-4">
-            <div className="relative mb-12">
-                <h1 className="text-5xl font-extrabold mb-3 bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent tracking-tight">
-                    Revenue Forecast & Quotes
+        <div className="w-full min-h-screen bg-gradient-to-br from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7] dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-8 rounded-3xl">
+            <div className="relative mb-6">
+                <h1 className="text-5xl font-extrabold mb-3 bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] dark:from-[#2AD4B7] dark:to-[#38BDF8] bg-clip-text text-transparent tracking-tight">
+                    Revenue & Invoicing
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 text-lg max-w-2xl font-medium">
-                    Manage your deal lifecycle with precision. Generate professional quotes and track estimated revenue in real-time.
+                <p className="text-teal-900/60 dark:text-slate-400 text-lg max-w-2xl font-medium">
+                    Monitor your billing cycle and manage professional invoices with real-time financial tracking.
                 </p>
             </div>
 
-            <div className="w-full mb-12 relative z-[50] rounded-2xl p-2 flex flex-col md:flex-row gap-4 items-center justify-between bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none">
+            <div className="w-full mb-6 relative z-[50] rounded-2xl p-1.5 flex flex-col md:flex-row gap-3 items-center justify-between bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-[#25C2A0]/20 dark:border-slate-800/60 shadow-lg dark:shadow-none">
                 <div className="relative flex-grow w-full md:max-w-lg p-2">
                     <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 transition-colors group-focus-within:text-indigo-500" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#25C2A0] transition-colors group-focus-within:text-teal-600" />
                         <Input
                             placeholder="Search by client name or project title..."
                             value={searchTerm ? searchTerm : ""}
                             type="text"
-                            className="w-full pl-10 h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl focus-visible:ring-indigo-500/30 transition-all border-none shadow-sm"
+                            className="w-full pl-10 h-11 bg-white/60 dark:bg-slate-950 border-none rounded-xl focus-visible:ring-[#25C2A0]/30 transition-all shadow-sm"
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
                                 setShowSuggestions(true);
@@ -211,21 +211,21 @@ export default function PreviewQuotePage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 10 }}
-                                className="absolute top-[110%] left-2 z-50 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl flex flex-col items-start w-[calc(100%-16px)]"
+                                className="absolute top-[110%] left-2 z-50 p-2 bg-white/95 dark:bg-slate-900 border border-[#25C2A0]/30 dark:border-slate-800 rounded-xl shadow-2xl flex flex-col items-start w-[calc(100%-16px)]"
                             >
                                 {searchSuggestions.length > 0 ? (
                                     searchSuggestions.map((deal) => (
                                         <button
                                             key={deal.id}
-                                            className="w-full text-left p-3 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors flex items-center justify-between group"
+                                            className="w-full text-left p-3 rounded-lg hover:bg-[#25C2A0]/10 dark:hover:bg-teal-900/20 transition-colors flex items-center justify-between group"
                                             onClick={() => {
                                                 setSearchTerm(deal.name);
                                                 setShowSuggestions(false);
                                             }}
                                         >
                                             <div className="flex flex-col">
-                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{deal.name}</span>
-                                                <span className="text-xs text-slate-400">{deal.title || "Untitled Project"}</span>
+                                                <span className="font-semibold text-teal-900 dark:text-slate-200">{deal.name}</span>
+                                                <span className="text-xs text-teal-600/60 dark:text-slate-400">{deal.title || "Untitled Project"}</span>
                                             </div>
                                             <ArrowRight className="h-4 w-4 text-slate-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                                         </button>
@@ -243,13 +243,13 @@ export default function PreviewQuotePage() {
 
                 <div className="flex gap-3 w-full md:w-auto p-2">
                     <div className="relative flex items-center w-full md:w-auto">
-                        <Filter className="absolute left-3 h-4 w-4 text-slate-400 z-10 hidden md:block" />
+                        <Filter className="absolute left-3 h-4 w-4 text-[#25C2A0] z-10 hidden md:block" />
                         <Select
                             onValueChange={(value) =>
                                 setSelectedProduct(value === "all" ? null : value)
                             }
                         >
-                            <SelectTrigger className="w-full md:min-w-[200px] h-11 md:pl-9 bg-white dark:bg-slate-950 border-none rounded-xl shadow-sm focus:ring-1 focus:ring-indigo-500/30">
+                            <SelectTrigger className="w-full md:min-w-[180px] h-10 md:pl-9 bg-white/60 dark:bg-slate-950 border-none rounded-xl shadow-sm focus:ring-1 focus:ring-[#25C2A0]/30 text-xs font-bold text-teal-900 dark:text-slate-200">
                                 <SelectValue placeholder="Product Category" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800">
@@ -273,7 +273,7 @@ export default function PreviewQuotePage() {
                         }}
                         variant="ghost"
                         size="icon"
-                        className={`h-11 w-11 rounded-xl bg-white dark:bg-slate-950 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all ${searchTerm !== "" ||
+                        className={`h-11 w-11 rounded-xl bg-white/60 dark:bg-slate-950 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all ${searchTerm !== "" ||
                             (selectedProduct !== null && selectedProduct !== "all")
                             ? "opacity-100"
                             : "hidden"
@@ -311,48 +311,48 @@ export default function PreviewQuotePage() {
                                     viewport={{ once: true }}
                                 >
                                     <Card
-                                        className="overflow-hidden border-none shadow-[0_10px_40px_rgba(0,0,0,0.06)] dark:shadow-none bg-white dark:bg-slate-900/50 backdrop-blur-sm rounded-[2rem] group"
+                                        className="overflow-hidden border border-[#25C2A0]/10 shadow-lg dark:shadow-none bg-white/40 dark:bg-slate-900/50 backdrop-blur-md rounded-3xl group hover:shadow-[#25C2A0]/5 transition-all duration-300"
                                     >
-                                        <CardHeader className="relative overflow-hidden p-8 pb-4">
+                                        <CardHeader className="relative overflow-hidden p-5 pb-2">
                                             {/* Decorative Mesh Gradient Background */}
-                                            <div className="absolute inset-0 -z-10 bg-gradient-to-br from-slate-50/50 to-indigo-50/30 dark:from-slate-800/20 dark:to-indigo-900/10 opacity-60 group-hover:opacity-100 transition-opacity" />
+                                            <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#E9FDF9]/80 to-[#B2E8F7]/50 dark:from-teal-900/10 dark:to-blue-900/10 opacity-60 group-hover:opacity-100 transition-opacity" />
 
                                             <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-6 w-full relative z-10">
                                                 <div className="flex-grow space-y-2">
                                                     <div className="flex items-center gap-4 flex-wrap">
-                                                        <CardTitle className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                                                        <CardTitle className="text-xl font-black text-[#1e7e68] dark:text-teal-400 tracking-tight">
                                                             {deal.name}
                                                         </CardTitle>
-                                                        <Badge variant="outline" className="bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200/50 dark:border-indigo-800/50 font-bold px-3 py-1 rounded-full text-[10px] tracking-wider uppercase">
+                                                        <Badge variant="outline" className="bg-white/80 dark:bg-teal-900/20 text-[#25C2A0] dark:text-teal-400 border-[#25C2A0]/30 font-bold px-3 py-1 rounded-full text-[10px] tracking-wider uppercase backdrop-blur-sm">
                                                             ID: {String(deal.id).slice(-6)}
                                                         </Badge>
                                                     </div>
-                                                    <CardDescription className="text-slate-500 dark:text-slate-400 font-semibold text-base flex items-center gap-2">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" />
+                                                    <CardDescription className="text-teal-800 font-semibold text-sm flex items-center gap-2 opacity-70">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#25C2A0] animate-pulse" />
                                                         {deal.title || "Cloud Strategic Project"}
                                                     </CardDescription>
                                                 </div>
                                                 <div className="flex items-center gap-4">
-                                                    <Badge className={`${deal.status === 'Negotiation' ? 'bg-red-700 shadow-red-200 dark:shadow-none' :
-                                                        deal.status === 'Proposal Sent' ? 'bg-green-700 shadow-green-200 dark:shadow-none' :
-                                                            deal.status === 'On-hold' ? 'bg-amber-500 shadow-amber-200 dark:shadow-none' :
-                                                                'bg-indigo-500 shadow-indigo-200 dark:shadow-none'
-                                                        } text-white border-none font-black px-4 py-1.5 text-xs rounded-full shadow-lg`}>
+                                                    <Badge className={`${deal.status === 'Negotiation' ? 'bg-rose-500' :
+                                                        deal.status === 'Proposal Sent' ? 'bg-emerald-500' :
+                                                            deal.status === 'On-hold' ? 'bg-amber-500' :
+                                                                'bg-teal-500'
+                                                        } text-white border-none font-black px-4 py-1.5 text-[10px] rounded-full shadow-md dark:shadow-none tracking-wider`}>
                                                         {deal.status.toUpperCase()}
                                                     </Badge>
                                                 </div>
                                             </div>
                                         </CardHeader>
 
-                                        <CardContent className="p-8 pt-6">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                                        <CardContent className="p-5 pt-2">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                 {/* Products Section */}
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="p-2 bg-indigo-50 dark:bg-indigo-950 rounded-lg text-indigo-500">
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="p-2 bg-[#E9FDF9] dark:bg-teal-950 rounded-lg text-[#25C2A0]">
                                                             <Package className="h-5 w-5" />
                                                         </div>
-                                                        <span className="text-xs font-black text-slate-600 uppercase tracking-widest">Inventory List</span>
+                                                        <span className="text-xs font-black text-[#266d61] dark:text-teal-500 uppercase tracking-widest">Items List</span>
                                                     </div>
 
 
@@ -360,9 +360,9 @@ export default function PreviewQuotePage() {
                                                     <div className="grid grid-cols-1 gap-3">
                                                         {deal.products?.length > 0 ? (
                                                             deal.products.map((prod, i) => (
-                                                                <div key={i} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800/60 rounded-2xl hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm">
-                                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{prod}</span>
-                                                                    <div className="bg-indigo-600 text-white px-2 py-1 rounded-lg text-[10px] font-black">
+                                                                <div key={i} className="flex items-center justify-between p-3 bg-white/60 dark:bg-slate-900/40 border border-[#25C2A0]/10 dark:border-slate-800/60 rounded-xl hover:bg-white transition-all">
+                                                                    <span className="text-sm font-bold text-teal-900 dark:text-slate-200">{prod}</span>
+                                                                    <div className="bg-gradient-to-r from-[#25C2A0] to-[#2AD4B7] text-white px-2 py-1 rounded-lg text-xs font-black">
                                                                         x{deal.quantity?.[i] || 1}
                                                                     </div>
                                                                 </div>
@@ -378,50 +378,47 @@ export default function PreviewQuotePage() {
                                                 </div>
 
                                                 {/* Financial Analytics */}
-                                                <div className="space-y-4 md:border-l border-slate-100 dark:border-slate-800 md:pl-10">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="p-2 bg-emerald-50 dark:bg-emerald-950 rounded-lg text-emerald-500">
+                                                <div className="space-y-2 md:border-l border-[#25C2A0]/10 dark:border-slate-800 md:pl-4">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="p-2 bg-[#E9FDF9] dark:bg-emerald-950 rounded-lg text-emerald-500">
                                                             <DollarSign className="h-5 w-5" />
                                                         </div>
-                                                        <span className="text-xs font-black text-slate-600 uppercase tracking-widest">Estimated Value</span>
+                                                        <span className="text-xs font-black text-[#266d61] dark:text-emerald-500 uppercase tracking-widest">Est. Value</span>
                                                     </div>
                                                     <div className="relative group/val cursor-default">
-                                                        <p className="text-4xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter group-hover:scale-105 transition-transform origin-left duration-300">
+                                                        <p className="text-3xl font-black text-[#1e7e68] dark:text-white tabular-nums tracking-tighter">
                                                             ₹{totalValue.toLocaleString()}
                                                         </p>
-                                                        <div className="mt-2 inline-flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider">
+                                                        <div className="mt-1.5 inline-flex items-center gap-1.5 bg-[#E9FDF9] dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider">
                                                             <TrendingUp className="h-3 w-3" />
-                                                            Market Weighted
+                                                            Market Weight
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 {/* Lifecycle Timeline */}
-                                                <div className="space-y-4 lg:border-l border-slate-100 dark:border-slate-800 lg:pl-10">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500">
+                                                <div className="space-y-2 lg:border-l border-[#25C2A0]/10 dark:border-slate-800 lg:pl-4">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="p-2 bg-[#E9FDF9] dark:bg-blue-950 rounded-lg text-blue-500">
                                                             <Calendar className="h-5 w-5" />
                                                         </div>
-                                                        <span className="text-xs font-black text-slate-600 uppercase tracking-widest">Deal Lifecycle</span>
+                                                        <span className="text-xs font-black text-[#266d61] dark:text-blue-500 uppercase tracking-widest">Timeline</span>
                                                     </div>
-                                                    <div className="space-y-4">
-                                                        <div className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-slate-950/40 rounded-2xl border border-slate-100/50 dark:border-slate-800/50 group-hover:border-indigo-200/30 transition-colors">
+                                                    <div className="space-y-2.5">
+                                                        <div className="flex items-center justify-between p-2.5 bg-white/60 dark:bg-slate-950/40 rounded-xl border border-[#25C2A0]/10 group-hover:border-[#25C2A0]/30 transition-colors">
                                                             <div className="flex flex-col">
-                                                                <span className="text-[10px] font-black text-slate-600 uppercase">Onboarded</span>
-                                                                <span className="font-bold text-slate-700 dark:text-slate-300">{new Date(deal.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                                                <span className="text-[9px] font-black text-teal-600 uppercase">Onboarded</span>
+                                                                <span className="font-bold text-xs text-teal-900 dark:text-slate-300">{new Date(deal.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                                             </div>
-                                                            <div className="w-8 h-8 rounded-full border border-indigo-100 dark:border-indigo-900 flex items-center justify-center bg-white dark:bg-slate-900">
-                                                                <span className="text-[10px] font-black text-indigo-500">1st</span>
+                                                            <div className="w-7 h-7 rounded-full border border-[#25C2A0]/30 flex items-center justify-center bg-white dark:bg-slate-900">
+                                                                <span className="text-[10px] font-black text-[#25C2A0]">1st</span>
                                                             </div>
                                                         </div>
                                                         {deal.valid_until && (
-                                                            <div className="flex items-center justify-between p-3 bg-orange-50/30 dark:bg-orange-950/10 rounded-2xl border border-orange-100/20 dark:border-orange-900/20">
+                                                            <div className="flex items-center justify-between p-2.5 bg-orange-50/30 dark:bg-orange-950/10 rounded-xl border border-orange-100/20">
                                                                 <div className="flex flex-col">
-                                                                    <span className="text-[10px] font-black text-orange-400 uppercase">Expiration</span>
-                                                                    <span className="font-bold text-orange-600 dark:text-orange-400">{new Date(deal.valid_until).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                                                </div>
-                                                                <div className="p-1 px-2 border border-orange-200 dark:border-orange-800 rounded uppercase font-black text-[8px] text-orange-500">
-                                                                    Urgent
+                                                                    <span className="text-[9px] font-black text-orange-400 uppercase">Expiration</span>
+                                                                    <span className="font-bold text-xs text-orange-600 dark:text-orange-400">{new Date(deal.valid_until).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                                                 </div>
                                                             </div>
                                                         )}
@@ -429,16 +426,14 @@ export default function PreviewQuotePage() {
                                                 </div>
                                             </div>
 
-                                            <div className="mt-12 flex items-center justify-end pt-6 border-t border-slate-100/80 dark:border-slate-800/50">
-
-
+                                            <div className="mt-6 flex items-center justify-end pt-4 border-t border-[#25C2A0]/10 dark:border-slate-800/50">
                                                 <InvoicePreview dealId={deal.id}>
                                                     <Button
-                                                        className="bg-blue-900 dark:bg-white hover:bg-indigo-600 dark:hover:bg-indigo-100 text-white dark:text-slate-900 font-black px-8 h-12 rounded-2xl shadow-xl shadow-slate-200 dark:shadow-none transition-all active:scale-95 flex items-center gap-2 group/btn"
+                                                        className="bg-gradient-to-r from-blue-800 to-blue-900 hover:opacity-90 text-white font-black px-8 h-10 rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 group/btn"
                                                     >
-                                                        <FileText className="h-5 w-5 group-hover/btn:rotate-12 transition-transform" />
-                                                        PREVIEW INVOICE
-                                                        <ArrowRight className="h-4 w-4 opacity-0 group-hover/btn:opacity-100 -translate-x-2 group-hover/btn:translate-x-0 transition-all ml-1" />
+                                                        <FileText className="h-4 w-4" />
+                                                        <span className="text-xs uppercase tracking-tight">Preview Invoice</span>
+                                                        <ArrowRight className="h-4 w-4 opacity-0 group-hover/btn:opacity-100 -translate-x-1 group-hover/btn:translate-x-0 transition-all" />
                                                     </Button>
                                                 </InvoicePreview>
                                             </div>
@@ -452,20 +447,20 @@ export default function PreviewQuotePage() {
                             key="empty"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="text-center py-20 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-[3rem] border border-slate-200/50 dark:border-slate-800/50 shadow-inner"
+                            className="text-center py-20 bg-white/40 dark:bg-slate-900/50 backdrop-blur-md rounded-[3rem] border border-[#25C2A0]/20 dark:border-slate-800/50 shadow-xl"
                         >
-                            <div className="h-20 w-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Search className="h-8 w-8 text-slate-300" />
+                            <div className="h-20 w-20 bg-[#E9FDF9] dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Search className="h-8 w-8 text-[#25C2A0]" />
                             </div>
-                            <p className="text-slate-900 dark:text-white text-2xl font-black tracking-tight mb-2">
+                            <p className="text-[#1e7e68] dark:text-white text-2xl font-black tracking-tight mb-2">
                                 No deals found
                             </p>
-                            <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto font-medium">
+                            <p className="text-teal-900/60 dark:text-slate-400 mb-8 max-w-xs mx-auto font-medium">
                                 Try adjusting your filters or search terms to find what you're looking for.
                             </p>
                             <Button
                                 variant="outline"
-                                className="rounded-full px-8 h-12 border-slate-200 dark:border-slate-700 font-bold"
+                                className="rounded-full px-8 h-12 border-[#25C2A0] text-[#25C2A0] font-bold hover:bg-[#25C2A0] hover:text-white transition-all"
                                 onClick={() => {
                                     setSearchTerm("");
                                     setSelectedProduct(null);
