@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
-import QuotePreview from "@/components/QuotePreview";
+import InvoicePreview from "@/components/InvoicePreview";
 import {
   FileText,
   Package,
@@ -56,7 +56,7 @@ const SkeletonCard = () => (
   </div>
 );
 
-export default function PreviewQuotePage() {
+export default function InvoicePage() {
   const [dealsData, setDealsData] = useState([]);
   const [userEmail, setUserEmail] = useState("");
   const [products, setProducts] = useState([]);
@@ -193,11 +193,11 @@ export default function PreviewQuotePage() {
     <div className="w-full min-h-screen bg-gradient-to-br from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7] dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-8 rounded-3xl">
       <div className="relative mb-6">
         <h1 className="text-5xl font-extrabold mb-3 bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] dark:from-[#2AD4B7] dark:to-[#38BDF8] bg-clip-text text-transparent tracking-tight">
-          Revenue Forecast & Quotes
+          Revenue & Invoicing
         </h1>
         <p className="text-teal-900/60 dark:text-slate-400 text-lg max-w-2xl font-medium">
-          Manage your deal lifecycle with precision. Generate professional
-          quotes and track estimated revenue in real-time.
+          Monitor your billing cycle and manage professional invoices with
+          real-time financial tracking.
         </p>
       </div>
 
@@ -495,15 +495,15 @@ export default function PreviewQuotePage() {
                       </div>
 
                       <div className="mt-6 flex items-center justify-end pt-4 border-t border-[#25C2A0]/10 dark:border-slate-800/50">
-                        <QuotePreview dealId={deal.id}>
+                        <InvoicePreview dealId={deal.id}>
                           <Button className="bg-gradient-to-r from-blue-800 to-blue-900 hover:opacity-90 text-white font-black px-8 h-10 rounded-xl shadow-lg transition-all active:scale-95 flex items-center gap-2 group/btn">
                             <FileText className="h-4 w-4" />
                             <span className="text-xs uppercase tracking-tight">
-                              Preview Quote
+                              Preview Invoice
                             </span>
                             <ArrowRight className="h-4 w-4 opacity-0 group-hover/btn:opacity-100 -translate-x-1 group-hover/btn:translate-x-0 transition-all" />
                           </Button>
-                        </QuotePreview>
+                        </InvoicePreview>
                       </div>
                     </CardContent>
                   </Card>

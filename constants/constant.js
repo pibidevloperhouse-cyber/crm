@@ -319,6 +319,11 @@ export const navigation = [
         href: "/inventory",
         icon: <Database />,
       },
+      {
+        name: "Invoice",
+        href: "/revenueengine/invoice",
+        icon: <FileText />,
+      },
       // {
       //   name: "Invoice",
       //   href: "/invoice",
