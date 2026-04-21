@@ -10,16 +10,9 @@ import {
   SheetHeader,
   SheetContent,
 } from "../ui/sheet";
-import { Mail, Phone, LucideUpload, Eye, Trash2, Edit } from "lucide-react";
+import { Mail, Phone, Trash2, Edit } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Label,
-} from "@radix-ui/react-dropdown-menu";
 import Updateleads from "../Updateleads";
 import { supabase } from "@/utils/supabase/client";
 import { useState } from "react";
@@ -54,16 +47,22 @@ export default function LeadCard({
   ];
 
   const [newState, setNewState] = useState("");
-  const [open, setOpen] = useState(false);
   const [email, setEmail] = useState(false);
   const [description, setDescription] = useState("");
+  const [showUpdate, setShowUpdate] = useState(false);
   const today = new Date();
 
   const handleStatusUpdate = async () => {
     const stage_history = lead.stage_history || [];
     const length = stage_history.length;
-    const start_date_raw = stage_history[length - 1]?.end_date || lead?.created_at || new Date().toISOString();
+
+    const start_date_raw =
+      stage_history[length - 1]?.end_date ||
+      lead?.created_at ||
+      new Date().toISOString();
+
     const start_date = new Date(start_date_raw).toISOString().split("T")[0];
+
     const current_history = {
       old_status: lead.status,
       new_status: newState,
@@ -71,7 +70,9 @@ export default function LeadCard({
       end_date: new Date().toISOString().split("T")[0],
       state_description: description,
     };
+
     stage_history.push(current_history);
+
     const { data: LeadsData, error } = await supabase
       .from("Leads")
       .update({
@@ -83,12 +84,12 @@ export default function LeadCard({
       .single();
 
     if (error) {
-      console.error("Error updating lead:", error);
       toast.error("Error updating lead");
     } else {
-      toast.success("Lead updated successfully");
+      toast.success("Lead updated");
+
       if (newState === "Qualified") {
-        const leadToDeal = {
+        await supabase.from("Deals").insert({
           name: LeadsData.name,
           number: LeadsData.number,
           email: LeadsData.email,
@@ -96,25 +97,12 @@ export default function LeadCard({
           created_at: today.toISOString().split("T")[0],
           closeDate: today.toISOString().split("T")[0],
           user_email: LeadsData.user_email,
-        };
-        const { data: deal, error } = await supabase
-          .from("Deals")
-          .insert({
-            ...leadToDeal,
-          })
-          .select("*")
-          .single();
-      }
-
-      if (error) {
-        console.error("Error moving lead to deal:", error);
-        toast.error("Error moving lead to deal");
-      } else {
-        toast.success("Lead moved to deal successfully");
+        });
 
         await fetchDeals();
-        await fetchLeads();
       }
+
+      await fetchLeads();
     }
   };
 
@@ -122,238 +110,150 @@ export default function LeadCard({
     const { error } = await supabase.from("Leads").delete().eq("id", leadId);
 
     if (error) {
-      console.error("Error deleting lead:", error);
       toast.error("Error deleting lead");
     } else {
-      toast.success("Lead deleted successfully");
+      toast.success("Deleted");
       onChange();
     }
   };
 
   return (
-    <>
-      <Card className="backdrop-blur-sm bg-white/70 h-auto w-full sm:max-w-md md:max-w-full  z-0  hover:shadow-lg dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-all duration-1000 group mx-auto ">
-        <CardContent>
-          <div className="flex sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div className="flex items-start space-x-0 flex-1 min-w-0">
-              <div>
-                <ToastContainer
-                  position="top-right"
-                  autoClose={5000}
-                  hideProgressBar={false}
-                  newestOnTop={false}
-                  closeOnClick
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                />
-              </div>
-              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
-                <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white md:text-xl font-semibold xs:text-md">
-                  {(() => {
-                    const display = (lead?.name || "?").toString();
-                    const parts = display.split(" ").filter(Boolean);
-                    const initials = parts.length ? parts.map((n) => n[0]).join("") : display[0];
-                    return (initials || "?").toUpperCase();
-                  })()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 w-full">
-                <Sheet>
-                  <SheetTrigger asChild key={lead.id}>
-                    <Label className="mt-2 ml-2 flex items-center gap-2 hover:text-blue-400 text-md md:text-[16px] min-w-full bg-transparent font-semibold text-slate-900 dark:text-white break-words  hover:bg-transparent">
-                      {lead?.name || "Unnamed Lead"}
-                      <Edit className="h-4 w-4 text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer ml-1" />
-                    </Label>
-                  </SheetTrigger>
-                  <SheetContent className="space-y-6 overflow-y-auto min-h-[80vh] md:min-w-[85vw] min-w-screen ">
-                    <SheetHeader>
-                      <SheetTitle>Lead Data</SheetTitle>
-                      <SheetDescription>
-                        <Updateleads
-                          lead_id={lead.id}
-                          onChange={onChange}
-                          fetchLeads={fetchLeads}
-                          fetchDeals={fetchDeals}
-                        />
-                      </SheetDescription>
-                    </SheetHeader>
-                  </SheetContent>
-                </Sheet>
-                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 break-words">
-                  {lead?.contact || ""}
-                </p>
-              </div>
-            </div>
-            <Badge
-              variant={lead.source === "Email" ? "Qualified" : "hidden"}
-              className={`mt-3 ${
-                lead.source === "Email" ? "visible" : "invisible"
-              }`}
-            >
-              Automated
-            </Badge>
-            <div className="flex mt-2 sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
-              <div className="text-left">
-                <Badge
-                  variant={
-                    lead.status === "New"
-                      ? "default"
-                      : lead.status === "In progress"
-                      ? "secondary"
-                      : lead.status === "Contact Attempted"
-                      ? "secondary"
-                      : lead.status === "Contacted"
-                      ? "secondary"
-                      : lead.status === "Meeting Booked"
-                      ? "info"
-                      : lead.status === "Qualified"
-                      ? "success"
-                      : lead.status === "Unqualified"
-                      ? "destructive"
-                      : "secondary"
-                  }
-                >
-                  {lead.status}
-                </Badge>
-              </div>
+    <Card className="bg-white dark:bg-slate-900 border shadow-sm hover:shadow-xl transition-all duration-300 rounded-xl">
+      <CardContent>
+        {/* TOP */}
+        <div className="flex justify-between gap-4">
+          <div className="flex gap-3">
+            <Avatar>
+              <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white">
+                {lead?.name?.[0] || "?"}
+              </AvatarFallback>
+            </Avatar>
+
+            <div>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <h3 className="font-semibold cursor-pointer hover:text-blue-500 flex items-center gap-2">
+                    {lead?.name}
+                    <Edit className="w-4 h-4" />
+                  </h3>
+                </SheetTrigger>
+
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Lead Data</SheetTitle>
+                    <SheetDescription>
+                      <Updateleads
+                        lead_id={lead.id}
+                        onChange={onChange}
+                        fetchLeads={fetchLeads}
+                        fetchDeals={fetchDeals}
+                      />
+                    </SheetDescription>
+                  </SheetHeader>
+                </SheetContent>
+              </Sheet>
+
+              <p className="text-sm text-gray-500">{lead?.contact}</p>
             </div>
           </div>
-          <div className="flex items-center justify-center mt-4 opacity-100 sm:opacity-100">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex justify-center gap-6">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-white/50 cursor-pointer dark:bg-slate-800/50 border-white/20 flex-1 sm:flex-none"
-                      onClick={() => setEmail(true)}
-                    >
-                      <Mail className="h-4 w-4 mr-1" />
-                      Email
-                    </Button>
-                  </DialogTrigger>
 
-                  <EmailTemplate
-                    type="Leads"
-                    id={lead.id}
-                    email={lead.email}
-                    open={email}
-                    onOpenChange={setEmail}
-                  />
-                </Dialog>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="bg-white/50 dark:bg-slate-800/50 border-white/20 flex-1 sm:flex-none"
-                >
-                  <Phone className="h-4 w-4 mr-1" />
-                  Call
+          <Badge>{lead.status}</Badge>
+        </div>
+
+        {/* ACTION BUTTONS */}
+        <div className="flex justify-between mt-4">
+          <div className="flex gap-3">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Mail className="w-4 h-4 mr-1" /> Email
                 </Button>
+              </DialogTrigger>
 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="bg-white/50 dark:bg-slate-800/50 border-white/20 flex-1 sm:flex-none"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Delete Lead</DialogTitle>
-                      <DialogDescription>
-                        Are you sure you want to delete this lead?
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        type="submit"
-                        onClick={() => {
-                          handleDeleteLead(lead.id);
-                          setOpen(false);
-                          onChange();
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+              <EmailTemplate
+                type="Leads"
+                id={lead.id}
+                email={lead.email}
+                open={email}
+                onOpenChange={setEmail}
+              />
+            </Dialog>
 
-              <div>
-                <Dialog open={open} onOpenChange={setOpen}>
-                  <DropdownMenu className="relative">
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        size="sm"
-                        className={`bg-gradient-to-r from-sky-700 to-teal-500 text-white flex-1 sm:flex-none cursor-pointer ${
-                          lead.status === "Qualified" ? "hidden" : "block"
-                        } `}
-                        onClick={() => setId(lead.id)}
-                      >
-                        Update Status
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-48 absolute top-[100%] bg-gray-700 text-white transform translate-x-[38%] translate-y-[-80%] z-1000 rounded-lg p-2 mt-2">
-                      {leadStatus.map((statu) => (
-                        <DialogTrigger asChild key={statu}>
-                          <DropdownMenuItem
-                            className="cursor-pointer border-b border-gray-300"
-                            key={statu}
-                            onClick={() => {
-                              setNewState(statu);
-                              setOpen(true);
-                            }}
-                          >
-                            {statu}
-                          </DropdownMenuItem>
-                        </DialogTrigger>
-                      ))}
-                    </DropdownMenuContent>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Status Info</DialogTitle>
-                        <DialogDescription>
-                          You are currently updating the status from{" "}
-                          <span className="font-semibold">{lead.status}</span>{" "}
-                          to <span className="font-semibold">{newState}</span>.
-                          <>
-                            <Textarea
-                              placeholder="Explain in  detail about the actions performed in this stage. Along with reason for updating the status"
-                              className="mt-1"
-                              onChange={(e) => setDescription(e.target.value)}
-                            />
-                          </>
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button
-                          type="submit"
-                          onClick={() => {
-                            handleStatusUpdate();
-                            setOpen(false);
-                            onChange();
-                          }}
-                          className="border cursor-pointer border-green-500 bg-transparent hover:bg-green-200 hover:text-green-700 text-green-500"
-                        >
-                          <LucideUpload className="h-4 w-4 mr-2" />
-                          Update Status
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </DropdownMenu>
-                </Dialog>
-              </div>
-            </div>
+            <Button size="sm" variant="outline">
+              <Phone className="w-4 h-4 mr-1" /> Call
+            </Button>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Lead</DialogTitle>
+                  <DialogDescription>Are you sure?</DialogDescription>
+                </DialogHeader>
+
+                <DialogFooter>
+                  <Button onClick={() => handleDeleteLead(lead.id)}>
+                    Delete
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
-        </CardContent>
-      </Card>
-    </>
+
+          {/* UPDATE BUTTON */}
+          <Button
+            size="sm"
+            className="bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+            onClick={() => setShowUpdate(!showUpdate)}
+          >
+            Update Status
+          </Button>
+        </div>
+
+        {/* 🔥 EXPAND SECTION */}
+        {showUpdate && (
+          <div className="mt-4 p-4 bg-gray-100 dark:bg-slate-800 rounded-xl">
+            <div className="flex flex-wrap gap-2 mb-3">
+              {leadStatus.map((status) => (
+                <Button
+                  key={status}
+                  size="sm"
+                  onClick={() => setNewState(status)}
+                  className={`transition-all duration-200 rounded-full px-4
+      ${
+        newState === status
+          ? "bg-gradient-to-r from-sky-700 to-teal-500 text-white shadow-md"
+          : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-white hover:bg-gray-200"
+      }
+    `}
+                >
+                  {status}
+                </Button>
+              ))}
+            </div>
+
+            <Textarea
+              placeholder="Explain status..."
+              onChange={(e) => setDescription(e.target.value)}
+            />
+
+            <Button
+              className="mt-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+              onClick={() => {
+                handleStatusUpdate();
+                setShowUpdate(false);
+              }}
+            >
+              Confirm Update
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

@@ -134,7 +134,7 @@ export default function Home() {
   }, [userEmail]);
 
   const QualifiedLeads = leads.filter(
-    (lead) => lead.status === "Qualified"
+    (lead) => lead.status === "Qualified",
   ).length;
 
   const onboardingData = {
@@ -525,60 +525,73 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7] p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <div
+      className="min-h-screen bg-gradient-to-br 
+from-[#e8f8f6] via-[#d1f2ee] to-[#e6f0ff] 
+p-8 space-y-8 text-slate-900"
+    >
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-linear-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
-            {/* <Wallet className="w-8 h-8 text-transparent bg-gradient-to-r from-[#25C2A0] via-[#2AD4B7] to-[#38BDF8] bg-clip-text" /> */}
-            Dashboard
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent">
+            GTM Dashboard
           </h1>
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-            Welcome back, {userName}! Here's your GTM overview.
+          <p className="text-slate-500 mt-1">
+            Welcome back, {userName}! Here's your pipeline overview.
           </p>
         </div>
-        <div className="flex items-center space-x-2 bg-white/70 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200/50 dark:border-white/20 rounded-lg px-4 py-2">
-          <Switch
-            checked={chartsMode === "graphic"}
-            onCheckedChange={() =>
-              setChartsMode(chartsMode === "graphic" ? "numeric" : "graphic")
-            }
-          />
-          <span className="hidden sm:inline">
-            {chartsMode === "graphic" ? "Graphic Mode" : "Numeric Mode"}
-          </span>
-          <span className="sm:hidden">
-            {chartsMode === "graphic" ? "Graphic" : "Numeric"}
-          </span>
+
+        {/* Toggle */}
+        <div className="flex items-center bg-slate-100 p-1 rounded-full shadow-inner w-fit">
+          {/* Graphic */}
+          <button
+            onClick={() => setChartsMode("graphic")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300
+      ${
+        chartsMode === "graphic"
+          ? "text-white bg-gradient-to-r from-[#1f6fa8] to-[#19b6a5] shadow-md"
+          : "text-slate-500"
+      }`}
+          >
+            Graphic
+          </button>
+
+          {/* Numeric */}
+          <button
+            onClick={() => setChartsMode("numeric")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300
+      ${
+        chartsMode === "numeric"
+          ? "text-white bg-gradient-to-r from-[#1f6fa8] to-[#19b6a5] shadow-md"
+          : "text-slate-500"
+      }`}
+          >
+            Numeric
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      {/* METRIC CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard
-          className="bg-white/20"
           title="Onboarding Rate"
           value={onboardingData.rate}
-          change={onboardingData.change}
           icon={Users}
         />
         <MetricCard
           title="Leads Converted"
           value={leadsData.converted}
-          change={leadsData.change}
           icon={TrendingUp}
         />
-        <MetricCard
-          title="Deals Won"
-          value={dealsData.won}
-          change={dealsData.change}
-          icon={Trophy}
-        />
+        <MetricCard title="Deals Won" value={dealsData.won} icon={Trophy} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <Card className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
+      {/* CHARTS */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <PieChart className="w-5 h-5 mr-2" />
+            <CardTitle className="flex items-center text-slate-700">
+              <PieChart className="w-5 h-5 mr-2 text-[#25C2A0]" />
               Deal Classification
             </CardTitle>
           </CardHeader>
@@ -587,13 +600,13 @@ export default function Home() {
               <PieChartSVG />
             ) : (
               <div className="space-y-2">
-                {dealClassification.map((item, index) => (
+                {dealClassification.map((item, i) => (
                   <div
-                    key={index}
-                    className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-700 last:border-b-0"
+                    key={i}
+                    className="flex justify-between border-b border-slate-100 pb-2"
                   >
-                    <span className="font-medium">{item.name}</span>
-                    <span className="text-xl font-bold">{item.rate}%</span>
+                    <span>{item.name}</span>
+                    <span className="font-bold">{item.rate}%</span>
                   </div>
                 ))}
               </div>
@@ -601,10 +614,10 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
+        <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <BarChart3 className="w-5 h-5 mr-2" />
+            <CardTitle className="flex items-center text-slate-700">
+              <BarChart3 className="w-5 h-5 mr-2 text-blue-500" />
               Customer Sources
             </CardTitle>
           </CardHeader>
@@ -613,13 +626,13 @@ export default function Home() {
               <BarChartSVG />
             ) : (
               <div className="space-y-2">
-                {leadSources.map((source, index) => (
+                {leadSources.map((s, i) => (
                   <div
-                    key={index}
-                    className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-700 last:border-b-0"
+                    key={i}
+                    className="flex justify-between border-b border-slate-100 pb-2"
                   >
-                    <span className="font-medium">{source.name}</span>
-                    <span className="text-xl font-bold">{source.value}</span>
+                    <span>{s.name}</span>
+                    <span className="font-bold">{s.value}</span>
                   </div>
                 ))}
               </div>
@@ -628,10 +641,11 @@ export default function Home() {
         </Card>
       </div>
 
-      <Card className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
+      {/* REVENUE */}
+      <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <DollarSign className="w-5 h-5 mr-2" />
+          <CardTitle className="flex items-center text-slate-700">
+            <DollarSign className="w-5 h-5 mr-2 text-green-500" />
             Revenue Analytics
           </CardTitle>
         </CardHeader>
@@ -640,20 +654,13 @@ export default function Home() {
             <LineHistogramChart />
           ) : (
             <div className="space-y-2">
-              {revenueData.map((month, index) => (
+              {revenueData.map((m, i) => (
                 <div
-                  key={index}
-                  className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-700 last:border-b-0"
+                  key={i}
+                  className="flex justify-between border-b border-slate-100 pb-2"
                 >
-                  <span className="font-medium">{month.month}</span>
-                  <div className="text-right">
-                    <div className="text-lg font-bold">
-                      ${month.revenue.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      {month.deals} deals
-                    </div>
-                  </div>
+                  <span>{m.month}</span>
+                  <span className="font-bold">${m.revenue}</span>
                 </div>
               ))}
             </div>
@@ -661,55 +668,49 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2  gap-4 sm:gap-6">
-        <Card className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
+      {/* BOTTOM */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="w-5 h-5 mr-2" />
+            <CardTitle className="flex items-center text-slate-700">
+              <Calendar className="w-5 h-5 mr-2 text-purple-500" />
               Upcoming Meetings
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {upcomingMeetings.map((meeting, index) => (
+            {upcomingMeetings.map((m, i) => (
               <div
-                key={index}
-                className="flex items-center space-x-3 p-3 rounded-lg bg-white/30 dark:bg-slate-700/50"
+                key={i}
+                className="flex justify-between bg-slate-50 p-3 rounded-xl hover:bg-slate-100 transition"
               >
-                <Phone className="w-4 h-4 text-blue-500" />
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{meeting.client}</div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400">
-                    {meeting.type}
-                  </div>
+                <div>
+                  <p className="font-medium">{m.client}</p>
+                  <p className="text-xs text-slate-500">{m.type}</p>
                 </div>
-                <div className="text-xs font-medium">{meeting.time}</div>
+                <span className="text-sm">{m.time}</span>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="backdrop-blur-sm bg-white/30 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
+        <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Trophy className="w-5 h-5 mr-2" />
+            <CardTitle className="flex items-center text-slate-700">
+              <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
               Active Deals
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {activeDeals.map((deal, index) => (
+            {activeDeals.map((d, i) => (
               <div
-                key={index}
-                className="flex items-center justify-between p-3 rounded-lg bg-white/50 dark:bg-slate-700/50"
+                key={i}
+                className="flex justify-between bg-slate-50 p-3 rounded-xl hover:bg-slate-100 transition"
               >
                 <div>
-                  <div className="font-medium text-sm">{deal.company}</div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400">
-                    {deal.stage}
-                  </div>
+                  <p className="font-medium">{d.company}</p>
+                  <p className="text-xs text-slate-500">{d.stage}</p>
                 </div>
-                <div className="text-sm font-bold text-green-600">
-                  {deal.value}
-                </div>
+                <span className="font-bold text-green-600">{d.value}</span>
               </div>
             ))}
           </CardContent>

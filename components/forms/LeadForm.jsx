@@ -113,8 +113,7 @@ const LeadForm = ({ session, fetchLeads, fetchDeals, setLeadsData }) => {
       toast.success("Lead Added", { autoClose: 3000, position: "top-right" });
       const createdLead = await req.json();
       const leadObj = Array.isArray(createdLead) ? createdLead[0] : createdLead;
-      setLeadsData((prevLeads) => [...prevLeads, leadObj]);
-      // Client-side trigger too (helps debugging in Network tab)
+      setLeadsData((prevLeads) => [leadObj, ...prevLeads]); // Client-side trigger too (helps debugging in Network tab)
       try {
         await fetch("/api/agents/events", {
           method: "POST",
@@ -143,13 +142,13 @@ const LeadForm = ({ session, fetchLeads, fetchDeals, setLeadsData }) => {
         created_at: "",
         user_email: session.user.email,
       });
-      await fetchLeads();
     } else {
       toast.error("Error in Adding Leads", {
         position: "top-right",
         autoClose: 3000,
       });
     }
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
 
     setLeadsLoading(false);
   };

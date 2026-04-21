@@ -19,6 +19,7 @@ import {
   WalletCards,
   Wrench,
 } from "lucide-react";
+import { Mail } from "lucide-react";
 
 export const analyticsData = {
   overview: {
@@ -344,10 +345,19 @@ export const navigation = [
     icon: <Database />,
     subpages: [
       {
+        key: "crm",
         name: "CRM",
         href: "/crm",
         icon: <Database />,
+        subpages: [
+          {
+            name: "Agent Workflow",
+            href: "/crm",
+            icon: <Database />,
+          },
+        ],
       },
+
       {
         key: "HRMS",
         name: "HRMS",
@@ -376,11 +386,7 @@ export const navigation = [
           },
         ],
       },
-      // {
-      //   name: "Task Management",
-      //   href: "/tasks",
-      //   icon: <ListChecks />,
-      // },
+
       {
         name: "Analytics",
         href: "/analytics",
