@@ -249,10 +249,27 @@ export const monthFilters = [
 export const navigation = [
   { key: "home", name: "Home", href: "/home", icon: <Home /> },
 
-  // Manufacturing Operation Section
   {
-    key: "manufacturing",
-    name: "Manufacturing Operation",
+    key: "crm",
+    name: "CRM",
+    href: "", // ✅ make parent non-clickable
+    icon: <Database />,
+    subpages: [
+      {
+        name: "Dashboard",
+        href: "/crm", // ✅ CRM main page
+        icon: <Home />,
+      },
+      {
+        name: "Agent Workflow",
+        href: "/crm/agent-workflow", // ✅ FIXED
+        icon: <Users />,
+      },
+    ],
+  },
+  {
+    key: "cpq",
+    name: "CPQ",
     href: "",
     icon: <Wrench />,
     subpages: [
@@ -300,14 +317,14 @@ export const navigation = [
         icon: <Cog />,
       },
       {
-        name: "Price",
-        href: "/revenueengine/pricingdetails",
-        icon: <DollarSign />,
-      },
-      {
         name: "Configure",
         href: "/revenueengine/configureproduct2",
         icon: <Cog />,
+      },
+      {
+        name: "Price",
+        href: "/revenueengine/pricingdetails",
+        icon: <DollarSign />,
       },
       {
         name: "Quote",
@@ -315,14 +332,14 @@ export const navigation = [
         icon: <FileText />,
       },
       {
-        name: "Inventory",
-        href: "/inventory",
-        icon: <Database />,
-      },
-      {
         name: "Invoice",
         href: "/revenueengine/invoice",
         icon: <FileText />,
+      },
+      {
+        name: "Inventory",
+        href: "/inventory",
+        icon: <Database />,
       },
       // {
       //   name: "Quotation",
@@ -336,70 +353,40 @@ export const navigation = [
       // },
     ],
   },
-
-  // Management Section
-{
-  key: "management",
-  name: "Management",
-  href: "", // ✅ make parent non-clickable
-  icon: <Database />,
-  subpages: [
-    {
-      key: "crm",
-      name: "CRM",
-      href: "", // ✅ parent only (no direct routing)
-      icon: <Database />,
-      subpages: [
-        {
-          name: "Dashboard",
-          href: "/crm", // ✅ CRM main page
-          icon: <Home />,
-        },
-        {
-          name: "Agent Workflow",
-          href: "/crm/agent-workflow", // ✅ FIXED
-          icon: <Users />,
-        },
-      ],
-    },
-
-    {
-      key: "hrms",
-      name: "HRMS",
-      href: "", // ✅ same pattern
-      icon: <IdCard />,
-      subpages: [
-        {
-          name: "Calendar",
-          href: "/hrms/Calendar",
-          icon: <Calendar />,
-        },
-        {
-          name: "Employee",
-          href: "/hrms/Employee",
-          icon: <FileUser />,
-        },
-        {
-          name: "Leave",
-          href: "/hrms/Leave",
-          icon: <CalendarX2 />,
-        },
-        {
-          name: "Payroll",
-          href: "/hrms/Payroll",
-          icon: <WalletCards />,
-        },
-      ],
-    },
-
-    {
-      key: "analytics",
-      name: "Analytics",
-      href: "/analytics", // ✅ direct page (no subpages)
-      icon: <BarChart3 />,
-    },
-  ],
-},
+  {
+    key: "analytics",
+    name: "Analytics",
+    href: "/analytics", // ✅ direct page (no subpages)
+    icon: <BarChart3 />,
+  },
+  {
+    key: "hrms",
+    name: "HRMS",
+    href: "", // ✅ same pattern
+    icon: <IdCard />,
+    subpages: [
+      {
+        name: "Calendar",
+        href: "/hrms/Calendar",
+        icon: <Calendar />,
+      },
+      {
+        name: "Employee",
+        href: "/hrms/Employee",
+        icon: <FileUser />,
+      },
+      {
+        name: "Leave",
+        href: "/hrms/Leave",
+        icon: <CalendarX2 />,
+      },
+      {
+        name: "Payroll",
+        href: "/hrms/Payroll",
+        icon: <WalletCards />,
+      },
+    ],
+  },
 
   // Growth Section
   {
