@@ -122,7 +122,6 @@ const CustomerForm = ({ session, fetchCustomers, setCustomersData }) => {
           status: "",
           created_at: "",
         });
-        await fetchCustomers();
       } else {
         toast.error("Error in Adding Customer", {
           position: "top-right",

@@ -19,6 +19,7 @@ import {
   WalletCards,
   Wrench,
 } from "lucide-react";
+import { Mail } from "lucide-react";
 
 export const analyticsData = {
   overview: {
@@ -318,11 +319,11 @@ export const navigation = [
         href: "/inventory",
         icon: <Database />,
       },
-      // {
-      //   name: "Invoice",
-      //   href: "/invoice",
-      //   icon: <FileText />,
-      // },
+      {
+        name: "Invoice",
+        href: "/revenueengine/invoice",
+        icon: <FileText />,
+      },
       // {
       //   name: "Quotation",
       //   href: "/quotation",
@@ -337,57 +338,68 @@ export const navigation = [
   },
 
   // Management Section
-  {
-    key: "management",
-    name: "Management",
-    href: "/crm",
-    icon: <Database />,
-    subpages: [
-      {
-        name: "CRM",
-        href: "/crm",
-        icon: <Database />,
-      },
-      {
-        key: "HRMS",
-        name: "HRMS",
-        href: "/hrms/Calendar",
-        icon: <IdCard />,
-        subpages: [
-          {
-            name: "Calendar",
-            href: "/hrms/Calendar",
-            icon: <Calendar />,
-          },
-          {
-            name: "Employee",
-            href: "/hrms/Employee",
-            icon: <FileUser />,
-          },
-          {
-            name: "Leave",
-            href: "/hrms/Leave",
-            icon: <CalendarX2 />,
-          },
-          {
-            name: "Payroll",
-            href: "/hrms/Payroll",
-            icon: <WalletCards />,
-          },
-        ],
-      },
-      // {
-      //   name: "Task Management",
-      //   href: "/tasks",
-      //   icon: <ListChecks />,
-      // },
-      {
-        name: "Analytics",
-        href: "/analytics",
-        icon: <BarChart3 />,
-      },
-    ],
-  },
+{
+  key: "management",
+  name: "Management",
+  href: "", // ✅ make parent non-clickable
+  icon: <Database />,
+  subpages: [
+    {
+      key: "crm",
+      name: "CRM",
+      href: "", // ✅ parent only (no direct routing)
+      icon: <Database />,
+      subpages: [
+        {
+          name: "Dashboard",
+          href: "/crm", // ✅ CRM main page
+          icon: <Home />,
+        },
+        {
+          name: "Agent Workflow",
+          href: "/crm/agent-workflow", // ✅ FIXED
+          icon: <Users />,
+        },
+      ],
+    },
+
+    {
+      key: "hrms",
+      name: "HRMS",
+      href: "", // ✅ same pattern
+      icon: <IdCard />,
+      subpages: [
+        {
+          name: "Calendar",
+          href: "/hrms/Calendar",
+          icon: <Calendar />,
+        },
+        {
+          name: "Employee",
+          href: "/hrms/Employee",
+          icon: <FileUser />,
+        },
+        {
+          name: "Leave",
+          href: "/hrms/Leave",
+          icon: <CalendarX2 />,
+        },
+        {
+          name: "Payroll",
+          href: "/hrms/Payroll",
+          icon: <WalletCards />,
+        },
+      ],
+    },
+
+    {
+      key: "analytics",
+      name: "Analytics",
+      href: "/analytics", // ✅ direct page (no subpages)
+      icon: <BarChart3 />,
+    },
+  ],
+},
 
   // Growth Section
   {
