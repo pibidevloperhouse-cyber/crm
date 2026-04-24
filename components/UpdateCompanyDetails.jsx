@@ -4,21 +4,15 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Save,
-  Upload,
-  Plus,
-  Trash2,
-  Package,
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { Save, Upload, Plus, Trash2, Package, AlertCircle } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToastContainer, toast } from "react-toastify";
 import isEqual from "lodash/isEqual";
 import "react-toastify/dist/ReactToastify.css";
+import { fetchData } from "next-auth/client/_utils";
+import { set } from "lodash";
 const ErrorMessage = ({ error }) => {
   if (!error) return null;
   return (
@@ -64,7 +58,6 @@ export default function CompanyProfile() {
         const parsed = JSON.parse(cachedData);
         setCompanyData(parsed);
         setProducts(Array.isArray(parsed.products) ? parsed.products : []);
-        console.log(parsed);
       } catch (error) {
         console.error("Failed to parse cached data:", error);
         localStorage.removeItem("companyDataCache");
@@ -77,7 +70,7 @@ export default function CompanyProfile() {
         const { data, error } = await supabase
           .from("Users")
           .select(
-            "companyName, companyDescription, companyWebsite, products, id, email"
+            "companyName, companyDescription, companyWebsite, products, id, email",
           )
           .eq("email", userEmail)
           .single();
@@ -94,9 +87,8 @@ export default function CompanyProfile() {
         setProducts(
           typeof data.products === "string"
             ? JSON.parse(data.products || "[]")
-            : data.products || []
+            : data.products || [],
         );
-
         if (icpData) setIcpData(icpData);
 
         if (icpError) console.error("Error fetching ICP data:", icpError);
@@ -126,7 +118,6 @@ export default function CompanyProfile() {
         console.error("Error creating ICP entry:", res.statusText);
       }
     };
-    if (typeof window === "undefined") return;
 
     if (userEmail && companyData?.companyName && !icpData) {
       createICPEntry();
@@ -158,6 +149,7 @@ export default function CompanyProfile() {
 
   const addProduct = () => {
     if (!validateNewProduct()) return;
+
     const productToAdd = { ...newProduct, id: Date.now().toString() };
     setProducts([...products, productToAdd]);
     setNewProduct({ name: "", category: "", price: "", description: "" });
@@ -172,13 +164,13 @@ export default function CompanyProfile() {
     setLoading(true);
     localStorage.setItem(
       "companyDataCache",
-      JSON.stringify({ ...companyData, products })
+      JSON.stringify({ ...companyData, products }),
     );
     toast.info(
       "Changes saved locally. Don't clear browser history or the changes will be lost!",
       {
         position: "top-right",
-      }
+      },
     );
     setLoading(false);
   };
@@ -196,12 +188,11 @@ export default function CompanyProfile() {
       .select("*")
       .eq("email", userEmail)
       .single();
-
     const noChanges =
       companyDetails.companyName === companyData.companyName &&
       companyDetails.companyDescription === companyData.companyDescription &&
       companyDetails.companyWebsite === companyData.companyWebsite &&
-      isEqual(companyDetails.products, products);
+      isEqual(companyDetails.products, companyData.products);
 
     if (noChanges) {
       toast.info("No changes detected.", { position: "top-right" });
@@ -218,18 +209,12 @@ export default function CompanyProfile() {
           console.error("Error deleting ICP data:", error);
         }
       }
-
       const res = await fetch("/api/ICP", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_email: userEmail,
-          description: {
-            ...companyData,
-            products: companyData.products.filter(
-              (p) => p.isActive || p.isActive === undefined
-            ),
-          },
+          description: companyData,
         }),
       });
 
@@ -249,19 +234,17 @@ export default function CompanyProfile() {
       } else {
         toast.success(
           "Data updated permanently. All changes made are permanent.",
-          { position: "top-right" }
+          { position: "top-right" },
         );
         localStorage.removeItem("companyDataCache");
       }
-
       setLoading(false);
-      if (typeof window === "undefined") return;
       window.location.reload();
     }
   };
 
   return (
-    <div className="py-4 md:py-6 w-full mx-auto space-y-6 bg-gradient-to-br  from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7]">
+    <div className="py-4 md:py-6 w-full mx-auto space-y-6">
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -273,7 +256,7 @@ export default function CompanyProfile() {
         draggable
         pauseOnHover
       />
-      <Card className="bg-white/20 rounded-xl shadow-sm">
+      <Card className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm">
         <CardHeader>
           <CardTitle>Company Profile</CardTitle>
         </CardHeader>
@@ -320,12 +303,13 @@ export default function CompanyProfile() {
         </CardContent>
       </Card>
 
-      <Card className="bg-white/50 dark:bg-slate-800/50 rounded-xl shadow-sm">
+      <Card className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm">
         <CardHeader>
           <CardTitle>Products & Services</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="border border-blue-200 dark:border-blue-300 rounded-lg p-4 bg-blue-50/50 dark:bg-blue-900/20">
+          {/* Add New Product Form */}
+          <div className="border border-blue-200 dark:border-blue-800 rounded-lg p-4 bg-blue-50/50 dark:bg-blue-900/20">
             <div className="flex items-center mb-4">
               <Package className="w-5 h-5 mr-2 text-blue-600" />
               <h4 className="font-medium text-slate-900 dark:text-white">
@@ -412,78 +396,68 @@ export default function CompanyProfile() {
             </div>
             <Button
               onClick={addProduct}
-              className="mt-4 bg-blue-400 hover:bg-blue-300 text-white"
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" /> Add Product
             </Button>
           </div>
 
-          {products.filter(
-            (product) => product.isActive || product.isActive === undefined
-          ).length > 0 && (
+          {/* Existing Products List */}
+          {products.length > 0 && (
             <div className="space-y-3">
               <h4 className="font-medium text-slate-900 dark:text-white">
                 Your Products & Services
               </h4>
-              {products
-                .filter(
-                  (product) =>
-                    product.isActive || product.isActive === undefined
-                )
-                .map((product, idx) => (
-                  <div
-                    key={product.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white/30 dark:bg-slate-800/30"
-                  >
-                    <div className="flex-1 space-y-3">
+              {products.map((product, idx) => (
+                <div
+                  key={product.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-white/30 dark:bg-slate-800/30"
+                >
+                  <div className="flex-1 space-y-3">
+                    <Input
+                      value={product.name}
+                      onChange={(e) =>
+                        handleProductChange(idx, "name", e.target.value)
+                      }
+                      className="text-base font-bold bg-transparent border-0 p-0 h-auto focus-visible:ring-0"
+                    />
+                    <Textarea
+                      value={product.description}
+                      onChange={(e) =>
+                        handleProductChange(idx, "description", e.target.value)
+                      }
+                      placeholder="Description"
+                      className="text-sm text-slate-600 dark:text-slate-400 bg-transparent border p-2 rounded-md w-full"
+                    />
+                    <div className="flex flex-wrap items-center gap-2">
                       <Input
-                        value={product.name}
+                        value={product.category}
                         onChange={(e) =>
-                          handleProductChange(idx, "name", e.target.value)
+                          handleProductChange(idx, "category", e.target.value)
                         }
-                        className="text-base font-bold bg-transparent border-0 p-0 h-auto focus-visible:ring-0"
+                        placeholder="Category"
+                        className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded h-7"
                       />
-                      <Textarea
-                        value={product.description}
+                      <Input
+                        value={product.price}
                         onChange={(e) =>
-                          handleProductChange(
-                            idx,
-                            "description",
-                            e.target.value
-                          )
+                          handleProductChange(idx, "price", e.target.value)
                         }
-                        placeholder="Description"
-                        className="text-sm text-slate-600 dark:text-slate-400 bg-transparent border p-2 rounded-md w-full"
+                        placeholder="Price"
+                        className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded h-7"
                       />
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Input
-                          value={product.category}
-                          onChange={(e) =>
-                            handleProductChange(idx, "category", e.target.value)
-                          }
-                          placeholder="Category"
-                          className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded h-7"
-                        />
-                        <Input
-                          value={product.price}
-                          onChange={(e) =>
-                            handleProductChange(idx, "price", e.target.value)
-                          }
-                          placeholder="Price"
-                          className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded h-7"
-                        />
-                      </div>
                     </div>
-                    <Button
-                      onClick={() => removeProduct(product.id)}
-                      variant="outline"
-                      size="icon"
-                      className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700 dark:bg-red-900/50 dark:hover:bg-red-900 dark:text-red-300 dark:border-red-800 p-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </div>
-                ))}
+                  <Button
+                    onClick={() => removeProduct(product.id)}
+                    variant="outline"
+                    size="icon"
+                    className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700 dark:bg-red-900/50 dark:hover:bg-red-900 dark:text-red-300 dark:border-red-800 p-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
 
@@ -496,18 +470,6 @@ export default function CompanyProfile() {
               </p>
             </div>
           )}
-          {products.length > 0 &&
-            products.filter(
-              (product) => product.isActive || product.isActive === undefined
-            ).length === 0 && (
-              <div className="text-center py-6 text-slate-500 dark:text-slate-400">
-                <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">
-                  All you products have been discontinued. Please add a new
-                  product or reinstate an existing products.
-                </p>
-              </div>
-            )}
         </CardContent>
       </Card>
 
@@ -520,13 +482,13 @@ export default function CompanyProfile() {
           <Save className="mr-2 w-4 h-4" /> Save Changes Locally
         </Button>
         <Button onClick={handleUpdateDB} className={"cursor-pointer"}>
-          {loading && <Loader2 className="mr-2 w-4 h-4 animate-spin" />}
           <Upload className="mr-2 w-4 h-4" /> Update Database
         </Button>
       </div>
 
+      {/* ICP Details Card */}
       {icpData && icpData.icp && (
-        <Card className="bg-white/70 dark:bg-slate-800/50 rounded-xl shadow-sm">
+        <Card className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm">
           <CardHeader>
             <CardTitle>Ideal Customer Profile (ICP)</CardTitle>
           </CardHeader>
