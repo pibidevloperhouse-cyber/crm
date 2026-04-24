@@ -57,8 +57,7 @@ export default function InventoryPage() {
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .eq("user_email", userEmail)
-      .order("created_at", { ascending: false });
+      .eq("user_email", userEmail);
 
     if (!error) {
       setProducts(data);

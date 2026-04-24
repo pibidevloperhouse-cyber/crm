@@ -50,7 +50,7 @@ export default function PricingPage() {
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "",
-    price: "",
+    basePrice: "",
     currency: "",
     billingCycle: "",
     stock: "",
@@ -106,11 +106,33 @@ export default function PricingPage() {
     setProducts(updatedProducts);
     setCompanyData((prev) => ({ ...prev, products: updatedProducts }));
     const handleUpdate = async () => {
-      const { error } = await supabase
+      const { error: userTableError } = await supabase
         .from("Users")
         .update({ ...companyData, products: updatedProducts })
         .eq("email", userEmail);
-      if (error) {
+      
+      const updatedProduct = updatedProducts[index]; // 👈 get the specific product
+      const { error: productTableError } = await supabase
+        .from("products")
+        .update({
+          name: updatedProduct.name,
+          description: updatedProduct.description,
+          category: updatedProduct.category,
+          base_price: updatedProduct.basePrice
+            ? parseFloat(updatedProduct.basePrice)
+            : null,
+          stock: updatedProduct.stock,
+          is_configurable: Boolean(updatedProduct.isConfigurable),
+          configurations: updatedProduct.configurations || {},
+          tier_pricing: updatedProduct.tierPricing ?? null,
+          bundle_pricing: updatedProduct.bundlePricing ?? null,
+          cost_breakdown: updatedProduct.costBreakdown ?? null,
+          raw: updatedProduct.raw ?? null,
+        })
+        .eq("id", updatedProduct.id)       // 👈 match by product id
+        .eq("user_email", userEmail);      // 👈 correct column name
+
+      if (userTableError || productTableError) {
         toast.error("Failed to update products. Please try again.", {
           position: "top-right",
         });
@@ -148,8 +170,63 @@ export default function PricingPage() {
   const addProduct = async () => {
     if (!validateNewProduct()) return;
 
-    const productToAdd = { ...newProduct, id: Date.now().toString() };
-    setProducts([...products, productToAdd]);
+    //const productToAdd = { ...newProduct, id: Date.now().toString() };
+
+    console.log("basePrice value:", newProduct.basePrice);
+    console.log("parsed base_price:", parseFloat(newProduct.basePrice));
+
+    const { data: insertedProduct, error: productError } = await supabase
+    .from("products")
+    .insert([
+      {
+        name: newProduct.name,
+        description: newProduct.description,
+        category: newProduct.category,
+        base_price: parseFloat(newProduct.basePrice),
+        stock: parseInt(newProduct.stock),
+        is_configurable: newProduct.isConfigurable,
+        configurations: newProduct.configurations,
+        tier_pricing: newProduct.tierPricing ?? null,
+        bundle_pricing: newProduct.bundlePricing ?? null,
+        cost_breakdown: newProduct.costBreakdown ?? null,
+        raw: newProduct.raw ?? null,
+        user_email: userEmail,
+      },
+    ])
+    .select("*")
+    .single();
+
+    if (productError) {
+      console.error("CODE:", productError.code);
+      console.error("MESSAGE:", productError.message);
+      console.error("DETAILS:", productError.details);
+      console.error("HINT:", productError.hint);
+      toast.error("Failed to sync product to products table.");
+      console.error("Product table insert error:", productError);
+      return;
+    }
+
+    const productToAdd = { ...newProduct, id: insertedProduct.id };
+    
+    const updatedProducts = [...products, productToAdd];
+    
+
+    const { error: userError } = await supabase
+    .from("Users")
+    .update({ ...companyData, products: updatedProducts }) // variable, not state
+    .eq("email", userEmail)
+    .select("*")
+    .single();
+
+    if (userError) {
+      console.error("User table update error:", userError);
+      toast.error("Failed to update user products.");
+      return;
+    }
+
+    // Update state AFTER both DB calls succeed
+    setProducts(updatedProducts);
+
     setNewProduct({
       name: "",
       category: "",
@@ -194,7 +271,7 @@ export default function PricingPage() {
     }
   }, [userEmail]);
 
-  return (
+  return (  
     <div className="min-h-screen relative">
       <div className="flex flex-col md:flex-row justify-between w-full gap-6 items-center ">
         <div>
@@ -285,11 +362,11 @@ export default function PricingPage() {
                       Monetary Value
                     </Label>
                     <Input
-                      value={newProduct.price}
+                      value={newProduct.basePrice}
                       onChange={(e) =>
                         setNewProduct((prev) => ({
                           ...prev,
-                          price: e.target.value,
+                          basePrice: e.target.value,
                         }))
                       }
                       className={`bg-white/70 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50 text-slate-900 dark:text-white ${
