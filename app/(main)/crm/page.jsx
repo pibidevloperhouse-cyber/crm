@@ -45,7 +45,8 @@
 //   Unqualified: "bg-orange-400",
 //   "New Lead": "bg-blue-400",
 //   Proposal: "bg-violet-500",
-//   Negotiation: "bg-orange-400",
+//   Negotiation: 
+// "bg-orange-400",
 //   "Closed-won": "bg-emerald-500",
 //   "Closed-lost": "bg-red-500",
 //   Active: "bg-emerald-500",
