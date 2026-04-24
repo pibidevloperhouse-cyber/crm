@@ -526,8 +526,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br 
-from-[#e8f8f6] via-[#d1f2ee] to-[#e6f0ff] 
+      className="min-h-screen bg-white
 p-8 space-y-8 text-slate-900"
     >
       {/* HEADER */}
