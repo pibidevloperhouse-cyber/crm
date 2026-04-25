@@ -88,10 +88,15 @@ export default function AgentWorkflowPage() {
     try {
       const endpoint = isRunning ? "stop" : "start";
 
-      await fetch(`http://localhost:5000/${endpoint}`, {
+      // await fetch(`https://crmemail.onrender.com/${endpoint}`, {
+      //   method: "POST",
+      // });
+      await fetch(`https://crmemail.onrender.com/${endpoint}`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
       });
-
       setIsRunning(!isRunning);
     } catch (err) {
       console.error("Error:", err);

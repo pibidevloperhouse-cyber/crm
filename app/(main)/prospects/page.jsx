@@ -13,6 +13,7 @@ export default function OurProspects() {
   useEffect(() => {
     const fetchSession = async () => {
       const rawSession = localStorage.getItem("session");
+      if (!rawSession) return;
       const session = JSON.parse(rawSession);
       setUserEmail(session.user.email);
       setSession(session);
@@ -40,28 +41,49 @@ export default function OurProspects() {
     fetchData();
   }, [userEmail]);
 
-  const handleClick = async () => {
-    if (!companyData_1) return;
 
-    const res = await fetch("/api/ICP", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_email: userEmail,
-        description: companyData_1,
-      }),
-    });
+  const handleClick = async (dataToSend) => {
+    const payload = dataToSend || companyData_1;
 
-    if (res.ok) {
+    if (!payload) return;
+
+    try {
+      const res = await fetch("https://crmemail.onrender.com/icp/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
       const data = await res.json();
-      setResult(data.output);
+      setResult(JSON.stringify(data.response, null, 2));
+    } catch (err) {
+      console.error("ICP Error:", err);
     }
   };
+  // const handleClick = async () => {
+  //   if (!companyData_1) return;
+
+  //   const res = await fetch("/api/ICP", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       user_email: userEmail,
+  //       description: companyData_1,
+  //     }),
+  //   });
+
+  //   if (res.ok) {
+  //     const data = await res.json();
+  //     setResult(data.output);
+  //   }
+  // };
 
   return (
     <div className="">
       <h1 className="text-2xl font-bold">ICP Page</h1>
-      <UpdateCompanyDetails />
+      <UpdateCompanyDetails onGenerateICP={handleClick} />
     </div>
   );
 }

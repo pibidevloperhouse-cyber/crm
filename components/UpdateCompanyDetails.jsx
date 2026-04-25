@@ -326,11 +326,10 @@ export default function CompanyProfile() {
                   onChange={(e) =>
                     setNewProduct((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  className={`bg-white/70 dark:bg-slate-800/50 ${
-                    errors.newProduct.name
-                      ? "border-red-500"
-                      : "border-slate-200 dark:border-slate-700"
-                  }`}
+                  className={`bg-white/70 dark:bg-slate-800/50 ${errors.newProduct.name
+                    ? "border-red-500"
+                    : "border-slate-200 dark:border-slate-700"
+                    }`}
                   placeholder="Enter product name"
                 />
                 <ErrorMessage error={errors.newProduct.name} />
@@ -347,11 +346,10 @@ export default function CompanyProfile() {
                       category: e.target.value,
                     }))
                   }
-                  className={`bg-white/70 dark:bg-slate-800/50 ${
-                    errors.newProduct.category
-                      ? "border-red-500"
-                      : "border-slate-200 dark:border-slate-700"
-                  }`}
+                  className={`bg-white/70 dark:bg-slate-800/50 ${errors.newProduct.category
+                    ? "border-red-500"
+                    : "border-slate-200 dark:border-slate-700"
+                    }`}
                   placeholder="e.g., Analytics, Automation"
                 />
                 <ErrorMessage error={errors.newProduct.category} />
@@ -384,11 +382,10 @@ export default function CompanyProfile() {
                       description: e.target.value,
                     }))
                   }
-                  className={`bg-white/70 dark:bg-slate-800/50 min-h-24 ${
-                    errors.newProduct.description
-                      ? "border-red-500"
-                      : "border-slate-200 dark:border-slate-700"
-                  }`}
+                  className={`bg-white/70 dark:bg-slate-800/50 min-h-24 ${errors.newProduct.description
+                    ? "border-red-500"
+                    : "border-slate-200 dark:border-slate-700"
+                    }`}
                   placeholder="Brief description"
                 />
                 <ErrorMessage error={errors.newProduct.description} />
@@ -473,18 +470,48 @@ export default function CompanyProfile() {
         </CardContent>
       </Card>
 
+      {/* <div className="flex gap-4">
+        <Button></Button>
+        onClick={handleSaveChanges}
+        className={"cursor-pointer"}
+        variant="secondary"
+
+        <Save className="mr-2 w-4 h-4" /> Save Changes Locally */}
+      {/* </Button>
+        <Button onClick={handleUpdateDB} className={"cursor-pointer"}>
+          <Upload className="mr-2 w-4 h-4" /> Update Database
+        </Button> */}
+
       <div className="flex gap-4">
+
+        {/* Save locally */}
         <Button
           onClick={handleSaveChanges}
           className={"cursor-pointer"}
           variant="secondary"
         >
-          <Save className="mr-2 w-4 h-4" /> Save Changes Locally
+          <Save className="mr-2 w-4 h-4" />
+          Save Changes Locally
         </Button>
-        <Button onClick={handleUpdateDB} className={"cursor-pointer"}>
-          <Upload className="mr-2 w-4 h-4" /> Update Database
+
+        {/* Update DB + ICP */}
+        <Button
+          onClick={async () => {
+            await handleUpdateDB();   // save to DB first
+            if (onGenerateICP) {
+              await onGenerateICP();  // then call ICP API
+            }
+          }}
+          className={"cursor-pointer"}
+        >
+          <Upload className="mr-2 w-4 h-4" />
+          Update Database
         </Button>
       </div>
+
+
+
+
 
       {/* ICP Details Card */}
       {icpData && icpData.icp && (
