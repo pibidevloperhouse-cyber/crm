@@ -339,148 +339,64 @@ export default function CRM() {
       className="flex flex-col space-y-3"
       style={{ height: "calc(100vh - 64px)", overflow: "hidden" }}
     >
-      {/* ── Page header ── */}
-      <div className="flex-shrink-0">
-        <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2d7d71] to-[#1f576f] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
-          CRM Dashboard
-        </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Manage customers, leads, and deals
-        </p>
-      </div>
-      {/* 🔥 TOP ACTION BAR */}
-<div className="flex items-center gap-2 flex-shrink-0">
+      {/* ── Page header — title left, buttons right ── */}
+      <div className="flex items-center justify-between flex-shrink-0">
+        {/* Left: title + subtitle */}
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2d7d71] to-[#1f576f] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
+            CRM Dashboard
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Manage customers, leads, and deals
+          </p>
+        </div>
 
-  {/* CSV */}
-  <Sheet>
-    <SheetTrigger asChild>
-      <Button
-        size="sm"
-        variant="outline"
-        className="h-10 px-3 whitespace-nowrap"
-      >
-        <Upload className="w-4 h-4 mr-1.5" />
-        CSV
-      </Button>
-    </SheetTrigger>
-
-    <SheetContent>
-      <SheetHeader>
-        <SheetTitle>Upload {activeTab} CSV</SheetTitle>
-        <SheetDescription asChild>
-          <div>
-            <CsvSheetContent />
-          </div>
-        </SheetDescription>
-      </SheetHeader>
-    </SheetContent>
-  </Sheet>
-
-  {/* TASK BUTTON */}
-  <Button
-    size="sm"
-    className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
-  >
-    Task
-  </Button>
-
-  {/* ADD BUTTON */}
-  <Sheet>
-    <SheetTrigger asChild>
-      <Button
-        size="sm"
-        className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
-      >
-        <Plus className="w-4 h-4 mr-1" />
-        Add {activeTab}
-      </Button>
-    </SheetTrigger>
-
-    {/* ⚠️ KEEP YOUR EXISTING FORM LOGIC */}
-    <SheetContent>
-      <SheetHeader>
-        <SheetTitle>Add New {activeTab}</SheetTitle>
-        <SheetDescription asChild>
-          <div>
-            {activeTab === "Customers" && (
-              <CustomerForm
-                session={session}
-                fetchCustomers={fetchCustomers}
-                setCustomersData={setCustomersData}
-              />
-            )}
-            {activeTab === "Leads" && (
-              <LeadForm
-                session={session}
-                fetchDeals={fetchDeals}
-                fetchLeads={fetchLeads}
-                setLeadsData={setLeadsData}
-              />
-            )}
-            {activeTab === "Deals" && (
-              <DealForm
-                fetchDeals={fetchDeals}
-                session={session}
-                products={products}
-                setDealsData={setDealsData}
-              />
-            )}
-          </div>
-        </SheetDescription>
-      </SheetHeader>
-    </SheetContent>
-  </Sheet>
-
-</div>
-
-      {/* ── Tabs + Kanban boards ── */}
-      <Tabs
-        value={activeTab}
-        onValueChange={(e) => {
-          setActiveTab(e);
-          sessionStorage.setItem("activeTab", e);
-        }}
-        className="flex flex-col flex-1 min-h-0 space-y-2"
-      >
-        {/* ── Tab bar with action buttons ── */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Tab triggers — big, horizontal, full-width feel */}
-          <TabsList className="flex gap-1.5 bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-1 rounded-xl h-auto flex-1">
-            {[
-              { value: "Leads", Icon: TrendingUp },
-              { value: "Deals", Icon: DollarSign },
-              { value: "Customers", Icon: Users },
-            ].map(({ value, Icon }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-semibold text-sm
-                  data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-700 data-[state=active]:to-teal-500
-                  data-[state=active]:text-white data-[state=active]:shadow-md
-                  text-slate-600 dark:text-slate-400
-                  hover:bg-white dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white
-                  transition-all duration-200 cursor-pointer"
-              >
-                <Icon className="w-4 h-4" />
-                {value}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-        
-
-          {/* Add New */}
+        {/* Right: CSV + Task + Add buttons */}
+        <div className="flex items-center gap-2">
+          {/* CSV */}
           <Sheet>
             <SheetTrigger asChild>
-              {/* <Button
+              <Button
                 size="sm"
-                className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white whitespace-nowrap cursor-pointer"
+                variant="outline"
+                className="h-10 px-3 whitespace-nowrap"
+              >
+                <Upload className="w-4 h-4 mr-1.5" />
+                CSV
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Upload {activeTab} CSV</SheetTitle>
+                <SheetDescription asChild>
+                  <div>
+                    <CsvSheetContent />
+                  </div>
+                </SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
+
+          {/* TASK BUTTON */}
+          <Button
+            size="sm"
+            className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+          >
+            Task
+          </Button>
+
+          {/* ADD BUTTON */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                size="sm"
+                className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add {activeTab}
-              </Button> */}
+              </Button>
             </SheetTrigger>
-            <SheetContent className="backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
+            <SheetContent>
               <SheetHeader>
                 <SheetTitle>Add New {activeTab}</SheetTitle>
                 <SheetDescription asChild>
@@ -514,8 +430,44 @@ export default function CRM() {
             </SheetContent>
           </Sheet>
         </div>
+      </div>
 
- <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
+      {/* ── Tabs + Kanban boards ── */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(e) => {
+          setActiveTab(e);
+          sessionStorage.setItem("activeTab", e);
+        }}
+        className="flex flex-col flex-1 min-h-0 space-y-2"
+      >
+        {/* ── Tab bar ── */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <TabsList className="flex gap-1.5 bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-1 rounded-xl h-auto flex-1">
+            {[
+              { value: "Leads", Icon: TrendingUp },
+              { value: "Deals", Icon: DollarSign },
+              { value: "Customers", Icon: Users },
+            ].map(({ value, Icon }) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-semibold text-sm
+                  data-[state=active]:bg-gradient-to-r data-[state=active]:from-sky-700 data-[state=active]:to-teal-500
+                  data-[state=active]:text-white data-[state=active]:shadow-md
+                  text-slate-600 dark:text-slate-400
+                  hover:bg-white dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white
+                  transition-all duration-200 cursor-pointer"
+              >
+                <Icon className="w-4 h-4" />
+                {value}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+
+        {/* ── LEADS board ── */}
+        <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
           <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
             {getLeadStatuses().map((status) => {
               const items = leadsData.filter((l) => l.status === status);
@@ -536,7 +488,6 @@ export default function CRM() {
             })}
           </div>
         </TabsContent>
-
 
         {/* ── DEALS board ── */}
         <TabsContent value="Deals" className="flex-1 min-h-0 m-0">
@@ -562,9 +513,6 @@ export default function CRM() {
           </div>
         </TabsContent>
 
-
-
-
         {/* ── CUSTOMERS board ── */}
         <TabsContent value="Customers" className="flex-1 min-h-0 m-0">
           <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
@@ -585,11 +533,10 @@ export default function CRM() {
             })}
           </div>
         </TabsContent>
-
-      </Tabs >
+      </Tabs>
 
       <AgentActivity />
-    </div >
+    </div>
   );
 }
 
