@@ -11,13 +11,13 @@ const supabase = createClient(
 const STAGES = ["New", "Contact Attempted", "Contacted", "Meeting Booked", "Qualified", "NotQualified"];
 
 const STATUS_STYLES = {
-  "New":               { text: "text-blue-600",   },
+  "New": { text: "text-blue-600", },
   "Contact Attempted": { text: "text-yellow-600", },
-  "Contacted":         { text: "text-teal-600",   },
-  "Meeting Booked":    { text: "text-purple-600", },
-  "Qualified":         { text: "text-green-600",  },
-  "NotQualified":      { text: "text-red-500",    },
-  "In progress":       { text: "text-orange-500", },
+  "Contacted": { text: "text-teal-600", },
+  "Meeting Booked": { text: "text-purple-600", },
+  "Qualified": { text: "text-green-600", },
+  "NotQualified": { text: "text-red-500", },
+  "In progress": { text: "text-orange-500", },
 };
 
 function getStatusTextClass(status) {
@@ -105,23 +105,23 @@ export default function AgentWorkflowPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z" />
             </svg>
-            Leads
+            EMAIL
           </button>
           {/* Deals - display only, no pointer */}
-          <div className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-gray-400 text-sm font-medium" style={{ cursor: "default" }}>
+          {/* <div className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-gray-400 text-sm font-medium" style={{ cursor: "default" }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2zM3 18c0-3.314 4.03-6 9-6s9 2.686 9 6" />
             </svg>
             Deals
-          </div>
+          </div> */}
           {/* Customers - display only */}
-          <div className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-gray-400 text-sm font-medium" style={{ cursor: "default" }}>
+          {/* <div className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-gray-400 text-sm font-medium" style={{ cursor: "default" }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 11c1.657 0 3-1.343 3-3S17.657 5 16 5s-3 1.343-3 3 1.343 3 3 3zM8 11c1.657 0 3-1.343 3-3S9.657 5 8 5 5 6.343 5 8s1.343 3 3 3zm8 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm-8 0C5.67 13 1 14.17 1 16.5V19h6v-2.5c0-.83.33-1.61.87-2.22" />
             </svg>
             Customers
           </div>
-        </div>
+        */}</div>
 
         {/* Search */}
         <div className="px-4 py-3">
