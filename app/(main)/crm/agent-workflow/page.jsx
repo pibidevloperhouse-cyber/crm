@@ -46,6 +46,7 @@ export default function AgentWorkflowPage() {
   const [grouped, setGrouped] = useState({});
   const [selectedLead, setSelectedLead] = useState(null);
   const [search, setSearch] = useState("");
+  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,6 +84,20 @@ export default function AgentWorkflowPage() {
     (s) => s.toLowerCase() === currentStatus.toLowerCase()
   );
 
+  const handleEmailToggle = async () => {
+    try {
+      const endpoint = isRunning ? "stop" : "start";
+
+      await fetch(`http://localhost:5000/${endpoint}`, {
+        method: "POST",
+      });
+
+      setIsRunning(!isRunning);
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#e6f2f1" }}>
 
@@ -96,7 +111,7 @@ export default function AgentWorkflowPage() {
         }}
       >
         {/* Top tabs */}
-        <div className="flex items-center gap-1 px-4 pt-4 pb-3" style={{ borderBottom: "1px solid #e5f0ef" }}>
+        <div className="flex items-center justify-between px-4 pt-4 pb-3" style={{ borderBottom: "1px solid #e5f0ef" }}>
           {/* Leads active */}
           <button
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-sm font-semibold"
@@ -106,6 +121,17 @@ export default function AgentWorkflowPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z" />
             </svg>
             EMAIL
+          </button>
+          <button
+            onClick={handleEmailToggle}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-sm font-semibold"
+            style={{
+              background: isRunning
+                ? "linear-gradient(135deg, #ef4444, #dc2626)" // STOP (red)
+                : "linear-gradient(135deg, #22c55e, #16a34a)" // START (green)
+            }}
+          >
+            {isRunning ? "STOP" : "START"}
           </button>
           {/* Deals - display only, no pointer */}
           {/* <div className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-gray-400 text-sm font-medium" style={{ cursor: "default" }}>
