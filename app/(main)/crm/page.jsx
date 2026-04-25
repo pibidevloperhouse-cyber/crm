@@ -1,215 +1,3 @@
-// "use client";
-
-// import { useEffect, useState, useRef } from "react";
-// import Papa from "papaparse";
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// import { Button } from "@/components/ui/button";
-// import LeadCard from "@/components/cards/LeadCard";
-// import LeadForm from "@/components/forms/LeadForm";
-// import CustomerCard from "@/components/cards/CustomerCard";
-// import CustomerForm from "@/components/forms/CustomerForm";
-// import DealCard from "@/components/cards/DealCard";
-// import DealForm from "@/components/forms/DealForm";
-// import AgentActivity from "@/components/agents/AgentActivity";
-// // Switch Sheet to Dialog for centered UI
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-// } from "@/components/ui/dialog";
-// // Keep Sheet for CSV if you want, or change to Dialog too
-// import {
-//   Sheet,
-//   SheetContent,
-//   SheetDescription,
-//   SheetHeader,
-//   SheetTitle,
-//   SheetTrigger,
-// } from "@/components/ui/sheet";
-// import { Users, TrendingUp, DollarSign, ChevronLeft, ChevronRight, Upload, Plus } from "lucide-react";
-// import { toast } from "react-toastify";
-// import { supabase } from "@/utils/supabase/client";
-// import { customerStatus, dealStatus, leadStatus } from "@/constants/constant";
-// import { redirect } from "next/navigation";
-// import { motion, AnimatePresence } from "framer-motion";
-
-// const STATUS_DOT = {
-//   New: "bg-blue-400",
-//   Contacted: "bg-yellow-400",
-//   Qualified: "bg-purple-500",
-//   NotQualified: "bg-red-400",
-//   Converted: "bg-green-500",
-//   Unqualified: "bg-orange-400",
-//   "New Lead": "bg-blue-400",
-//   Proposal: "bg-violet-500",
-//   Negotiation: 
-// "bg-orange-400",
-//   "Closed-won": "bg-emerald-500",
-//   "Closed-lost": "bg-red-500",
-//   Active: "bg-emerald-500",
-//   Inactive: "bg-slate-400",
-//   Churned: "bg-red-400",
-// };
-
-// const normalizeStatuses = (arr) => {
-//   if (!arr || !Array.isArray(arr)) return [];
-//   return arr.map((s) => (typeof s === "string" ? s : s?.value || s?.label || "")).filter(Boolean);
-// };
-
-// const LEAD_DEFAULTS = ["New", "Contacted", "Qualified", "Not Qualified", "Converted"];
-// const DEAL_DEFAULTS = ["New Lead", "Qualified", "Proposal", "Negotiation", "Closed-won", "Closed", "Closed-lost"];
-// const CUSTOMER_DEFAULTS = ["Active", "Inactive", "Churned"];
-
-// export default function CRM() {
-//   const [activeTab, setActiveTab] = useState("Leads");
-//   const [customersData, setCustomersData] = useState([]);
-//   const [products, setProducts] = useState([]);
-//   const [session, setSession] = useState(null);
-//   const [leadsData, setLeadsData] = useState([]);
-//   const [dealsData, setDealsData] = useState([]);
-//   const [collapsedCols, setCollapsedCols] = useState({});
-//   const [userEmail, setUserEmail] = useState(null);
-//   const fileInputRef = useRef();
-
-//   const toggleCollapse = (colTitle) =>
-//     setCollapsedCols((prev) => ({ ...prev, [colTitle]: !prev[colTitle] }));
-
-//   useEffect(() => {
-//     const user = JSON.parse(localStorage.getItem("user"));
-//     if (!user) redirect("/");
-//     setProducts(user?.products?.map((p) => ({ value: p.name, label: p.name })) || []);
-//     const sessionJSON = JSON.parse(localStorage.getItem("session"));
-//     setSession(sessionJSON);
-//     setUserEmail(sessionJSON?.user?.email);
-//     setActiveTab(sessionStorage.getItem("activeTab") || "Leads");
-//   }, []);
-
-//   const fetchCustomers = async () => {
-//     const { data } = await supabase.from("Customers").select("*").eq("user_email", userEmail || "undefined").order("created_at", { ascending: false });
-//     if (data) setCustomersData(data);
-//   };
-//   const fetchLeads = async () => {
-//     const { data } = await supabase.from("Leads").select("*").eq("user_email", userEmail || "undefined").order("created_at", { ascending: false });
-//     if (data) setLeadsData(data);
-//   };
-//   const fetchDeals = async () => {
-//     const { data } = await supabase.from("Deals").select("*").eq("user_email", userEmail || "undefined").order("created_at", { ascending: false });
-//     if (data) setDealsData(data);
-//   };
-
-//   useEffect(() => {
-//     if (!userEmail) return;
-//     fetchCustomers(); fetchLeads(); fetchDeals();
-//   }, [userEmail]);
-
-//   const KanbanColumn = ({ title, count, children }) => {
-//     const isCollapsed = collapsedCols[title];
-//     return (
-//       <div
-//         className={`flex flex-col rounded-xl bg-slate-100/70 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 h-full transition-all duration-200 flex-shrink-0
-//           ${isCollapsed ? "w-12 min-w-[48px]" : "w-[300px]"}`}
-//       >
-//         <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200 dark:border-slate-700/50 flex-shrink-0">
-//           {!isCollapsed && (
-//             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-//               <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${STATUS_DOT[title] || "bg-slate-400"}`} />
-//               <span className="font-bold text-xs text-slate-700 dark:text-slate-200 truncate uppercase tracking-wider">{title}</span>
-//               <span className="text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full ml-auto">{count}</span>
-//             </div>
-//           )}
-//           <button onClick={() => toggleCollapse(title)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded">
-//             {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
-//           </button>
-//         </div>
-//         {!isCollapsed && (
-//           <div className="flex-1 overflow-y-auto p-2 space-y-3 custom-scrollbar">
-//             <AnimatePresence>{children}</AnimatePresence>
-//           </div>
-//         )}
-//       </div>
-//     );
-//   };
-
-//   const AnimatedCard = ({ id, children }) => (
-//     <motion.div key={id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
-//       {children}
-//     </motion.div>
-//   );
-
-//   return (
-//     <div className="flex flex-col space-y-4 h-[calc(100vh-80px)] overflow-hidden">
-//       <div className="flex justify-between items-end flex-shrink-0">
-//         <div>
-//           <h1 className="text-3xl font-bold bg-gradient-to-r from-[#25C2A0] to-[#1f576f] bg-clip-text text-transparent">CRM Dashboard</h1>
-//           <p className="text-sm text-slate-500">Track and grow your pipeline</p>
-//         </div>
-//       </div>
-
-//       <Tabs value={activeTab} onValueChange={(e) => { setActiveTab(e); sessionStorage.setItem("activeTab", e); }} className="flex flex-col flex-1 min-h-0">
-//         <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-//           <TabsList className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl h-12 flex-1 border dark:border-slate-700">
-//             {["Leads", "Deals", "Customers"].map((tab) => (
-//               <TabsTrigger key={tab} value={tab} className="flex-1 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 shadow-sm font-semibold cursor-pointer">
-//                 {tab}
-//               </TabsTrigger>
-//             ))}
-//           </TabsList>
-
-//           {/* Add New - Switch to DIALOG for centering */}
-//           <Dialog>
-//             <DialogTrigger asChild>
-//               <Button className="h-12 px-6 bg-gradient-to-r from-sky-700 to-teal-500 text-white font-bold rounded-xl shadow-lg hover:opacity-90 cursor-pointer">
-//                 <Plus className="w-5 h-5 mr-2" /> Add {activeTab}
-//               </Button>
-//             </DialogTrigger>
-//             <DialogContent className="max-w-[80vw] w-full h-[85vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
-//               <DialogHeader className="p-6 border-b bg-slate-50 dark:bg-slate-900">
-//                 <DialogTitle className="text-2xl font-bold">New {activeTab}</DialogTitle>
-//                 <DialogDescription>Fill in the details to create a new record.</DialogDescription>
-//               </DialogHeader>
-//               <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-950">
-//                 {activeTab === "Customers" && <CustomerForm session={session} fetchCustomers={fetchCustomers} setCustomersData={setCustomersData} />}
-//                 {activeTab === "Leads" && <LeadForm session={session} fetchDeals={fetchDeals} fetchLeads={fetchLeads} setLeadsData={setLeadsData} />}
-//                 {activeTab === "Deals" && <DealForm fetchDeals={fetchDeals} session={session} products={products} setDealsData={setDealsData} />}
-//               </div>
-//             </DialogContent>
-//           </Dialog>
-//         </div>
-
-//         {/* Board Container - Horizontal Scroll Added Here */}
-//         <div className="flex-1 overflow-hidden">
-//           {["Leads", "Deals", "Customers"].map((tab) => (
-//             <TabsContent key={tab} value={tab} className="h-full m-0 focus-visible:outline-none">
-//               {/* overflow-x-auto is the magic for left-right scroll */}
-//               <div className="flex gap-4 h-full pb-4 overflow-x-auto custom-scrollbar items-start">
-//                 {(tab === "Leads" ? normalizeStatuses(leadStatus) : tab === "Deals" ? normalizeStatuses(dealStatus) : normalizeStatuses(customerStatus)).map((status) => (
-//                   <KanbanColumn key={status} title={status} count={(tab === "Leads" ? leadsData : tab === "Deals" ? dealsData : customersData).filter(i => i.status === status).length}>
-//                     {(tab === "Leads" ? leadsData : tab === "Deals" ? dealsData : customersData).filter(i => i.status === status).map(item => (
-//                       <AnimatedCard key={item.id} id={item.id}>
-//                         {tab === "Leads" ? <LeadCard lead={item} fetchLeads={fetchLeads} fetchDeals={fetchDeals} /> :
-//                           tab === "Deals" ? <DealCard deal={item} fetchDeals={fetchDeals} fetchCustomers={fetchCustomers} session={session} /> :
-//                             <CustomerCard customer={item} onChange={fetchCustomers} />}
-//                       </AnimatedCard>
-//                     ))}
-//                   </KanbanColumn>
-//                 ))}
-//               </div>
-//             </TabsContent>
-//           ))}
-//         </div>
-//       </Tabs>
-//       <AgentActivity />
-//     </div>
-//   );
-// }
-
-// the above is helped by gemini 
-
-//previous versionb of tightly packed page , left right scroll missing here
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -560,6 +348,90 @@ export default function CRM() {
           Manage customers, leads, and deals
         </p>
       </div>
+      {/* 🔥 TOP ACTION BAR */}
+<div className="flex items-center gap-2 flex-shrink-0">
+
+  {/* CSV */}
+  <Sheet>
+    <SheetTrigger asChild>
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-10 px-3 whitespace-nowrap"
+      >
+        <Upload className="w-4 h-4 mr-1.5" />
+        CSV
+      </Button>
+    </SheetTrigger>
+
+    <SheetContent>
+      <SheetHeader>
+        <SheetTitle>Upload {activeTab} CSV</SheetTitle>
+        <SheetDescription asChild>
+          <div>
+            <CsvSheetContent />
+          </div>
+        </SheetDescription>
+      </SheetHeader>
+    </SheetContent>
+  </Sheet>
+
+  {/* TASK BUTTON */}
+  <Button
+    size="sm"
+    className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+  >
+    Task
+  </Button>
+
+  {/* ADD BUTTON */}
+  <Sheet>
+    <SheetTrigger asChild>
+      <Button
+        size="sm"
+        className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+      >
+        <Plus className="w-4 h-4 mr-1" />
+        Add {activeTab}
+      </Button>
+    </SheetTrigger>
+
+    {/* ⚠️ KEEP YOUR EXISTING FORM LOGIC */}
+    <SheetContent>
+      <SheetHeader>
+        <SheetTitle>Add New {activeTab}</SheetTitle>
+        <SheetDescription asChild>
+          <div>
+            {activeTab === "Customers" && (
+              <CustomerForm
+                session={session}
+                fetchCustomers={fetchCustomers}
+                setCustomersData={setCustomersData}
+              />
+            )}
+            {activeTab === "Leads" && (
+              <LeadForm
+                session={session}
+                fetchDeals={fetchDeals}
+                fetchLeads={fetchLeads}
+                setLeadsData={setLeadsData}
+              />
+            )}
+            {activeTab === "Deals" && (
+              <DealForm
+                fetchDeals={fetchDeals}
+                session={session}
+                products={products}
+                setDealsData={setDealsData}
+              />
+            )}
+          </div>
+        </SheetDescription>
+      </SheetHeader>
+    </SheetContent>
+  </Sheet>
+
+</div>
 
       {/* ── Tabs + Kanban boards ── */}
       <Tabs
@@ -595,40 +467,18 @@ export default function CRM() {
             ))}
           </TabsList>
 
-          {/* Upload CSV */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-10 px-3 whitespace-nowrap border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-              >
-                <Upload className="w-4 h-4 mr-1.5" />
-                CSV
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="space-y-6 overflow-y-auto backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
-              <SheetHeader>
-                <SheetTitle>Upload {activeTab} CSV</SheetTitle>
-                <SheetDescription asChild>
-                  <div>
-                    <CsvSheetContent />
-                  </div>
-                </SheetDescription>
-              </SheetHeader>
-            </SheetContent>
-          </Sheet>
+        
 
           {/* Add New */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button
+              {/* <Button
                 size="sm"
                 className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white whitespace-nowrap cursor-pointer"
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add {activeTab}
-              </Button>
+              </Button> */}
             </SheetTrigger>
             <SheetContent className="backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20">
               <SheetHeader>
@@ -665,38 +515,7 @@ export default function CRM() {
           </Sheet>
         </div>
 
-
-
-        {/* Replace all your TabsContent blocks (Leads, Deals, Customers) with this structure */}
-        {/*
-        <TabsContent value={activeTab} className="flex-1 min-h-0 m-0 overflow-hidden">
-          <div className="flex gap-3 h-full pb-4 overflow-x-auto custom-scrollbar items-start">
-      
-        {getCurrentStatuses().map((status) => {
-          const items = getCurrentData().filter((i) => i.status === status);
-          return (
-            <KanbanColumn key={status} title={status} count={items.length}>
-              {items.map((item) => (
-                <AnimatedCard key={item.id} id={item.id}>
-                  {activeTab === "Leads" && <LeadCard lead={item} onChange={fetchLeads} fetchLeads={fetchLeads} fetchDeals={fetchDeals} />}
-                  {activeTab === "Deals" && <DealCard deal={item} onChange={fetchDeals} fetchDeals={fetchDeals} fetchCustomers={fetchCustomers} session={session} />}
-                  {activeTab === "Customers" && <CustomerCard customer={item} onChange={fetchCustomers} />}
-                </AnimatedCard>
-              ))}
-            </KanbanColumn>
-          );
-        })}
-    </div>
-        </TabsContent >
- */
-        }
-
-
-
-
-
-
-        <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
+ <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
           <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
             {getLeadStatuses().map((status) => {
               const items = leadsData.filter((l) => l.status === status);
@@ -774,6 +593,258 @@ export default function CRM() {
   );
 }
 
+
+
+
+
+
+
+// "use client";
+
+// import { useEffect, useState, useRef } from "react";
+// import Papa from "papaparse";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// import { Button } from "@/components/ui/button";
+// import LeadCard from "@/components/cards/LeadCard";
+// import LeadForm from "@/components/forms/LeadForm";
+// import CustomerCard from "@/components/cards/CustomerCard";
+// import CustomerForm from "@/components/forms/CustomerForm";
+// import DealCard from "@/components/cards/DealCard";
+// import DealForm from "@/components/forms/DealForm";
+// import AgentActivity from "@/components/agents/AgentActivity";
+// // Switch Sheet to Dialog for centered UI
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogTrigger,
+// } from "@/components/ui/dialog";
+// // Keep Sheet for CSV if you want, or change to Dialog too
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetDescription,
+//   SheetHeader,
+//   SheetTitle,
+//   SheetTrigger,
+// } from "@/components/ui/sheet";
+// import { Users, TrendingUp, DollarSign, ChevronLeft, ChevronRight, Upload, Plus } from "lucide-react";
+// import { toast } from "react-toastify";
+// import { supabase } from "@/utils/supabase/client";
+// import { customerStatus, dealStatus, leadStatus } from "@/constants/constant";
+// import { redirect } from "next/navigation";
+// import { motion, AnimatePresence } from "framer-motion";
+
+// const STATUS_DOT = {
+//   New: "bg-blue-400",
+//   Contacted: "bg-yellow-400",
+//   Qualified: "bg-purple-500",
+//   NotQualified: "bg-red-400",
+//   Converted: "bg-green-500",
+//   Unqualified: "bg-orange-400",
+//   "New Lead": "bg-blue-400",
+//   Proposal: "bg-violet-500",
+//   Negotiation: 
+// "bg-orange-400",
+//   "Closed-won": "bg-emerald-500",
+//   "Closed-lost": "bg-red-500",
+//   Active: "bg-emerald-500",
+//   Inactive: "bg-slate-400",
+//   Churned: "bg-red-400",
+// };
+
+// const normalizeStatuses = (arr) => {
+//   if (!arr || !Array.isArray(arr)) return [];
+//   return arr.map((s) => (typeof s === "string" ? s : s?.value || s?.label || "")).filter(Boolean);
+// };
+
+// const LEAD_DEFAULTS = ["New", "Contacted", "Qualified", "Not Qualified", "Converted"];
+// const DEAL_DEFAULTS = ["New Lead", "Qualified", "Proposal", "Negotiation", "Closed-won", "Closed", "Closed-lost"];
+// const CUSTOMER_DEFAULTS = ["Active", "Inactive", "Churned"];
+
+// export default function CRM() {
+//   const [activeTab, setActiveTab] = useState("Leads");
+//   const [customersData, setCustomersData] = useState([]);
+//   const [products, setProducts] = useState([]);
+//   const [session, setSession] = useState(null);
+//   const [leadsData, setLeadsData] = useState([]);
+//   const [dealsData, setDealsData] = useState([]);
+//   const [collapsedCols, setCollapsedCols] = useState({});
+//   const [userEmail, setUserEmail] = useState(null);
+//   const fileInputRef = useRef();
+
+//   const toggleCollapse = (colTitle) =>
+//     setCollapsedCols((prev) => ({ ...prev, [colTitle]: !prev[colTitle] }));
+
+//   useEffect(() => {
+//     const user = JSON.parse(localStorage.getItem("user"));
+//     if (!user) redirect("/");
+//     setProducts(user?.products?.map((p) => ({ value: p.name, label: p.name })) || []);
+//     const sessionJSON = JSON.parse(localStorage.getItem("session"));
+//     setSession(sessionJSON);
+//     setUserEmail(sessionJSON?.user?.email);
+//     setActiveTab(sessionStorage.getItem("activeTab") || "Leads");
+//   }, []);
+
+//   const fetchCustomers = async () => {
+//     const { data } = await supabase.from("Customers").select("*").eq("user_email", userEmail || "undefined").order("created_at", { ascending: false });
+//     if (data) setCustomersData(data);
+//   };
+//   const fetchLeads = async () => {
+//     const { data } = await supabase.from("Leads").select("*").eq("user_email", userEmail || "undefined").order("created_at", { ascending: false });
+//     if (data) setLeadsData(data);
+//   };
+//   const fetchDeals = async () => {
+//     const { data } = await supabase.from("Deals").select("*").eq("user_email", userEmail || "undefined").order("created_at", { ascending: false });
+//     if (data) setDealsData(data);
+//   };
+
+//   useEffect(() => {
+//     if (!userEmail) return;
+//     fetchCustomers(); fetchLeads(); fetchDeals();
+//   }, [userEmail]);
+
+//   const KanbanColumn = ({ title, count, children }) => {
+//     const isCollapsed = collapsedCols[title];
+//     return (
+//       <div
+//         className={`flex flex-col rounded-xl bg-slate-100/70 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 h-full transition-all duration-200 flex-shrink-0
+//           ${isCollapsed ? "w-12 min-w-[48px]" : "w-[300px]"}`}
+//       >
+//         <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200 dark:border-slate-700/50 flex-shrink-0">
+//           {!isCollapsed && (
+//             <div className="flex items-center gap-1.5 min-w-0 flex-1">
+//               <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${STATUS_DOT[title] || "bg-slate-400"}`} />
+//               <span className="font-bold text-xs text-slate-700 dark:text-slate-200 truncate uppercase tracking-wider">{title}</span>
+//               <span className="text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full ml-auto">{count}</span>
+//             </div>
+//           )}
+//           <button onClick={() => toggleCollapse(title)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded">
+//             {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+//           </button>
+//         </div>
+//         {!isCollapsed && (
+//           <div className="flex-1 overflow-y-auto p-2 space-y-3 custom-scrollbar">
+//             <AnimatePresence>{children}</AnimatePresence>
+//           </div>
+//         )}
+//       </div>
+//     );
+//   };
+
+//   const AnimatedCard = ({ id, children }) => (
+//     <motion.div key={id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
+//       {children}
+//     </motion.div>
+//   );
+
+//   return (
+//     <div className="flex flex-col space-y-4 h-[calc(100vh-80px)] overflow-hidden">
+//       <div className="flex justify-between items-end flex-shrink-0">
+//         <div>
+//           <h1 className="text-3xl font-bold bg-gradient-to-r from-[#25C2A0] to-[#1f576f] bg-clip-text text-transparent">CRM Dashboard</h1>
+//           <p className="text-sm text-slate-500">Track and grow your pipeline</p>
+//         </div>
+//       </div>
+
+//       <Tabs value={activeTab} onValueChange={(e) => { setActiveTab(e); sessionStorage.setItem("activeTab", e); }} className="flex flex-col flex-1 min-h-0">
+//         <div className="flex items-center gap-3 mb-4 flex-shrink-0">
+//           <TabsList className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl h-12 flex-1 border dark:border-slate-700">
+//             {["Leads", "Deals", "Customers"].map((tab) => (
+//               <TabsTrigger key={tab} value={tab} className="flex-1 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 shadow-sm font-semibold cursor-pointer">
+//                 {tab}
+//               </TabsTrigger>
+//             ))}
+//           </TabsList>
+
+//           {/* Add New - Switch to DIALOG for centering */}
+//           <Dialog>
+//             <DialogTrigger asChild>
+//               <Button className="h-12 px-6 bg-gradient-to-r from-sky-700 to-teal-500 text-white font-bold rounded-xl shadow-lg hover:opacity-90 cursor-pointer">
+//                 <Plus className="w-5 h-5 mr-2" /> Add {activeTab}
+//               </Button>
+//             </DialogTrigger>
+//             <DialogContent className="max-w-[80vw] w-full h-[85vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+//               <DialogHeader className="p-6 border-b bg-slate-50 dark:bg-slate-900">
+//                 <DialogTitle className="text-2xl font-bold">New {activeTab}</DialogTitle>
+//                 <DialogDescription>Fill in the details to create a new record.</DialogDescription>
+//               </DialogHeader>
+//               <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-950">
+//                 {activeTab === "Customers" && <CustomerForm session={session} fetchCustomers={fetchCustomers} setCustomersData={setCustomersData} />}
+//                 {activeTab === "Leads" && <LeadForm session={session} fetchDeals={fetchDeals} fetchLeads={fetchLeads} setLeadsData={setLeadsData} />}
+//                 {activeTab === "Deals" && <DealForm fetchDeals={fetchDeals} session={session} products={products} setDealsData={setDealsData} />}
+//               </div>
+//             </DialogContent>
+//           </Dialog>
+//         </div>
+
+//         {/* Board Container - Horizontal Scroll Added Here */}
+//         <div className="flex-1 overflow-hidden">
+//           {["Leads", "Deals", "Customers"].map((tab) => (
+//             <TabsContent key={tab} value={tab} className="h-full m-0 focus-visible:outline-none">
+//               {/* overflow-x-auto is the magic for left-right scroll */}
+//               <div className="flex gap-4 h-full pb-4 overflow-x-auto custom-scrollbar items-start">
+//                 {(tab === "Leads" ? normalizeStatuses(leadStatus) : tab === "Deals" ? normalizeStatuses(dealStatus) : normalizeStatuses(customerStatus)).map((status) => (
+//                   <KanbanColumn key={status} title={status} count={(tab === "Leads" ? leadsData : tab === "Deals" ? dealsData : customersData).filter(i => i.status === status).length}>
+//                     {(tab === "Leads" ? leadsData : tab === "Deals" ? dealsData : customersData).filter(i => i.status === status).map(item => (
+//                       <AnimatedCard key={item.id} id={item.id}>
+//                         {tab === "Leads" ? <LeadCard lead={item} fetchLeads={fetchLeads} fetchDeals={fetchDeals} /> :
+//                           tab === "Deals" ? <DealCard deal={item} fetchDeals={fetchDeals} fetchCustomers={fetchCustomers} session={session} /> :
+//                             <CustomerCard customer={item} onChange={fetchCustomers} />}
+//                       </AnimatedCard>
+//                     ))}
+//                   </KanbanColumn>
+//                 ))}
+//               </div>
+//             </TabsContent>
+//           ))}
+//         </div>
+//       </Tabs>
+//       <AgentActivity />
+//     </div>
+//   );
+// }
+
+// the above is helped by gemini 
+
+//previous versionb of tightly packed page , left right scroll missing here
+
+
+
+
+
+        {/* Replace all your TabsContent blocks (Leads, Deals, Customers) with this structure */}
+        {/*
+        <TabsContent value={activeTab} className="flex-1 min-h-0 m-0 overflow-hidden">
+          <div className="flex gap-3 h-full pb-4 overflow-x-auto custom-scrollbar items-start">
+      
+        {getCurrentStatuses().map((status) => {
+          const items = getCurrentData().filter((i) => i.status === status);
+          return (
+            <KanbanColumn key={status} title={status} count={items.length}>
+              {items.map((item) => (
+                <AnimatedCard key={item.id} id={item.id}>
+                  {activeTab === "Leads" && <LeadCard lead={item} onChange={fetchLeads} fetchLeads={fetchLeads} fetchDeals={fetchDeals} />}
+                  {activeTab === "Deals" && <DealCard deal={item} onChange={fetchDeals} fetchDeals={fetchDeals} fetchCustomers={fetchCustomers} session={session} />}
+                  {activeTab === "Customers" && <CustomerCard customer={item} onChange={fetchCustomers} />}
+                </AnimatedCard>
+              ))}
+            </KanbanColumn>
+          );
+        })}
+    </div>
+        </TabsContent >
+ */
+        }
+
+
+
+
+
+
+       
 
 
 
