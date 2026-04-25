@@ -32,10 +32,20 @@ scheduler = BackgroundScheduler()
 
 supabase = None
 try:
-    supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
-    print("✅ Supabase connected")
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_KEY")
+
+    print("SUPABASE_URL:", url)
+    print("SUPABASE_KEY:", "SET" if key else "MISSING")
+
+    if url and key:
+        supabase = create_client(url, key)
+        print("✅ Supabase connected")
+    else:
+        print("❌ Supabase env missing")
+
 except Exception as e:
-    print("❌ Supabase failed:", e)
+    print("❌ Supabase init error:", e)
 
 
 def add_log(msg):
