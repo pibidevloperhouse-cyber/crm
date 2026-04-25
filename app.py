@@ -28,7 +28,15 @@ logs = []
 running = False
 scheduler = BackgroundScheduler()
 
-supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+# supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+
+supabase = None
+try:
+    supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+    print("✅ Supabase connected")
+except Exception as e:
+    print("❌ Supabase failed:", e)
+
 
 def add_log(msg):
     logs.append(str(msg))
@@ -36,10 +44,12 @@ def add_log(msg):
         logs.pop(0)
     print(msg)
 
+
 # ====================== BASIC ======================
 @app.route("/")
 def home():
     return jsonify({"status": "Backend Running 🚀"})
+
 
 # ====================== EMAIL SYSTEM ======================
 def crm_bot():
@@ -59,16 +69,19 @@ def crm_bot():
             except Exception as e:
                 add_log(f"❌ Error with {user['email']}: {e}")
 
+
 def start_scheduler():
     if not scheduler.running:
         scheduler.add_job(crm_bot, "interval", minutes=2)
         scheduler.start()
         add_log("✅ Scheduler started")
 
+
 def stop_scheduler():
     if scheduler.running:
         scheduler.shutdown(wait=False)
         add_log("🛑 Scheduler stopped")
+
 
 @app.route("/start", methods=["POST"])
 def start():
@@ -78,6 +91,7 @@ def start():
         start_scheduler()
     return jsonify({"status": "started"})
 
+
 @app.route("/stop", methods=["POST"])
 def stop():
     global running
@@ -86,9 +100,11 @@ def stop():
         stop_scheduler()
     return jsonify({"status": "stopped"})
 
+
 @app.route("/status")
 def status():
     return jsonify({"running": running})
+
 
 # ====================== ICP SYSTEM ======================
 @app.route("/icp/chat", methods=["POST"])
@@ -97,36 +113,46 @@ def icp_chat():
     response = generate_response(user_message)
     return jsonify({"response": response})
 
+
 def generate_response(message):
     description = json.dumps(message, indent=2)
 
     response_schemas = [
-        ResponseSchema(name="ICP", description="designation, income_range, age_group, industry, company_size, region"),
-        ResponseSchema(name="high_prospect_group", description="conversion_chance, profile"),
-        ResponseSchema(name="medium_prospect_group", description="conversion_chance, profile"),
-        ResponseSchema(name="low_prospect_group", description="conversion_chance, profile"),
+        ResponseSchema(
+            name="ICP",
+            description="designation, income_range, age_group, industry, company_size, region",
+        ),
+        ResponseSchema(
+            name="high_prospect_group", description="conversion_chance, profile"
+        ),
+        ResponseSchema(
+            name="medium_prospect_group", description="conversion_chance, profile"
+        ),
+        ResponseSchema(
+            name="low_prospect_group", description="conversion_chance, profile"
+        ),
     ]
 
     parser = StructuredOutputParser.from_response_schemas(response_schemas)
     format_instructions = parser.get_format_instructions()
 
     model = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.25,
-        api_key=os.getenv("GOOGLE_API_KEY")
+        model="gemini-2.5-flash", temperature=0.25, api_key=os.getenv("GOOGLE_API_KEY")
     )
 
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a marketing analyst AI. Output ONLY JSON."),
-        ("human", "Description:\n{description}\n{format_instructions}")
-    ])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", "You are a marketing analyst AI. Output ONLY JSON."),
+            ("human", "Description:\n{description}\n{format_instructions}"),
+        ]
+    )
 
     chain = prompt | model | parser
 
-    return chain.invoke({
-        "description": description,
-        "format_instructions": format_instructions
-    })
+    return chain.invoke(
+        {"description": description, "format_instructions": format_instructions}
+    )
+
 
 # ====================== MAIN ======================
 if __name__ == "__main__":
