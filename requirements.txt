@@ -1,16 +1,36 @@
-﻿Flask==3.0.3
-flask-cors==4.0.0
-python-dotenv==1.0.1
-APScheduler==3.10.4
-gunicorn==23.0.0
-pydantic==2.8.2
-supabase==2.4.4
-google-auth==2.31.0
-google-auth-oauthlib==1.2.1
-google-auth-httplib2==0.2.0
-langchain-core==0.3.23
-langchain-google-genai==1.0.7
-langchain-groq==0.1.5
-email-validator==2.2.0
-pytz==2024.1
-google-api-python-client==2.121.0
+﻿flask
+flask-cors
+python-dotenv
+apscheduler
+gunicorn
+pydantic
+supabase
+
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+
+langchain-google-genai
+langchain-groq
+
+email-validator
+pytz
+
+
+# Flask==3.0.3
+# flask-cors==4.0.0
+# python-dotenv==1.0.1
+# APScheduler==3.10.4
+# gunicorn==23.0.0
+# pydantic==2.8.2
+# supabase==2.4.4
+# google-auth==2.31.0
+# google-auth-oauthlib==1.2.1
+# google-auth-httplib2==0.2.0
+# langchain-core==0.3.23
+# langchain-google-genai==1.0.7
+# langchain-groq==0.1.5
+# email-validator==2.2.0
+# pytz==2024.1
+# google-api-python-client==2.121.0
