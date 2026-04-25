@@ -12,15 +12,11 @@ google-auth-httplib2==0.2.0
 google-api-python-client==2.121.0
 
 langchain==0.3.23
-langchain-core==0.3.23
 langchain-google-genai==1.0.7
 langchain-groq==0.1.5
 
 email-validator==2.2.0
 pytz==2024.1
-
-
-
 
 
 
