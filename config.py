@@ -7,8 +7,11 @@ STATUS_TRANSITIONS = {
         "Contact Attempted": ["Contacted", "NotQualified"],
         "Contacted": ["Meeting Booked", "Qualified", "NotQualified"],
         "Meeting Booked": ["Qualified", "NotQualified"],
-        "Qualified": [],  # terminal → promote to Deal
-        "NotQualified": [],  # terminal → delete memory
+        "Qualified": [
+            "Contacted",
+            "Meeting Booked",
+        ],  # ← NOT terminal, can still engage
+        "NotQualified": [],  # ← only TRUE terminal
     },
     "deal": {
         "New": ["Proposal Sent", "On Hold", "Abandoned"],
@@ -66,5 +69,16 @@ def safe_transition(entity_type: str, current_status: str, proposed_status: str)
     return current_status
 
 
+TERMINAL_STATUSES = {
+    "lead": ["NotQualified"],
+    "deal": ["Closed-won", "Closed-lost", "Abandoned"],
+    "customer": [],
+}
+
+
 def is_terminal(entity_type: str, status: str) -> bool:
-    return get_valid_next_statuses(entity_type, status) == []
+    return status in TERMINAL_STATUSES.get(entity_type, [])
+
+
+# def is_terminal(entity_type: str, status: str) -> bool:
+#     return get_valid_next_statuses(entity_type, status) == []
