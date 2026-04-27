@@ -1,4 +1,5 @@
 import base64
+import json
 import re
 import time
 from googleapiclient.discovery import build
@@ -78,6 +79,7 @@ def is_junk(email_data: dict) -> bool:
         k in subject for k in JUNK_KEYWORDS
     )
 
+
 def fetch_unseen_emails(service, assistant_email: str) -> list:
     """
     Fetch ALL unread and read emails, sorted by newest first.
@@ -101,7 +103,7 @@ def fetch_unseen_emails(service, assistant_email: str) -> list:
     for msg in messages:  # Gmail already returns newest → oldest
         if len(new_messages) >= 6:
             break
-            
+
         m = service.users().messages().get(userId="me", id=msg["id"]).execute()
         headers = m["payload"].get("headers", [])
 
@@ -310,11 +312,52 @@ def process_email(email_data: dict, user: dict, entity_type: str = "lead"):
             print("🚫 Not a human — skipping")
             return
 
-        result = analyze_new_email(
-            email_content=email_content,
-            description=company_desc,
-            products=products_str,
-        )
+        # result = analyze_new_email(
+        #     email_content=email_content,
+        #     description=company_desc,
+        #     products=products_str,
+        # )
+
+        try:
+            result = analyze_new_email(
+                email_content=email_content,
+                description=company_desc,
+                products=products_str,
+            )
+        except Exception as llm_err:
+            err_str = str(llm_err)
+            result = None
+            if "failed_generation" in err_str:
+                try:
+                    match = re.search(
+                        r"<function=\w+>\s*(\{.*?)(?:\s*</function>|$)",
+                        err_str,
+                        re.DOTALL,
+                    )
+                    if match:
+                        raw = match.group(1).strip()
+                        # patch missing closing braces
+                        raw += "}" * (raw.count("{") - raw.count("}"))
+                        parsed = json.loads(raw)
+                        # rebuild result in expected shape
+                        ec = parsed.get("extracted_content", {})
+                        result = {
+                            "is_lead": parsed.get("is_lead")
+                            or ec.get("is_lead", False),
+                            "summary": parsed.get("summary") or ec.get("summary", ""),
+                            "reasoning": parsed.get("reasoning")
+                            or ec.get("reasoning", ""),
+                            "reply_text": parsed.get("reply_text")
+                            or ec.get("reply_text", ""),
+                            "extracted_content": ec,
+                        }
+                        print(
+                            f"⚠️ Recovered from malformed LLM output for {contact_email}"
+                        )
+                except Exception as parse_err:
+                    print(f"❌ Recovery failed: {parse_err}")
+            else:
+                print(f"❌ analyze_new_email error: {llm_err}")
 
         if not result or not result.get("is_lead"):
             print("❌ Not a valid lead")
