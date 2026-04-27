@@ -263,7 +263,47 @@ export default function PricingPage() {
         position: "top-right",
       });
     }
-    
+
+    if (editProductIndex !== null) {
+    const updatedProduct = products[editProductIndex];
+
+    console.log("Updating product:", updatedProduct); // 👈 debug
+
+    const { error: productError } = await supabase
+      .from("products")
+      .update({
+        name: updatedProduct.name,
+        description: updatedProduct.description,
+        category: updatedProduct.category,
+        // ✅ handle both camelCase and snake_case
+        base_price: updatedProduct.basePrice
+          ? parseFloat(updatedProduct.basePrice)
+          : updatedProduct.base_price
+          ? parseFloat(updatedProduct.base_price)
+          : null,
+        stock: updatedProduct.stock ? parseInt(updatedProduct.stock) : null,
+        is_configurable:
+          updatedProduct.isConfigurable !== undefined
+            ? Boolean(updatedProduct.isConfigurable)
+            : Boolean(updatedProduct.is_configurable),
+        configurations: updatedProduct.configurations || {},
+        tier_pricing:
+          updatedProduct.tierPricing ?? updatedProduct.tier_pricing ?? null,
+        bundle_pricing:
+          updatedProduct.bundlePricing ?? updatedProduct.bundle_pricing ?? null,
+        cost_breakdown:
+          updatedProduct.costBreakdown ?? updatedProduct.cost_breakdown ?? null,
+        raw: updatedProduct.raw ?? null,
+      })
+      .eq("id", parseInt(updatedProduct.id)) // ✅ parse to int
+      .eq("user_email", userEmail);
+
+    if (productError) {
+      console.error("Product table error:", productError.message);
+      toast.error("Failed to update product details.");
+      return;
+    }
+  }
   };
 
   useEffect(() => {
