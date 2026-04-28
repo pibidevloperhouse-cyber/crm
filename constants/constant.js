@@ -312,24 +312,14 @@ export const navigation = [
       //   ],
       // },
       {
+        name: "CPQ Guide",
+        href: "/revenueengine/cpq-guide",
+        icon: <Wrench />,
+      },
+      {
         name: "Configuration settings",
         href: "/revenueengine/configureproducts",
         icon: <Cog />,
-      },
-      {
-        name: "Configure",
-        href: "/revenueengine/configureproduct2",
-        icon: <Cog />,
-      },
-      {
-        name: "Price",
-        href: "/revenueengine/pricingdetails",
-        icon: <DollarSign />,
-      },
-      {
-        name: "Quote",
-        href: "/revenueengine/previewquote",
-        icon: <FileText />,
       },
       {
         name: "Invoice",
