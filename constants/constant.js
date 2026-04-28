@@ -311,11 +311,11 @@ export const navigation = [
       //     // },
       //   ],
       // },
-      {
-        name: "Configuration settings",
-        href: "/revenueengine/configureproducts",
-        icon: <Cog />,
-      },
+      // {
+      //   name: "Configuration settings",
+      //   href: "/revenueengine/configureproducts",
+      //   icon: <Cog />,
+      // },
       {
         name: "Configure",
         href: "/revenueengine/configureproduct2",
