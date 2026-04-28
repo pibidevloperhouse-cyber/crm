@@ -1682,11 +1682,11 @@ export default function PricingDetailsPage() {
                         </p>
                       </div>
                       <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 self-end mb-1" />
-                      <div className="text-right">
-                        <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-0.5">
+                      <div className="text-right bg-emerald-600 dark:bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-emerald-500/20 border border-emerald-400/30 transition-all hover:scale-[1.02] cursor-default min-w-[160px]">
+                        <p className="text-[10px] text-emerald-100 uppercase font-black tracking-widest mb-1.5 opacity-80">
                           Grand Total
                         </p>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">
+                        <p className="text-2xl font-black tabular-nums leading-none">
                           {products[0]?.currency || "$"}
                           {getTotals(deal).grandTotal.toFixed(2)}
                         </p>

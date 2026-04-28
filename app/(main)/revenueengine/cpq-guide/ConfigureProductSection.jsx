@@ -67,8 +67,8 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
       .eq("user_email", email);
 
     if (dealsError) {
-      console.error("Error fetching deals:", dealsError);
-      toast.error("Failed to fetch deals.");
+      console.error("Error fetching deals:", JSON.stringify(dealsError, null, 2), dealsError);
+      toast.error(`Failed to fetch deals: ${dealsError.message || 'Unknown error'}`);
       setIsLoading(false);
       return;
     }
@@ -103,10 +103,24 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
   };
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      const userObj = JSON.parse(user);
-      setUserEmail(userObj.email);
+    const sessionStr = localStorage.getItem("session");
+    const userStr = localStorage.getItem("user");
+
+    let email = "";
+    if (sessionStr) {
+      try {
+        const sessionObj = JSON.parse(sessionStr);
+        email = sessionObj.user?.email || "";
+      } catch (e) {}
+    }
+    if (!email && userStr) {
+      try {
+        const userObj = JSON.parse(userStr);
+        email = userObj.email || "";
+      } catch (e) {}
+    }
+    if (email) {
+      setUserEmail(email);
     } else {
       setIsLoading(false);
     }
