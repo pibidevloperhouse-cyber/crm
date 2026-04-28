@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Wrench, 
-  DollarSign, 
-  FileText, 
-  ChevronRight, 
+import {
+  Wrench,
+  DollarSign,
+  FileText,
+  ChevronRight,
   ChevronLeft,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Package
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,6 +50,7 @@ const steps = [
 ];
 
 export default function CPQGuidePage() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDealId, setSelectedDealId] = useState(null);
 
@@ -62,13 +65,23 @@ export default function CPQGuidePage() {
   return (
     <div className="w-full min-h-screen p-4 md:p-8">
       {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
-          CPQ Guide
-        </h1>
-        <p className="text-slate-500 mt-2">
-          A step-by-step sequence to handle your Configure, Price, and Quote process efficiently.
-        </p>
+      <div className="mb-10 flex flex-col md:flex-row justify-between items-start gap-4">
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+            CPQ Guide
+          </h1>
+          <p className="text-slate-500 mt-2">
+            A step-by-step sequence to handle your Configure, Price, and Quote process efficiently.
+          </p>
+        </div>
+        <Button
+          onClick={() => router.push('/inventory')}
+          variant="outline"
+          className="rounded-full bg-teal-600 hover:bg-teal-400 text-white px-8 gap-2"
+        >
+          <Package className="w-4 h-4" />
+          <span>View Inventory</span>
+        </Button>
       </div>
 
       {/* Stepper */}
@@ -76,9 +89,9 @@ export default function CPQGuidePage() {
         <div className="relative flex justify-between max-w-4xl mx-auto">
           {/* Background Line */}
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0" />
-          
+
           {/* Active Line */}
-          <motion.div 
+          <motion.div
             className="absolute top-1/2 left-0 h-0.5 bg-teal-500 -translate-y-1/2 z-0 origin-left"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: (currentStep - 1) / 2 }}
@@ -97,11 +110,11 @@ export default function CPQGuidePage() {
                   onClick={() => step.id <= currentStep && setCurrentStep(step.id)}
                   className={cn(
                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border-2 shadow-lg",
-                    isActive 
-                      ? "bg-white dark:bg-slate-900 border-teal-500 text-teal-500 scale-110" 
+                    isActive
+                      ? "bg-white dark:bg-slate-900 border-teal-500 text-teal-500 scale-110"
                       : isCompleted
-                      ? "bg-teal-500 border-teal-500 text-white"
-                      : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
+                        ? "bg-teal-500 border-teal-500 text-white"
+                        : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
                   )}
                   whileHover={{ scale: step.id <= currentStep ? 1.1 : 1 }}
                 >
@@ -136,20 +149,20 @@ export default function CPQGuidePage() {
             className="min-h-[60vh] pb-32"
           >
             {currentStep === 1 && (
-              <ConfigureProductSection 
-                onDealSelect={(id) => setSelectedDealId(id)} 
+              <ConfigureProductSection
+                onDealSelect={(id) => setSelectedDealId(id)}
                 onNext={nextStep}
               />
             )}
             {currentStep === 2 && (
-              <PricingDetailsSection 
+              <PricingDetailsSection
                 selectedDealId={selectedDealId}
                 onNext={nextStep}
                 onBack={prevStep}
               />
             )}
             {currentStep === 3 && (
-              <PreviewQuoteSection 
+              <PreviewQuoteSection
                 selectedDealId={selectedDealId}
                 onBack={prevStep}
               />
@@ -173,7 +186,7 @@ export default function CPQGuidePage() {
         <Button
           onClick={nextStep}
           disabled={currentStep === 3 || (currentStep === 1 && !selectedDealId)}
-          className="rounded-full bg-teal-600 hover:bg-teal-700 text-white px-8 gap-2"
+          className="rounded-full bg-teal-600 hover:bg-teal-500 text-white px-8 gap-2"
         >
           {currentStep === 3 ? "Complete" : "Next Level"}
           <ChevronRight className="w-4 h-4" />
@@ -182,7 +195,7 @@ export default function CPQGuidePage() {
 
       {/* Info Warning */}
       {currentStep === 1 && !selectedDealId && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-12 flex justify-center"
