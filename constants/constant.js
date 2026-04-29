@@ -270,78 +270,8 @@ export const navigation = [
   {
     key: "cpq",
     name: "CPQ",
-    href: "",
+    href: "/revenueengine/cpq-guide",
     icon: <Wrench />,
-    subpages: [
-      // {
-      //   name: "Vendor Management",
-      //   href: "/vendormanagement",
-      //   icon: <Users />,
-      // },
-      // {
-      //   key: "revenueengine",
-      //   name: "Revenue Engine",
-      //   href: "/revenueengine/pricing",
-      //   icon: <DollarSign />,
-      //   subpages: [
-      //     // {
-      //     //   name: "Pricing",
-      //     //   href: "/revenueengine/pricing",
-      //     //   icon: <DollarSign />,
-      //     // },
-      //     // {
-      //     //   name: "Configuration settings",
-      //     //   href: "/revenueengine/configureproducts",
-      //     //   icon: <Cog />,
-      //     // },
-      //     // {
-      //     //   name: "Price",
-      //     //   href: "/revenueengine/pricingdetails",
-      //     //   icon: <DollarSign />,
-      //     // },
-      //     // {
-      //     //   name: "Configure",
-      //     //   href: "/revenueengine/configureproduct2",
-      //     //   icon: <Cog />,
-      //     // },
-      //     // {
-      //     //   name: "Quote",
-      //     //   href: "/revenueengine/previewquote",
-      //     //   icon: <FileText />,
-      //     // },
-      //   ],
-      // },
-      {
-        name: "CPQ Guide",
-        href: "/revenueengine/cpq-guide",
-        icon: <Wrench />,
-      },
-      // {
-      //   name: "Configuration settings",
-      //   href: "/revenueengine/configureproducts",
-      //   icon: <Cog />,
-      // },
-      {
-        name: "Invoice",
-        href: "/revenueengine/invoice",
-        icon: <FileText />,
-      },
-      // {
-      //   name: "Inventory",
-      //   href: "/inventory",
-      //   icon: <Database />,
-      // },
-      // {
-      //   name: "Quotation",
-      //   href: "/quotation",
-      //   icon: <FileText />,
-      // },
-      // {
-      //   name: "Sales Order",
-      //   href: "/salesorder",
-      //   icon: <FileText />,
-      // },
-    ],
   },
   {
     key: "analytics",
