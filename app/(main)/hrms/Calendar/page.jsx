@@ -157,8 +157,8 @@ export default function HRMSDashboard() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7] p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="w-full p-4 md:p-6">
+      <div className="mx-auto">
         <div className="flex justify-between items-center mb-8">
           {/* Title */}
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(37,200,160,0.3)]">

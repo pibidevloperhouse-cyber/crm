@@ -282,30 +282,8 @@ export const navigation = [
   {
     key: "hrms",
     name: "HRMS",
-    href: "", // ✅ same pattern
+    href: "/hrms",
     icon: <IdCard />,
-    subpages: [
-      {
-        name: "Calendar",
-        href: "/hrms/Calendar",
-        icon: <Calendar />,
-      },
-      {
-        name: "Employee",
-        href: "/hrms/Employee",
-        icon: <FileUser />,
-      },
-      {
-        name: "Leave",
-        href: "/hrms/Leave",
-        icon: <CalendarX2 />,
-      },
-      {
-        name: "Payroll",
-        href: "/hrms/Payroll",
-        icon: <WalletCards />,
-      },
-    ],
   },
 
   // Growth Section

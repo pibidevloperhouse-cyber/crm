@@ -182,8 +182,8 @@ export default function EmployeesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7] p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full p-4 md:p-6">
+      <div className="mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent">

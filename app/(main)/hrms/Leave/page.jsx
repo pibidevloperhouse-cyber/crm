@@ -159,8 +159,8 @@ const LeaveApproval = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7] p-8">
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className="w-full p-4 md:p-6">
+      <div className="mx-auto space-y-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
