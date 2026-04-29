@@ -528,9 +528,9 @@ export default function PricingDetailsPage() {
       Math.min(
         60,
         bundleDiscount +
-          competitivePricingMod +
-          loyaltyInfo.extraDiscount +
-          finalProductAi * 1.5,
+        competitivePricingMod +
+        loyaltyInfo.extraDiscount +
+        finalProductAi * 1.5,
       ).toFixed(1),
     );
 
@@ -796,12 +796,11 @@ export default function PricingDetailsPage() {
               setSelectedProduct(null);
             }}
             variant="outline"
-            className={`${
-              searchTerm !== "" ||
-              (selectedProduct !== null && selectedProduct !== "all")
+            className={`${searchTerm !== "" ||
+                (selectedProduct !== null && selectedProduct !== "all")
                 ? "opacity-100"
                 : "hidden"
-            }`}
+              }`}
           >
             Clear
           </Button>
@@ -1023,20 +1022,18 @@ export default function PricingDetailsPage() {
                                     <Tooltip>
                                       <TooltipTrigger asChild>
                                         <div
-                                          className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${
-                                            isAutoApplied
+                                          className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${isAutoApplied
                                               ? "bg-amber-50/50 dark:bg-amber-500/[0.03] outline-amber-400/40 dark:outline-amber-500/40 shadow-[0_0_15px_-3px_rgba(251,191,36,0.15)]"
                                               : "bg-slate-50 dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
-                                          }`}
+                                            }`}
                                         >
                                           <div className="flex-1 flex items-center border-r border-slate-200/60 dark:border-slate-800 h-full">
                                             <Input
                                               disabled={deal.approved}
-                                              className={`w-full h-full p-0 bg-transparent border-none shadow-none focus-visible:ring-0 text-right font-mono text-[13px] font-black tracking-tight ${
-                                                isAutoApplied
+                                              className={`w-full h-full p-0 bg-transparent border-none shadow-none focus-visible:ring-0 text-right font-mono text-[13px] font-black tracking-tight ${isAutoApplied
                                                   ? "text-amber-700 dark:text-amber-400"
                                                   : "text-slate-800 dark:text-white"
-                                              }`}
+                                                }`}
                                               value={displayedValue}
                                               onChange={(e) => {
                                                 handleChange(
@@ -1054,11 +1051,10 @@ export default function PricingDetailsPage() {
                                               }}
                                             />
                                             <span
-                                              className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${
-                                                isAutoApplied
+                                              className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${isAutoApplied
                                                   ? "text-amber-600/50 dark:text-amber-400/40"
                                                   : "text-slate-400 dark:text-slate-500"
-                                              }`}
+                                                }`}
                                             >
                                               %
                                             </span>
@@ -1081,11 +1077,10 @@ export default function PricingDetailsPage() {
                                                     "accepted",
                                                   );
                                                 }}
-                                                className={`w-6 h-6 flex items-center justify-center rounded-md transition-all ${
-                                                  status === "accepted"
+                                                className={`w-6 h-6 flex items-center justify-center rounded-md transition-all ${status === "accepted"
                                                     ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30"
                                                     : "text-slate-400 dark:text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10"
-                                                }`}
+                                                  }`}
                                                 title="Accept AI Recommendation"
                                               >
                                                 <svg
@@ -1117,11 +1112,10 @@ export default function PricingDetailsPage() {
                                                     "rejected",
                                                   );
                                                 }}
-                                                className={`w-6 h-6 flex items-center justify-center rounded-md transition-all ${
-                                                  status === "rejected"
+                                                className={`w-6 h-6 flex items-center justify-center rounded-md transition-all ${status === "rejected"
                                                     ? "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/30"
                                                     : "text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-500/10"
-                                                }`}
+                                                  }`}
                                                 title="Reject AI Recommendation"
                                               >
                                                 <svg
@@ -1383,52 +1377,52 @@ export default function PricingDetailsPage() {
 
                                                 {aiInfo.competitiveDiscount >
                                                   0 && (
-                                                  <div className="flex justify-between items-start p-3 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.05] transition-colors">
-                                                    <div className="pr-4">
-                                                      <div className="flex items-center gap-1.5 mb-1">
-                                                        <svg
-                                                          xmlns="http://www.w3.org/2000/svg"
-                                                          width="12"
-                                                          height="12"
-                                                          viewBox="0 0 24 24"
-                                                          fill="none"
-                                                          stroke="currentColor"
-                                                          strokeWidth="2.5"
-                                                          strokeLinecap="round"
-                                                          strokeLinejoin="round"
-                                                          className="text-rose-400"
-                                                        >
-                                                          <path d="M14.5 4h5v5" />
-                                                          <path d="m19.5 4-4 4" />
-                                                          <path d="M9.5 20h-5v-5" />
-                                                          <path d="m4.5 20 4-4" />
-                                                          <path d="M14.5 20h5v-5" />
-                                                          <path d="m19.5 20-4-4" />
-                                                          <path d="M9.5 4h-5v5" />
-                                                          <path d="m4.5 4 4 4" />
-                                                        </svg>
-                                                        <p className="text-[11px] font-bold text-slate-100">
-                                                          Competitive Adjust{" "}
-                                                          <span className="text-rose-400/80">
-                                                            (Win-Mod)
-                                                          </span>
+                                                    <div className="flex justify-between items-start p-3 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.05] transition-colors">
+                                                      <div className="pr-4">
+                                                        <div className="flex items-center gap-1.5 mb-1">
+                                                          <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="12"
+                                                            height="12"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="2.5"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            className="text-rose-400"
+                                                          >
+                                                            <path d="M14.5 4h5v5" />
+                                                            <path d="m19.5 4-4 4" />
+                                                            <path d="M9.5 20h-5v-5" />
+                                                            <path d="m4.5 20 4-4" />
+                                                            <path d="M14.5 20h5v-5" />
+                                                            <path d="m19.5 20-4-4" />
+                                                            <path d="M9.5 4h-5v5" />
+                                                            <path d="m4.5 4 4 4" />
+                                                          </svg>
+                                                          <p className="text-[11px] font-bold text-slate-100">
+                                                            Competitive Adjust{" "}
+                                                            <span className="text-rose-400/80">
+                                                              (Win-Mod)
+                                                            </span>
+                                                          </p>
+                                                        </div>
+                                                        <p className="text-[9px] text-slate-400 leading-snug">
+                                                          Aggressive market
+                                                          modifier applied to lock
+                                                          in high intent deals.
                                                         </p>
                                                       </div>
-                                                      <p className="text-[9px] text-slate-400 leading-snug">
-                                                        Aggressive market
-                                                        modifier applied to lock
-                                                        in high intent deals.
-                                                      </p>
+                                                      <span className="text-xs font-mono text-rose-400 font-bold bg-rose-400/10 px-1.5 py-0.5 rounded shadow-sm">
+                                                        +
+                                                        {
+                                                          aiInfo.competitiveDiscount
+                                                        }
+                                                        %
+                                                      </span>
                                                     </div>
-                                                    <span className="text-xs font-mono text-rose-400 font-bold bg-rose-400/10 px-1.5 py-0.5 rounded shadow-sm">
-                                                      +
-                                                      {
-                                                        aiInfo.competitiveDiscount
-                                                      }
-                                                      %
-                                                    </span>
-                                                  </div>
-                                                )}
+                                                  )}
                                               </div>
                                             )}
 
@@ -1682,11 +1676,11 @@ export default function PricingDetailsPage() {
                         </p>
                       </div>
                       <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 self-end mb-1" />
-                      <div className="text-right">
-                        <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-0.5">
+                      <div className="text-right bg-emerald-600 dark:bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-emerald-500/20 border border-emerald-400/30 transition-all hover:scale-[1.02] cursor-default min-w-[160px]">
+                        <p className="text-[10px] text-emerald-100 uppercase font-black tracking-widest mb-1.5 opacity-80">
                           Grand Total
                         </p>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">
+                        <p className="text-2xl font-black tabular-nums leading-none">
                           {products[0]?.currency || "$"}
                           {getTotals(deal).grandTotal.toFixed(2)}
                         </p>

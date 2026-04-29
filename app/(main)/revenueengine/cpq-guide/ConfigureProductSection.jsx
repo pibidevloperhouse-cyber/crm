@@ -67,8 +67,8 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
       .eq("user_email", email);
 
     if (dealsError) {
-      console.error("Error fetching deals:", dealsError);
-      toast.error("Failed to fetch deals.");
+      console.error("Error fetching deals:", JSON.stringify(dealsError, null, 2), dealsError);
+      toast.error(`Failed to fetch deals: ${dealsError.message || 'Unknown error'}`);
       setIsLoading(false);
       return;
     }
@@ -103,10 +103,24 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
   };
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      const userObj = JSON.parse(user);
-      setUserEmail(userObj.email);
+    const sessionStr = localStorage.getItem("session");
+    const userStr = localStorage.getItem("user");
+
+    let email = "";
+    if (sessionStr) {
+      try {
+        const sessionObj = JSON.parse(sessionStr);
+        email = sessionObj.user?.email || "";
+      } catch (e) { }
+    }
+    if (!email && userStr) {
+      try {
+        const userObj = JSON.parse(userStr);
+        email = userObj.email || "";
+      } catch (e) { }
+    }
+    if (email) {
+      setUserEmail(email);
     } else {
       setIsLoading(false);
     }
@@ -183,7 +197,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            <span className="bg-teal-500/10 text-teal-700 p-2 rounded-lg">Level 1</span>
+            <span className="bg-blue-500/10 text-blue-500 p-2 rounded-lg">Level 1</span>
             Configure Products
           </h2>
           <p className="text-slate-500 text-sm mt-1">Select a deal and customize its product offerings.</p>
@@ -263,7 +277,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                   <h3 className="font-bold text-lg">{productName}</h3>
                                   <Sheet>
                                     <SheetTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-teal-600 bg-teal-50 dark:bg-teal-900/20">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 bg-blue-50 dark:bg-blue-900/20">
                                         <Settings className="h-4 w-4" />
                                       </Button>
                                     </SheetTrigger>
