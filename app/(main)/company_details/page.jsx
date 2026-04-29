@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
-import UpdateCompanyDetails from "@/components/UpdateCompanyDetails";
+import EditCompanyProfile from "@/components/EditCompanyProfile";
 
 export default function OurProspects() {
   const [result, setResult] = useState("");
@@ -60,10 +60,10 @@ export default function OurProspects() {
 
   return (
     <div className="space-y-4 pb-10">
-      <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-gradient-to-r from-[#25C2A0] via-[#318477] to-[#1c4f65] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
+      <h1 className="text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent">
         Company Details
       </h1>
-      <UpdateCompanyDetails />
+      <EditCompanyProfile companyData={companyData_1} />
     </div>
   );
 }
