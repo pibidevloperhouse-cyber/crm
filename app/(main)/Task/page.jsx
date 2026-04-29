@@ -533,7 +533,7 @@ export default function TaskPage() {
                       <option value="Productdemo">Product Demo</option>
                       <option value="Task">Task</option>
                     </select>
-                  </div>  
+                  </div> 
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
                     <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg" rows="3" />
