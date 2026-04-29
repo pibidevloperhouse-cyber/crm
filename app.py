@@ -67,7 +67,8 @@ def start():
     if not running:
         # Always create a fresh scheduler — never reuse a stopped one
         scheduler = BackgroundScheduler()
-        scheduler.add_job(crm_bot, "interval", minutes=2)
+        # scheduler.add_job(crm_bot, "interval", minutes=2)
+        scheduler.add_job(crm_bot, "interval", minutes=1)
         scheduler.start()
         running = True
         add_log("✅ Scheduler started")
