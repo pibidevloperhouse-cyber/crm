@@ -100,13 +100,29 @@ def upsert_entity(
         if existing.data:
             current_messages = existing.data[0].get("messages", [])
             entity_id = existing.data[0]["id"]
-            supabase.table(table).update(
-                {
-                    "messages": current_messages + [msg_entry],
-                    "status": status,
-                    "updated_at": timestamp_str,
-                }
-            ).eq("id", entity_id).execute()
+            # Previous code: Update existing entity
+            # supabase.table(table).update(
+            #     {
+            #         "messages": current_messages + [msg_entry],
+            #         "status": status,
+            #         "updated_at": timestamp_str,
+            #     }
+            # ).eq("id", entity_id).execute()
+
+            # For testing: Add explicit logging
+            try:
+                supabase.table(table).update(
+                    {
+                        "messages": current_messages + [msg_entry],
+                        "status": status,
+                        "updated_at": timestamp_str,
+                    }
+                ).eq("id", entity_id).execute()
+                print(f"\u2705 Updated entity {entity_id} in table {table}")
+            except Exception as update_error:
+                print(
+                    f"\u274c Failed to update entity {entity_id} in table {table}: {update_error}"
+                )
             return "updated", 200
 
         else:
@@ -115,30 +131,26 @@ def upsert_entity(
                 "messages": [msg_entry],
                 "status": status,
                 "user_email": user_email,
-                "source": "Email",
                 "created_at": timestamp_str,
                 "updated_at": timestamp_str,
             }
             if content:
-                for field in [
-                    "name",
-                    "number",
-                    "age",
-                    "linkedIn",
-                    "industry",
-                    "company",
-                    "income",
-                    "website",
-                    "address",
-                    "description",
-                ]:
-                    data[field] = content.get(field)
+                data["content"] = content
+            # Previous code: Insert new entity
+            # supabase.table(table).insert(data).execute()
 
-            supabase.table(table).insert(data).execute()
+            # For testing: Add explicit logging
+            try:
+                supabase.table(table).insert(data).execute()
+                print(f"\u2705 Inserted new entity in table {table}")
+            except Exception as insert_error:
+                print(
+                    f"\u274c Failed to insert new entity in table {table}: {insert_error}"
+                )
             return "created", 201
 
     except Exception as e:
-        print(f"Error upserting {entity_type}:", e)
+        print(f"\u274c Error in upsert_entity for table {table}: {e}")
         return {"error": str(e)}, 500
 
 
