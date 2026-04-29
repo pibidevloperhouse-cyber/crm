@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRef } from "react";
 import Papa from "papaparse";
@@ -69,6 +70,7 @@ const DEAL_DEFAULTS = ["New Lead", "Qualified", "Proposal", "Negotiation", "Clos
 const CUSTOMER_DEFAULTS = ["Active", "Inactive", "Churned"];
 
 export default function CRM() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("Leads");
   const [customersData, setCustomersData] = useState([]);
   const [products, setProducts] = useState([]);
@@ -378,13 +380,13 @@ export default function CRM() {
           </Sheet>
 
           {/* TASK BUTTON */}
-          <Button
-            size="sm"
-            className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
-          >
-            Task
-          </Button>
-
+<Button
+  size="sm"
+  onClick={() => router.push("/Task")}
+  className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+>
+  Task
+</Button>
           {/* ADD BUTTON */}
           <Sheet>
             <SheetTrigger asChild>
