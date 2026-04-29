@@ -1,25 +1,65 @@
 import { NextResponse } from "next/server";
 
+export const maxDuration = 90; // seconds — requires Vercel Pro, use 60 on free
+
 const API = "https://crmemail.onrender.com";
 
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    const res = await fetch(`${API}/icp/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    // Wake up Render first (cold start ping)
+    await fetch(`${API}/`).catch(() => { });
 
-    if (!res.ok) throw new Error(`Render error ${res.status}`);
-
-    const data = await res.json();
-    return NextResponse.json(data);
+    // Retry up to 3 times with 20s timeout each
+    let lastErr;
+    for (let i = 0; i < 3; i++) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 60000);
+        const res = await fetch(`${API}/icp/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error(`Render error ${res.status}`);
+        const data = await res.json();
+        return NextResponse.json(data);
+      } catch (err) {
+        lastErr = err;
+        if (i < 2) await new Promise(r => setTimeout(r, 5000)); // wait 5s before retry
+      }
+    }
+    throw lastErr;
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+// import { NextResponse } from "next/server";
+
+// const API = "https://crmemail.onrender.com";
+
+// export async function POST(req) {
+//   try {
+//     const body = await req.json();
+
+//     const res = await fetch(`${API}/icp/chat`, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(body),
+//     });
+
+//     if (!res.ok) throw new Error(`Render error ${res.status}`);
+
+//     const data = await res.json();
+//     return NextResponse.json(data);
+//   } catch (err) {
+//     return NextResponse.json({ error: err.message }, { status: 500 });
+//   }
+// }
 
 
 // import { NextResponse } from "next/server";
