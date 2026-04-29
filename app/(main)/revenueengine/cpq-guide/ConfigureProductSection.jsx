@@ -183,7 +183,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            <span className="bg-blue-500/10 text-blue-500 p-2 rounded-lg">Level 1</span>
+            <span className="bg-teal-500/10 text-teal-700 p-2 rounded-lg">Level 1</span>
             Configure Products
           </h2>
           <p className="text-slate-500 text-sm mt-1">Select a deal and customize its product offerings.</p>
@@ -263,7 +263,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                   <h3 className="font-bold text-lg">{productName}</h3>
                                   <Sheet>
                                     <SheetTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 bg-blue-50 dark:bg-blue-900/20">
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 text-teal-600 bg-teal-50 dark:bg-teal-900/20">
                                         <Settings className="h-4 w-4" />
                                       </Button>
                                     </SheetTrigger>

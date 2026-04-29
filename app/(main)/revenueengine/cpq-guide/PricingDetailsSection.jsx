@@ -106,7 +106,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
   const calculateOriginalPrice = (productName) => {
     const product = products.find((p) => p.name === productName);
     let price = parseFloat(product?.price || 0);
-    
+
     // Add configuration price if exists
     const productIndex = deal.products?.indexOf(productName);
     if (deal.configuration && deal.configuration[productIndex]) {
@@ -125,7 +125,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <span className="bg-emerald-500/10 text-emerald-500 p-2 rounded-lg">Level 2</span>
+          <span className="bg-teal-500/10 text-teal-700 p-2 rounded-lg">Level 2</span>
           Pricing & Discounts
         </h2>
         <p className="text-slate-500 text-sm mt-1">Set quantities, discounts, and costs for each item in the deal.</p>
@@ -135,7 +135,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
         <CardHeader className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
           <div className="flex justify-between items-center">
             <CardTitle className="text-lg">Price Items for {deal.name}</CardTitle>
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800">
+            <Badge variant="outline" className="bg-teal-50 text-teal-700 dark:bg-teal-900/20 dark:text-teal-400 border-teal-200 dark:border-teal-800">
               {deal.status}
             </Badge>
           </div>
@@ -196,7 +196,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Loyalty Bonus</h4>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
+            <div className="h-10 w-10 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-teal-600">
               <Check className="h-5 w-5" />
             </div>
             <div>
@@ -205,11 +205,11 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
             </div>
           </div>
         </div>
-        
+
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">AI Suggestions</h4>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
+            <div className="h-10 w-10 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-teal-600">
               <Info className="h-5 w-5" />
             </div>
             <div>

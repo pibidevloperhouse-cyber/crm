@@ -52,7 +52,7 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <span className="bg-purple-500/10 text-purple-500 p-2 rounded-lg">Level 3</span>
+          <span className="bg-teal-500/10 text-teal-700 p-2 rounded-lg">Level 3</span>
           Preview & Generate Quote
         </h2>
         <p className="text-slate-500 text-sm mt-1">Review the final quote and send it to your client.</p>
@@ -63,7 +63,7 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
         <div className="lg:col-span-1 space-y-6">
           <Card className="border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 p-6">
-              <Badge className="w-fit mb-2 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800">
+              <Badge className="w-fit mb-2 bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border-teal-200 dark:border-teal-800">
                 Final Review
               </Badge>
               <CardTitle className="text-2xl font-black text-slate-800 dark:text-white">{deal.name}</CardTitle>
@@ -72,7 +72,7 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
             <CardContent className="p-6 space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600">
+                  <div className="p-2 bg-teal-50 dark:bg-teal-900/20 rounded-xl text-teal-600">
                     <Package className="h-5 w-5" />
                   </div>
                   <div>
@@ -82,17 +82,17 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-emerald-600">
+                  <div className="p-2 bg-teal-50 dark:bg-teal-900/20 rounded-xl text-teal-600">
                     <DollarSign className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="text-[10px] uppercase font-bold text-slate-400">Total Value</p>
-                    <p className="text-xl font-black text-emerald-600">${totalValue.toLocaleString()}</p>
+                    <p className="text-sm font-bold">${totalValue.toLocaleString()}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-amber-600">
+                  <div className="p-2 bg-teal-50 dark:bg-teal-900/20 rounded-xl text-teal-600">
                     <Calendar className="h-5 w-5" />
                   </div>
                   <div>
@@ -130,23 +130,23 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
             <div className="p-8 h-full overflow-y-auto flex flex-col items-center justify-center gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
                 <QuotePreview dealId={deal.id}>
-                   <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-purple-600/20 gap-3">
-                      <FileText className="h-5 w-5" />
-                      Preview Quote
-                   </Button>
+                  <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3">
+                    <FileText className="h-5 w-5" />
+                    Preview Quote
+                  </Button>
                 </QuotePreview>
 
                 <InvoicePreview dealId={deal.id}>
-                   <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-blue-600/20 gap-3">
-                      <Receipt className="h-5 w-5" />
-                      Preview Invoice
-                   </Button>
+                  <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3">
+                    <Receipt className="h-5 w-5" />
+                    Preview Invoice
+                  </Button>
                 </InvoicePreview>
               </div>
-              
+
               <div className="mt-6 p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-center w-full">
                 <p className="text-slate-500 text-sm italic">
-                  "This preview shows the finalized prices, configurations, and terms. 
+                  "This preview shows the finalized prices, configurations, and terms.
                   Click the button above to view the high-fidelity document ready for client approval."
                 </p>
               </div>
