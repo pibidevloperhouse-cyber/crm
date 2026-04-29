@@ -490,7 +490,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <span className="bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900 px-3 py-1 text-sm rounded-lg font-black tracking-widest uppercase">
+          <span className="bg-teal-500/10 text-teal-700 p-2 rounded-lg">
             Level 2
           </span>
           Pricing & Discounts
