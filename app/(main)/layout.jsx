@@ -274,7 +274,7 @@ export default function Layout({ children }) {
       <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4">
         <Button
           onClick={() => setBotOpen(true)}
-          className="h-14 w-14 rounded-2xl bg-slate-900 dark:bg-teal-600 hover:bg-teal-700 text-white shadow-2xl transition-all hover:-translate-y-1 active:scale-95 group"
+          className="h-14 w-14 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white shadow-2xl transition-all hover:-translate-y-1 active:scale-95 group"
         >
           <Bot className="h-7 w-7 group-hover:rotate-12 transition-transform" />
         </Button>

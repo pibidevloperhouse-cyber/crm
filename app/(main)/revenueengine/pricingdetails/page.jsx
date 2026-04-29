@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/tooltip";
 import * as Slider from "@radix-ui/react-slider";
 import { motion } from "framer-motion";
+import { Bot, Layers, TrendingUp, Anchor } from "lucide-react";
 
 const SkeletonCard = () => (
   <div className="mb-6 border border-slate-200/50 dark:border-white/20 rounded-lg p-4 animate-pulse">
@@ -908,7 +909,7 @@ export default function PricingDetailsPage() {
                           <TableHead className="text-right">
                             Unit Price
                           </TableHead>
-                          <TableHead className="text-center">
+                          <TableHead className="text-center text-teal-600 font-semibold">
                             Discount (%)
                           </TableHead>
                           <TableHead className="text-right">
@@ -999,16 +1000,28 @@ export default function PricingDetailsPage() {
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="AI Auto">
-                                      🤖 AI Auto (Default)
+                                      <div className="flex items-center gap-2">
+                                        <Bot className="h-4 w-4 shrink-0 text-indigo-500" />
+                                        <span className="font-medium text-slate-700 dark:text-slate-200">AI Auto (Default)</span>
+                                      </div>
                                     </SelectItem>
                                     <SelectItem value="Bundled Pricing">
-                                      📦 Bundled Pricing
+                                      <div className="flex items-center gap-2">
+                                        <Layers className="h-4 w-4 shrink-0 text-emerald-500" />
+                                        <span className="font-medium text-slate-700 dark:text-slate-200">Bundled Pricing</span>
+                                      </div>
                                     </SelectItem>
                                     <SelectItem value="Competitive Pricing">
-                                      ⚔️ Competitive Pricing
+                                      <div className="flex items-center gap-2">
+                                        <TrendingUp className="h-4 w-4 shrink-0 text-orange-500" />
+                                        <span className="font-medium text-slate-700 dark:text-slate-200">Competitive Pricing</span>
+                                      </div>
                                     </SelectItem>
                                     <SelectItem value="Anchor Pricing">
-                                      ⚓ Anchor Pricing
+                                      <div className="flex items-center gap-2">
+                                        <Anchor className="h-4 w-4 shrink-0 text-blue-500" />
+                                        <span className="font-medium text-slate-700 dark:text-slate-200">Anchor Pricing</span>
+                                      </div>
                                     </SelectItem>
                                   </SelectContent>
                                 </Select>
@@ -1023,16 +1036,16 @@ export default function PricingDetailsPage() {
                                       <TooltipTrigger asChild>
                                         <div
                                           className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${isAutoApplied
-                                              ? "bg-amber-50/50 dark:bg-amber-500/[0.03] outline-amber-400/40 dark:outline-amber-500/40 shadow-[0_0_15px_-3px_rgba(251,191,36,0.15)]"
-                                              : "bg-slate-50 dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
+                                              ? "bg-teal-50/80 dark:bg-teal-500/[0.08] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]"
+                                              : "bg-teal-50/60 dark:bg-teal-950/30 outline-teal-200 dark:outline-teal-700 shadow-sm"
                                             }`}
                                         >
                                           <div className="flex-1 flex items-center border-r border-slate-200/60 dark:border-slate-800 h-full">
                                             <Input
                                               disabled={deal.approved}
                                               className={`w-full h-full p-0 bg-transparent border-none shadow-none focus-visible:ring-0 text-right font-mono text-[13px] font-black tracking-tight ${isAutoApplied
-                                                  ? "text-amber-700 dark:text-amber-400"
-                                                  : "text-slate-800 dark:text-white"
+                                                  ? "text-teal-700 dark:text-teal-300"
+                                                  : "text-teal-900 dark:text-teal-100"
                                                 }`}
                                               value={displayedValue}
                                               onChange={(e) => {
@@ -1052,8 +1065,8 @@ export default function PricingDetailsPage() {
                                             />
                                             <span
                                               className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${isAutoApplied
-                                                  ? "text-amber-600/50 dark:text-amber-400/40"
-                                                  : "text-slate-400 dark:text-slate-500"
+                                                  ? "text-teal-600/70 dark:text-teal-300/70"
+                                                  : "text-teal-500 dark:text-teal-300/60"
                                                 }`}
                                             >
                                               %
@@ -1153,7 +1166,7 @@ export default function PricingDetailsPage() {
                                       >
                                         <p className="font-bold border-b border-white/20 pb-2 mb-3 text-slate-300 uppercase tracking-widest text-[9px] flex items-center justify-between">
                                           Discount Anatomy{" "}
-                                          <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                                          <span className="w-2 h-2 rounded-full bg-teal-400"></span>
                                         </p>
                                         <div className="space-y-2">
                                           <div className="flex justify-between items-center">
@@ -1164,7 +1177,7 @@ export default function PricingDetailsPage() {
                                           </div>
                                           <div className="flex justify-between items-center">
                                             <span>Product ML Suggestion</span>
-                                            <span className="text-amber-400 font-mono text-sm">
+                                            <span className="text-teal-400 font-mono text-sm">
                                               +{aiInfo.productAiDiscount}%
                                             </span>
                                           </div>
@@ -1176,7 +1189,7 @@ export default function PricingDetailsPage() {
                                           </span>
                                         </div>
                                         {isAutoApplied ? (
-                                          <p className="mt-3 text-amber-300 italic text-[10px] bg-amber-500/10 p-2 rounded text-center">
+                                          <p className="mt-3 text-teal-300 italic text-[10px] bg-teal-500/10 p-2 rounded text-center">
                                             Pending Your Approval
                                           </p>
                                         ) : (
@@ -1292,7 +1305,7 @@ export default function PricingDetailsPage() {
                                                       vectors.
                                                     </p>
                                                   </div>
-                                                  <span className="text-xs font-mono text-amber-400 font-bold bg-amber-400/10 px-1.5 py-0.5 rounded shadow-sm">
+                                                  <span className="text-xs font-mono text-teal-400 font-bold bg-teal-400/10 px-1.5 py-0.5 rounded shadow-sm">
                                                     +{aiInfo.productAiDiscount}%
                                                   </span>
                                                 </div>
@@ -1676,8 +1689,8 @@ export default function PricingDetailsPage() {
                         </p>
                       </div>
                       <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 self-end mb-1" />
-                      <div className="text-right bg-emerald-600 dark:bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-emerald-500/20 border border-emerald-400/30 transition-all hover:scale-[1.02] cursor-default min-w-[160px]">
-                        <p className="text-[10px] text-emerald-100 uppercase font-black tracking-widest mb-1.5 opacity-80">
+                      <div className="text-right bg-teal-600 dark:bg-teal-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-teal-500/20 border border-teal-400/30 transition-all hover:scale-[1.02] cursor-default min-w-[160px]">
+                        <p className="text-[10px] text-teal-100 uppercase font-black tracking-widest mb-1.5 opacity-80">
                           Grand Total
                         </p>
                         <p className="text-2xl font-black tabular-nums leading-none">
@@ -1716,7 +1729,7 @@ export default function PricingDetailsPage() {
                           deal.finalPrice !== null &&
                           deal.finalPrice !== undefined
                         }
-                        className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-white"
+                        className="bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-lg gap-2 transition-all"
                       >
                         Approve Deal
                       </Button>

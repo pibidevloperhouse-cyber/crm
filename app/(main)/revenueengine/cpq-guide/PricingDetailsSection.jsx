@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "react-toastify";
 import { Input } from "@/components/ui/input";
-import { Save, CheckCircle2 } from "lucide-react";
+import { Save, CheckCircle2, Bot, Layers, TrendingUp, Anchor } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -285,11 +285,11 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
     if (data.total_orders > 7) {
       level = "GOLD";
       extraDiscount = 5;
-      color = "bg-slate-800 text-white border-slate-900 dark:bg-slate-200 dark:text-slate-900";
+      color = "bg-teal-600 text-white border-teal-700 shadow-sm";
     } else if (data.total_orders >= 3) {
       level = "SILVER";
       extraDiscount = 2;
-      color = "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-200";
+      color = "bg-teal-500/10 text-teal-700 border-teal-200 shadow-sm";
     }
 
     return { ...data, level, extraDiscount, color };
@@ -509,7 +509,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                   {deal.name}
                 </CardTitle>
                 <div className="flex gap-2">
-                  <Badge className={`${deal.approved ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"} border-none text-[10px]`}>
+                  <Badge className={`${deal.approved ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600"} border-none text-[10px] font-bold`}>
                     {deal.approved ? "APPROVED" : "DRAFT"}
                   </Badge>
                   <Badge className={`${getLoyaltyInfo(deal.email).color} border-none px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-sm`}>
@@ -588,10 +588,30 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                             <SelectValue placeholder="Strategy" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="AI Auto">🤖 AI Auto</SelectItem>
-                            <SelectItem value="Bundled Pricing">📦 Bundled Pricing</SelectItem>
-                            <SelectItem value="Competitive Pricing">⚔️ Competitive Pricing</SelectItem>
-                            <SelectItem value="Anchor Pricing">⚓ Anchor Pricing</SelectItem>
+                            <SelectItem value="AI Auto">
+                              <div className="flex items-center gap-2">
+                                <Bot className="h-4 w-4 shrink-0 text-teal-500" />
+                                <span className="font-medium text-slate-700 dark:text-slate-200">AI Auto</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="Bundled Pricing">
+                              <div className="flex items-center gap-2">
+                                <Layers className="h-4 w-4 shrink-0 text-teal-500" />
+                                <span className="font-medium text-slate-700 dark:text-slate-200">Bundled Pricing</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="Competitive Pricing">
+                              <div className="flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4 shrink-0 text-teal-500" />
+                                <span className="font-medium text-slate-700 dark:text-slate-200">Competitive Pricing</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="Anchor Pricing">
+                              <div className="flex items-center gap-2">
+                                <Anchor className="h-4 w-4 shrink-0 text-teal-500" />
+                                <span className="font-medium text-slate-700 dark:text-slate-200">Anchor Pricing</span>
+                              </div>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -601,11 +621,11 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${isAutoApplied ? "bg-amber-50/50 dark:bg-amber-500/[0.03] outline-amber-400/40 dark:outline-amber-500/40 shadow-[0_0_15px_-3px_rgba(251,191,36,0.15)]" : "bg-slate-50 dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
+                                <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${isAutoApplied ? "bg-teal-50/50 dark:bg-teal-500/[0.03] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]" : "bg-slate-50 dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
                                   }`}>
                                   <div className="flex-1 flex items-center border-r border-slate-200/60 dark:border-slate-800 h-full">
                                     <Input
-                                      className={`w-full h-full p-0 bg-transparent border-none shadow-none focus-visible:ring-0 text-right font-mono text-[13px] font-black tracking-tight ${isAutoApplied ? "text-amber-700 dark:text-amber-400" : "text-slate-800 dark:text-white"
+                                      className={`w-full h-full p-0 bg-transparent border-none shadow-none focus-visible:ring-0 text-right font-mono text-[13px] font-black tracking-tight ${isAutoApplied ? "text-teal-700 dark:text-teal-400" : "text-slate-800 dark:text-white"
                                         }`}
                                       value={displayedValue}
                                       onChange={(e) => {
@@ -613,14 +633,14 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                                         handleChange("auto_discount_status", index, "accepted");
                                       }}
                                     />
-                                    <span className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${isAutoApplied ? "text-amber-600/50 dark:text-amber-400/40" : "text-slate-400 dark:text-slate-500"
+                                    <span className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${isAutoApplied ? "text-teal-600/50 dark:text-teal-400/40" : "text-slate-400 dark:text-slate-500"
                                       }`}>%</span>
                                   </div>
                                   <div className="flex px-1 gap-0.5 shrink-0 items-center h-full">
                                     <button onClick={() => {
                                       handleChange("user_discount", index, aiInfo.combinedTargetDiscount);
                                       handleChange("auto_discount_status", index, "accepted");
-                                    }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "accepted" ? "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/30" : "text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10"
+                                    }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "accepted" ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/30" : "text-slate-400 hover:text-teal-500 hover:bg-teal-500/10"
                                       }`}>✓</button>
                                     <button onClick={() => {
                                       handleChange("user_discount", index, 0);
@@ -633,17 +653,17 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                               <TooltipContent className="bg-slate-950 text-white w-64 p-4 rounded-xl shadow-xl border border-slate-800">
                                 <p className="font-bold border-b border-white/20 pb-2 mb-3 text-[10px] uppercase">Discount Anatomy</p>
                                 <div className="space-y-2 text-sm font-medium">
-                                  <div className="flex justify-between items-center"><span>Client Loyalty</span><span className="text-emerald-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
-                                  <div className="flex justify-between items-center"><span>Product ML</span><span className="text-amber-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
-                                  {aiInfo.bundleDiscount > 0 && <div className="flex justify-between items-center"><span>Bundle</span><span className="text-purple-400 font-mono">+{aiInfo.bundleDiscount}%</span></div>}
-                                  {aiInfo.competitiveDiscount > 0 && <div className="flex justify-between items-center"><span>Win-Mod</span><span className="text-rose-400 font-mono">+{aiInfo.competitiveDiscount}%</span></div>}
+                                  <div className="flex justify-between items-center"><span>Base AI Discount</span><span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
+                                  <div className="flex justify-between items-center"><span>Loyalty Bonus</span><span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
+                                  {aiInfo.bundleDiscount > 0 && <div className="flex justify-between items-center"><span>Bundle Discount</span><span className="text-teal-400 font-mono">+{aiInfo.bundleDiscount}%</span></div>}
+                                  {aiInfo.competitiveDiscount > 0 && <div className="flex justify-between items-center"><span>Competitive Adjustment</span><span className="text-teal-400 font-mono">+{aiInfo.competitiveDiscount}%</span></div>}
                                 </div>
                                 <div className="flex justify-between mt-3 pt-2 border-t border-white/20 font-black text-sm">
-                                  <span>Combined Auto</span>
-                                  <span>{aiInfo.combinedTargetDiscount}%</span>
+                                  <span className="text-teal-400">Final Discount</span>
+                                  <span className="text-teal-400">{aiInfo.combinedTargetDiscount}%</span>
                                 </div>
                                 {isAutoApplied ? (
-                                  <p className="mt-3 text-amber-300 italic text-[10px] bg-amber-500/10 p-2 rounded text-center">
+                                  <p className="mt-3 text-teal-300 italic text-[10px] bg-teal-500/10 p-2 rounded text-center">
                                     Pending Your Approval
                                   </p>
                                 ) : (
@@ -689,17 +709,17 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                               </TooltipTrigger>
                               <TooltipContent
                                 side="bottom"
-                                className="w-[320px] p-6 bg-slate-950/80 backdrop-blur-2xl border border-slate-800/60 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] rounded-2xl ring-1 ring-white/5 text-white"
-                              >
+                                className="w-[320px] p-6 bg-slate-950/90 backdrop-blur-2xl border border-slate-800/60 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] rounded-2xl ring-1 ring-white/5 text-white"
+                               >
                                 <div className="space-y-5">
                                   <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] bg-gradient-to-r from-slate-200 to-slate-500 bg-clip-text text-transparent">
-                                      Logic Audit
+                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-teal-400">
+                                      AI Logic Audit
                                     </h4>
-                                    <div className="flex items-center gap-2 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"></div>
-                                      <span className="text-[8px] font-black uppercase tracking-wider text-emerald-400">
-                                        Live
+                                    <div className="flex items-center gap-2 bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(20,184,166,0.8)] animate-pulse"></div>
+                                      <span className="text-[8px] font-black uppercase tracking-wider text-teal-400">
+                                        Active
                                       </span>
                                     </div>
                                   </div>
@@ -707,54 +727,41 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                                   <div className="space-y-4">
                                     <p className="text-xs text-slate-300 leading-relaxed font-medium">
                                       {isAutoApplied
-                                        ? `The systemic CPQ engine automatically provisioned a ${displayedValue}% cost-reduction concession for this specific line item to maximize win-rate probability.`
-                                        : `This ${displayedValue}% discount is currently locked in via manual override by the sales agent, superseding algorithmic recommendations.`}
+                                        ? "The AI engine calculated this discount based on current market data, customer history, and purchase intent."
+                                        : "This discount has been manually set and overrides the AI-suggested pricing logic."}
                                     </p>
 
-                                    {isAutoApplied && (
-                                      <div className="space-y-2">
-                                        <div className="flex justify-between items-start p-3 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.05] transition-colors">
-                                          <div className="pr-4">
-                                            <div className="flex items-center gap-1.5 mb-1">
-                                              <p className="text-[11px] font-bold text-slate-100">
-                                                Propensity to Buy{" "}
-                                                <span className="text-amber-400/80">
-                                                  ({aiInfo.intentScore}% Intent)
-                                                </span>
-                                              </p>
-                                            </div>
-                                            <p className="text-[9px] text-slate-400 leading-snug">
-                                              Engine detects a {aiInfo.intentScore >= 75 ? "high" : "moderate"} purchase likelihood based on cart density & historical win-loss vectors.
-                                            </p>
-                                          </div>
-                                          <span className="text-xs font-mono text-amber-400 font-bold bg-amber-400/10 px-1.5 py-0.5 rounded">
-                                            +{aiInfo.productAiDiscount}%
-                                          </span>
-                                        </div>
-
-                                        <div className="flex justify-between items-start p-3 bg-white/[0.03] rounded-xl border border-white/5 hover:bg-white/[0.05] transition-colors">
-                                          <div className="pr-4">
-                                            <div className="flex items-center gap-1.5 mb-1">
-                                              <p className="text-[11px] font-bold text-slate-100">
-                                                Patron Loyalty{" "}
-                                                <span className="text-emerald-400/80">
-                                                  ({aiInfo.loyaltyLevel})
-                                                </span>
-                                              </p>
-                                            </div>
-                                            <p className="text-[9px] text-slate-400 leading-snug">
-                                              Recognizes established business relationship unlocking top-tier loyalty provisioning limits.
-                                            </p>
-                                          </div>
-                                          <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-400/10 px-1.5 py-0.5 rounded">
-                                            +{aiInfo.loyaltyDiscount}%
-                                          </span>
-                                        </div>
+                                    <div className="space-y-2 pt-1">
+                                      <div className="flex justify-between items-center text-[11px] font-medium text-slate-400">
+                                        <span>Base AI Discount</span>
+                                        <span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span>
                                       </div>
-                                    )}
+                                      <div className="flex justify-between items-center text-[11px] font-medium text-slate-400">
+                                        <span>Loyalty Bonus</span>
+                                        <span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span>
+                                      </div>
+                                      {aiInfo.bundleDiscount > 0 && (
+                                        <div className="flex justify-between items-center text-[11px] font-medium text-slate-400">
+                                          <span>Bundle Discount</span>
+                                          <span className="text-teal-400 font-mono">+{aiInfo.bundleDiscount}%</span>
+                                        </div>
+                                      )}
+                                      {aiInfo.competitiveDiscount > 0 && (
+                                        <div className="flex justify-between items-center text-[11px] font-medium text-slate-400">
+                                          <span>Competitive Adjustment</span>
+                                          <span className="text-teal-400 font-mono">+{aiInfo.competitiveDiscount}%</span>
+                                        </div>
+                                      )}
+                                      <div className="flex justify-between items-center mt-4 pt-3 border-t border-white/10 font-bold text-sm text-white">
+                                        <span>Final Discount</span>
+                                        <span className="text-teal-400 font-mono bg-teal-400/10 px-2 py-0.5 rounded">
+                                          {displayedValue}%
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                              </TooltipContent>
+                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>
@@ -865,8 +872,8 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                 <p className="text-base font-bold tabular-nums">${totals.totalTax.toFixed(2)}</p>
               </div>
               <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 self-end mb-1" />
-              <div className="text-right bg-emerald-600 dark:bg-emerald-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-emerald-500/20 border border-emerald-400/30 transition-all hover:scale-[1.02] cursor-default min-w-[160px]">
-                <p className="text-[10px] text-emerald-100 uppercase font-black tracking-widest mb-1.5 opacity-80">Grand Total</p>
+              <div className="text-right bg-teal-600 dark:bg-teal-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-teal-500/20 border border-teal-400/30 transition-all hover:scale-[1.02] cursor-default min-w-[160px]">
+                <p className="text-[10px] text-teal-100 uppercase font-black tracking-widest mb-1.5 opacity-80">Grand Total</p>
                 <p className="text-2xl font-black tabular-nums leading-none">${totals.grandTotal.toFixed(2)}</p>
               </div>
             </div>
@@ -903,7 +910,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
             <DialogContent className="sm:max-w-[425px]">
               <div className="p-4">
                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                  <CheckCircle2 className="h-5 w-5 text-teal-600" />
                   Confirm Approval
                 </h2>
                 <p className="text-slate-500 text-sm leading-relaxed">

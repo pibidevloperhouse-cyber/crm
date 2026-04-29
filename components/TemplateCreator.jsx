@@ -10,6 +10,7 @@ import {
   SheetFooter,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -447,12 +448,9 @@ export default function TemplateCreator() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          className="bg-blue-50 border-blue-600 text-blue-700 hover:bg-blue-100"
-        >
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
           Create Template
-        </Button>
+        </DropdownMenuItem>
       </SheetTrigger>
 
       <SheetContent
