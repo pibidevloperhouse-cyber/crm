@@ -77,7 +77,7 @@ export default function CPQGuidePage() {
         <Button
           onClick={() => router.push('/inventory')}
           variant="outline"
-          className="bg-teal-600 hover:bg-teal-500 text-white hover:text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3"
+          className="bg-teal-600 hover:bg-teal-700 text-white hover:text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3"
         >
           <Package className="w-4 h-4" />
           <span>View Inventory</span>
