@@ -6,42 +6,50 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
-  Clock,
   Users,
   MapPin,
-  Video,
   Phone,
   Calendar,
   Plus,
   Search,
+  Trash2,
+  Edit,
+  CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// ─── Mock DB data — replace with your Supabase fetch ─────────────────────────
-const MOCK_MEETINGS = [
-  { id: 1, title: "Product Demo – Acme Corp", date: "2025-04-29", startTime: "09:00", endTime: "09:45", type: "video", attendees: ["Sarah K.", "Tom H.", "Client"], location: "Zoom", status: "confirmed", color: "#0ea5e9" },
-  { id: 2, title: "Pipeline Review", date: "2025-04-29", startTime: "11:00", endTime: "12:00", type: "in-person", attendees: ["Alex M.", "Jordan P."], location: "Conf Room B", status: "confirmed", color: "#14b8a6" },
-  { id: 3, title: "Follow-up: Prospect XYZ", date: "2025-04-30", startTime: "14:00", endTime: "14:30", type: "call", attendees: ["You", "Prospect"], location: "Phone", status: "tentative", color: "#f59e0b" },
-  { id: 4, title: "Quarterly Business Review", date: "2025-05-01", startTime: "10:00", endTime: "11:30", type: "video", attendees: ["Leadership", "Sales Team"], location: "Google Meet", status: "confirmed", color: "#0ea5e9" },
-  { id: 5, title: "Onboarding – New Client", date: "2025-05-05", startTime: "13:00", endTime: "14:00", type: "video", attendees: ["CS Team", "Client"], location: "Zoom", status: "confirmed", color: "#14b8a6" },
-  { id: 6, title: "Strategy Sync", date: "2025-05-07", startTime: "09:30", endTime: "10:30", type: "in-person", attendees: ["Director", "You"], location: "HQ – Room 4A", status: "confirmed", color: "#8b5cf6" },
-  { id: 7, title: "Cold Outreach Debrief", date: "2025-05-12", startTime: "15:00", endTime: "15:30", type: "call", attendees: ["You", "SDR Team"], location: "Phone", status: "tentative", color: "#f59e0b" },
-  { id: 8, title: "Renewal Discussion", date: "2025-05-14", startTime: "11:00", endTime: "11:45", type: "video", attendees: ["Account Mgr.", "Client"], location: "Teams", status: "confirmed", color: "#0ea5e9" },
-];
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const DAYS = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-function getDaysInMonth(year, month) { return new Date(year, month + 1, 0).getDate(); }
-function getFirstDayOfMonth(year, month) { return new Date(year, month, 1).getDay(); }
+function getDaysInMonth(year, month) { 
+  return new Date(year, month + 1, 0).getDate(); 
+}
+
+function getFirstDayOfMonth(year, month) { 
+  return new Date(year, month, 1).getDay(); 
+}
+
 function toDateStr(year, month, day) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
-const typeIcon = (type) => {
-  if (type === "video") return <Video size={13} />;
-  if (type === "call") return <Phone size={13} />;
-  return <MapPin size={13} />;
+
+function formatDisplayDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatDateTime(timestamp) {
+  if (!timestamp) return "No date set";
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const categoryIcon = (category) => {
+  if (category === "Meeting") return <Users size={14} />;
+  if (category === "Call") return <Phone size={14} />;
+  return <Calendar size={14} />;
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -54,47 +62,253 @@ export default function TaskPage() {
   const [selectedDate, setSelectedDate] = useState(
     toDateStr(today.getFullYear(), today.getMonth(), today.getDate())
   );
-  const [meetings, setMeetings] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("add");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    title: "",
+    dueAt: "",
+    description: "",
+    category: "Task",
+  });
+
+  // ─── Fetch Tasks from your API ─────────────────────────────────────────────
+  const fetchTasks = async () => {
+    setLoading(true);
+    try {
+      // Call your Next.js API route instead of direct Supabase
+      const response = await fetch('/api/tasks');
+      const data = await response.json();
+      
+      if (data.success) {
+        const formattedTasks = data.tasks.map(task => ({
+          id: task.id,
+          title: task.title || "Untitled Task",
+          date: task.dueAt ? task.dueAt.split('T')[0] : new Date().toISOString().split('T')[0],
+          description: task.description || "No description",
+          category: task.category || "Task",
+          status: task.status || "active",
+          assignedId: task.assignedId,
+          dueAt: task.dueAt,
+          color: getCategoryColor(task.category || "Task"),
+        }));
+        setTasks(formattedTasks);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      "Meeting": "#0ea5e9",
+      "Call": "#f59e0b",
+      "Task": "#8b5cf6",
+      "Follow up": "#14b8a6",
+    };
+    return colors[category] || "#64748b";
+  };
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => { setMeetings(MOCK_MEETINGS); setLoading(false); }, 500);
+    fetchTasks();
   }, []);
+
+  // ─── CRUD Operations with your API ─────────────────────────────────────────
+  const handleAddTask = async () => {
+    if (!formData.title) {
+      alert("Please enter a task title");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          dueAt: formData.dueAt || new Date().toISOString().split('T')[0],
+          description: formData.description,
+          category: formData.category,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.task) {
+        const newTask = {
+          id: data.task.id,
+          title: data.task.title,
+          date: data.task.dueAt.split('T')[0],
+          description: data.task.description,
+          category: data.task.category,
+          status: "active",
+          dueAt: data.task.dueAt,
+          color: getCategoryColor(data.task.category),
+        };
+        setTasks([...tasks, newTask]);
+        setIsModalOpen(false);
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Error adding task:", error);
+      alert("Failed to add task");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateTask = async () => {
+    setSubmitting(true);
+    try {
+      const response = await fetch(`/api/tasks/${selectedTask.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          dueAt: formData.dueAt,
+          description: formData.description,
+          category: formData.category,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setTasks(tasks.map(task => 
+          task.id === selectedTask.id 
+            ? { ...task, ...formData, date: formData.dueAt, color: getCategoryColor(formData.category) }
+            : task
+        ));
+        setIsModalOpen(false);
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+      alert("Failed to update task");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    setSubmitting(true);
+    try {
+      const response = await fetch(`/api/tasks/${selectedTask.id}`, {
+        method: 'DELETE',
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setTasks(tasks.filter(task => task.id !== selectedTask.id));
+        setIsModalOpen(false);
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert("Failed to delete task");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCloseTask = async () => {
+    setSubmitting(true);
+    try {
+      const response = await fetch(`/api/tasks/${selectedTask.id}/close`, {
+        method: 'PATCH',
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setTasks(tasks.map(task => 
+          task.id === selectedTask.id ? { ...task, status: "closed" } : task
+        ));
+        setIsModalOpen(false);
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Error closing task:", error);
+      alert("Failed to close task");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openModal = (mode, task = null) => {
+    setModalMode(mode);
+    if (task) {
+      setSelectedTask(task);
+      setFormData({
+        title: task.title,
+        dueAt: task.date,
+        description: task.description,
+        category: task.category,
+      });
+    } else {
+      resetForm();
+    }
+    setIsModalOpen(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      dueAt: selectedDate,
+      description: "",
+      category: "Task",
+    });
+    setSelectedTask(null);
+  };
+
+  const clearFields = () => {
+    resetForm();
+  };
+
+  // Rest of your component (calendar and UI remains the same)
+  const tasksOnDate = (dateStr) => tasks.filter((t) => t.date === dateStr);
+  
+  const selectedTasks = tasks
+    .filter((t) => t.date === selectedDate)
+    .filter((t) => filterCategory === "all" || t.category === filterCategory)
+    .filter((t) =>
+      searchQuery === "" ||
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+  const monthTasks = tasks.filter((t) => {
+    const d = new Date(t.date);
+    return d.getMonth() === viewMonth && d.getFullYear() === viewYear;
+  });
 
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
-  const meetingsOnDate = (dateStr) => meetings.filter((m) => m.date === dateStr);
-
-  const selectedMeetings = meetings
-    .filter((m) => m.date === selectedDate)
-    .filter((m) => filterType === "all" || m.type === filterType)
-    .filter((m) =>
-      searchQuery === "" ||
-      m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.attendees.some((a) => a.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
 
   const prevMonth = () => {
     if (viewMonth === 0) { setViewMonth(11); setViewYear((y) => y - 1); }
     else setViewMonth((m) => m - 1);
   };
+  
   const nextMonth = () => {
     if (viewMonth === 11) { setViewMonth(0); setViewYear((y) => y + 1); }
     else setViewMonth((m) => m + 1);
   };
 
-  const monthMeetings = meetings.filter((m) => {
-    const d = new Date(m.date);
-    return d.getMonth() === viewMonth && d.getFullYear() === viewYear;
-  });
-
   return (
     <div className="min-h-screen bg-slate-50">
-
-      {/* ── Page Header — same style as CRM Dashboard ── */}
+      {/* Page Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -107,49 +321,45 @@ export default function TaskPage() {
             </button>
             <div className="w-px h-6 bg-slate-200" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2d7d71] to-[#1f576f] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2d7d71] to-[#1f576f] bg-clip-text text-transparent">
                 Task Calendar
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Manage and track your scheduled meetings
+                Manage and track your scheduled tasks
               </p>
             </div>
           </div>
           <Button
             size="sm"
+            onClick={() => openModal("add")}
             className="h-9 px-4 bg-gradient-to-r from-sky-700 to-teal-500 text-white text-sm font-semibold"
           >
             <Plus size={14} className="mr-1.5" />
-            New Meeting
+            New Task
           </Button>
         </div>
       </div>
 
-      {/* ── Main Layout ── */}
+      {/* Main Layout */}
       <div className="flex h-[calc(100vh-89px)]">
-
-        {/* ── Left: Calendar ── */}
-        <div className="w-72 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col p-5 overflow-y-auto">
-
-          {/* Month nav */}
+        {/* Calendar Sidebar */}
+        <div className="w-80 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col p-5 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <button onClick={prevMonth} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
+            <button onClick={prevMonth} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100">
               <ChevronLeft size={15} />
             </button>
             <span className="text-sm font-bold text-slate-700">{MONTHS[viewMonth]} {viewYear}</span>
-            <button onClick={nextMonth} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all">
+            <button onClick={nextMonth} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100">
               <ChevronRight size={15} />
             </button>
           </div>
 
-          {/* Day labels */}
           <div className="grid grid-cols-7 mb-1">
             {DAYS.map((d) => (
               <div key={d} className="text-center text-[11px] font-semibold text-slate-400 py-1">{d}</div>
             ))}
           </div>
 
-          {/* Grid */}
           <div className="grid grid-cols-7 gap-y-0.5">
             {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} />)}
             {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -157,7 +367,7 @@ export default function TaskPage() {
               const dateStr = toDateStr(viewYear, viewMonth, day);
               const isToday = day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
               const isSelected = dateStr === selectedDate;
-              const dayMeetings = meetingsOnDate(dateStr);
+              const dayTasks = tasksOnDate(dateStr);
               return (
                 <button
                   key={day}
@@ -171,10 +381,10 @@ export default function TaskPage() {
                   <span className="text-xs font-semibold" style={{ color: isSelected ? "#fff" : isToday ? "#0ea5e9" : "#475569" }}>
                     {day}
                   </span>
-                  {dayMeetings.length > 0 && (
+                  {dayTasks.length > 0 && (
                     <div className="flex gap-0.5 mt-0.5">
-                      {dayMeetings.slice(0, 3).map((m) => (
-                        <div key={m.id} className="w-1 h-1 rounded-full" style={{ background: isSelected ? "rgba(255,255,255,0.9)" : m.color }} />
+                      {dayTasks.slice(0, 3).map((t) => (
+                        <div key={t.id} className="w-1 h-1 rounded-full" style={{ background: isSelected ? "rgba(255,255,255,0.9)" : t.color }} />
                       ))}
                     </div>
                   )}
@@ -184,170 +394,165 @@ export default function TaskPage() {
           </div>
 
           <div className="my-4 border-t border-slate-100" />
-
-          {/* Monthly summary */}
+          
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{MONTHS[viewMonth]} Summary</p>
             <div className="flex justify-between">
-              <span className="text-xs text-slate-500">Total</span>
-              <span className="text-sm font-bold text-slate-700">{monthMeetings.length}</span>
+              <span className="text-xs text-slate-500">Total Tasks</span>
+              <span className="text-sm font-bold text-slate-700">{monthTasks.length}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-slate-500">Confirmed</span>
-              <span className="text-xs font-bold text-emerald-600">{monthMeetings.filter((m) => m.status === "confirmed").length}</span>
+              <span className="text-xs text-slate-500">Active</span>
+              <span className="text-xs font-bold text-emerald-600">{monthTasks.filter((t) => t.status === "active").length}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-slate-500">Tentative</span>
-              <span className="text-xs font-bold text-amber-500">{monthMeetings.filter((m) => m.status === "tentative").length}</span>
+              <span className="text-xs text-slate-500">Closed</span>
+              <span className="text-xs font-bold text-slate-400">{monthTasks.filter((t) => t.status === "closed").length}</span>
             </div>
           </div>
-
-          <div className="my-4 border-t border-slate-100" />
-
-          {/* Legend */}
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Meeting Types</p>
-          {[
-            { label: "Video Call", color: "#0ea5e9", icon: <Video size={11} /> },
-            { label: "In-person",  color: "#8b5cf6", icon: <MapPin size={11} /> },
-            { label: "Phone Call", color: "#f59e0b", icon: <Phone size={11} /> },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2 mb-1.5">
-              <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: item.color + "18" }}>
-                <span style={{ color: item.color }}>{item.icon}</span>
-              </div>
-              <span className="text-xs text-slate-500">{item.label}</span>
-            </div>
-          ))}
         </div>
 
-        {/* ── Right: Meetings ── */}
+        {/* Tasks List */}
         <div className="flex-1 flex flex-col min-w-0 bg-slate-50">
+          <div className="bg-white border-b border-slate-200 px-6 py-4">
+            <h2 className="text-xl font-bold text-slate-800">Current Tasks</h2>
+          </div>
 
-          {/* Sub-header */}
           <div className="bg-white border-b border-slate-200 px-6 py-3">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div>
-                <h2 className="text-base font-bold text-slate-700">
-                  {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {selectedMeetings.length} meeting{selectedMeetings.length !== 1 ? "s" : ""} scheduled
-                </p>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* Search */}
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 border border-slate-200">
-                  <Search size={13} className="text-slate-400" />
+              <div className="flex items-center gap-2 flex-1 max-w-md">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 border border-slate-200 flex-1">
+                  <Search size={15} className="text-slate-400" />
                   <input
-                    className="bg-transparent text-xs text-slate-700 placeholder-slate-400 outline-none w-36"
-                    placeholder="Search meetings…"
+                    className="bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none w-full"
+                    placeholder="Search tasks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                {/* Filter pills */}
-                <div className="flex gap-1">
-                  {["all", "video", "call", "in-person"].map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setFilterType(t)}
-                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all capitalize"
-                      style={{
-                        background: filterType === t ? "linear-gradient(135deg,#0ea5e9,#14b8a6)" : "#f1f5f9",
-                        color: filterType === t ? "#fff" : "#64748b",
-                        border: filterType === t ? "none" : "1px solid #e2e8f0",
-                      }}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
+              </div>
+              <div className="flex gap-1">
+                {["all", "Meeting", "Call", "Task", "Follow up"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setFilterCategory(cat)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all capitalize"
+                    style={{
+                      background: filterCategory === cat ? "linear-gradient(135deg,#0ea5e9,#14b8a6)" : "#f1f5f9",
+                      color: filterCategory === cat ? "#fff" : "#64748b",
+                      border: filterCategory === cat ? "none" : "1px solid #e2e8f0",
+                    }}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Cards */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-3">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-48 gap-3">
-                <div className="w-8 h-8 rounded-full border-2 border-teal-300 border-t-teal-500 animate-spin" />
-                <p className="text-sm text-slate-400">Loading meetings…</p>
+                <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+                <p className="text-sm text-slate-400">Loading tasks...</p>
               </div>
-            ) : selectedMeetings.length === 0 ? (
+            ) : selectedTasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-48 rounded-xl gap-3 bg-white border border-dashed border-slate-300">
                 <Calendar size={32} className="text-slate-300" />
-                <p className="text-sm text-slate-400">No meetings on this day</p>
-                <button className="text-xs px-4 py-1.5 rounded-lg font-semibold text-white mt-1" style={{ background: "linear-gradient(135deg,#0ea5e9,#14b8a6)" }}>
-                  + Schedule a meeting
+                <p className="text-sm text-slate-400">No tasks on this day</p>
+                <button 
+                  onClick={() => openModal("add")}
+                  className="text-xs px-4 py-1.5 rounded-lg font-semibold text-white mt-1" 
+                  style={{ background: "linear-gradient(135deg,#0ea5e9,#14b8a6)" }}
+                >
+                  + Add Task
                 </button>
               </div>
             ) : (
-              selectedMeetings.map((m) => <MeetingCard key={m.id} meeting={m} />)
+              selectedTasks.map((task) => (
+                <div key={task.id} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all duration-200">
+                  <h3 className="text-base font-bold text-slate-800 mb-2">{task.title}</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar size={14} className="text-slate-400" />
+                    <span className="text-sm text-slate-600">Due: {formatDateTime(task.dueAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-3">
+                    {categoryIcon(task.category)}
+                    <span className="text-sm text-slate-600">{task.category}</span>
+                  </div>
+                  <p className="text-sm text-slate-500 mb-4 pb-2 border-b border-slate-100">{task.description}</p>
+                  <div className="flex gap-3">
+                    <button onClick={() => openModal("delete", task)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100">
+                      <Trash2 size={14} /> Delete Task
+                    </button>
+                    <button onClick={() => openModal("edit", task)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100">
+                      <Edit size={14} /> Update Task
+                    </button>
+                    {task.status !== "closed" && (
+                      <button onClick={() => openModal("close", task)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100">
+                        <CheckCircle size={14} /> Close Task
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-// ─── Meeting Card ─────────────────────────────────────────────────────────────
-function MeetingCard({ meeting }) {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <div
-      onClick={() => setExpanded(!expanded)}
-      className="bg-white rounded-xl border border-slate-200 p-4 cursor-pointer hover:shadow-md transition-all duration-200 group"
-      style={{ borderLeft: `3px solid ${meeting.color}` }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: meeting.color + "15" }}>
-            <span style={{ color: meeting.color }}>{typeIcon(meeting.type)}</span>
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-700 truncate group-hover:text-sky-600 transition-colors">{meeting.title}</p>
-            <div className="flex items-center gap-3 mt-1 flex-wrap">
-              <span className="flex items-center gap-1 text-xs text-slate-400"><Clock size={11} />{meeting.startTime} – {meeting.endTime}</span>
-              <span className="flex items-center gap-1 text-xs text-slate-400"><MapPin size={11} />{meeting.location}</span>
+      {/* Modal (same as before) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="p-6 pb-2">
+              <h2 className="text-xl font-bold text-slate-800">
+                {modalMode === "add" && "Add Task"}
+                {modalMode === "edit" && "Edit Task"}
+                {modalMode === "delete" && "Delete Task"}
+                {modalMode === "close" && "Close Task"}
+              </h2>
             </div>
-          </div>
-        </div>
-        <div className="flex-shrink-0 flex flex-col items-end gap-2">
-          <span
-            className="text-xs px-2.5 py-0.5 rounded-full font-semibold"
-            style={meeting.status === "confirmed" ? { background: "#d1fae5", color: "#059669" } : { background: "#fef3c7", color: "#d97706" }}
-          >
-            {meeting.status}
-          </span>
-          <ChevronRight size={14} className="text-slate-300 transition-transform duration-200" style={{ transform: expanded ? "rotate(90deg)" : "none" }} />
-        </div>
-      </div>
-
-      {expanded && (
-        <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
-          <div className="flex items-start gap-2">
-            <Users size={12} className="text-slate-400 mt-0.5 flex-shrink-0" />
-            <div className="flex flex-wrap gap-1">
-              {meeting.attendees.map((a) => (
-                <span key={a} className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">{a}</span>
-              ))}
+            <div className="p-6 space-y-4">
+              {(modalMode === "add" || modalMode === "edit") ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Task Title</label>
+                    <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Due Date</label>
+                    <input type="date" value={formData.dueAt} onChange={(e) => setFormData({...formData, dueAt: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Category</label>
+                    <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                      <option value="Meeting">Meeting</option>
+                      <option value="Email">Email</option>
+                      <option value="Call">Call</option>
+                      <option value="Productdemo">Product Demo</option>
+                      <option value="Task">Task</option>
+                    </select>
+                  </div>  
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
+                    <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg" rows="3" />
+                  </div>
+                </>
+              ) : modalMode === "delete" ? (
+                <p>Are you sure you want to delete "<strong>{selectedTask?.title}</strong>"?</p>
+              ) : modalMode === "close" ? (
+                <p>Are you sure you want to close "<strong>{selectedTask?.title}</strong>"?</p>
+              ) : null}
             </div>
-          </div>
-          <div className="flex gap-2 pt-1">
-            <button
-              className="text-xs px-3 py-1.5 rounded-lg font-semibold text-white hover:opacity-90"
-              style={{ background: "linear-gradient(135deg,#0ea5e9,#14b8a6)" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Join Meeting
-            </button>
-            <button
-              className="text-xs px-3 py-1.5 rounded-lg font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 border border-slate-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              Reschedule
-            </button>
+            <div className="p-6 pt-0 flex justify-end gap-3">
+              <button onClick={clearFields} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 rounded-lg">❌ Clear Fields</button>
+              {modalMode === "add" && <button onClick={handleAddTask} disabled={submitting} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-600 to-teal-500 rounded-lg">{submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "→ Add Task"}</button>}
+              {modalMode === "edit" && <button onClick={handleUpdateTask} disabled={submitting} className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-sky-600 to-teal-500 rounded-lg">{submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update Task"}</button>}
+              {modalMode === "delete" && <button onClick={handleDeleteTask} disabled={submitting} className="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-lg">{submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}</button>}
+              {modalMode === "close" && <button onClick={handleCloseTask} disabled={submitting} className="px-4 py-2 text-sm font-semibold text-white bg-amber-500 rounded-lg">{submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Close Task"}</button>}
+              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 rounded-lg">Cancel</button>
+            </div>
           </div>
         </div>
       )}
