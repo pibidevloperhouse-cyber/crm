@@ -239,6 +239,12 @@ export default function ProductsPage() {
 
   const addProduct = async () => {
     if (!validateNewProduct()) return;
+    const {data : {session} } = await supabase.auth.getSession();
+    const emailToUse = session?.user?.email || userEmail;
+    if (!emailToUse) {
+      toast.error("Session expired. Please log in again.");
+      return;
+    }
     const { data: insertedProduct, error: productError } = await supabase
       .from("products")
       .insert([{
@@ -253,7 +259,7 @@ export default function ProductsPage() {
         bundle_pricing: newProduct.bundlePricing ?? null,
         cost_breakdown: newProduct.costBreakdown ?? null,
         raw: newProduct.raw ?? null,
-        user_email: userEmail,
+        user_email: emailToUse,
       }])
       .select("*")
       .single();

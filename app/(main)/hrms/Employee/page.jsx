@@ -45,6 +45,7 @@ export default function EmployeesPage() {
     manager: "",
     skills: [],
     training: [],
+    owner_email: ""
   });
   const [userEmail, setUserEmail] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -104,6 +105,9 @@ export default function EmployeesPage() {
 
   const addEmployee = async () => {
     try {
+      const { data : {session} } = await supabase.auth.getSession();
+      const ownerEmail = session?.user?.email || userEmail;
+
       const generatedPassword = generatePassword(12);
       const newData = {
         name: newEmployee.name,
@@ -117,6 +121,7 @@ export default function EmployeesPage() {
         created_at: new Date().toISOString(),
         company_id: userData?.id || null,
         password: generatedPassword,
+        owner_email: ownerEmail
       };
 
       const { error } = await supabase.from("Employees").insert(newData);

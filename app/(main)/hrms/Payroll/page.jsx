@@ -20,24 +20,51 @@ import { Calculator, Users, Wallet } from "lucide-react";
 export default function PayrollPage() {
   const [employees, setEmployees] = useState([]);
   const [editing, setEditing] = useState(null);
+  const [userEmail, setUserEmail] = useState(null);
   const [payroll, setPayroll] = useState({
     salary: 0,
     allowances: { HRA: 0, Bonus: 0 },
     deductions: { Tax: 0 },
   });
 
+  useEffect(() => {
+  try {
+    const sessionJSON = JSON.parse(localStorage.getItem("session"));
+    if (sessionJSON?.user?.email) {
+      setUserEmail(sessionJSON.user.email);
+    } else {
+      redirect("/");
+    }
+  } catch (e) {
+    console.error("Session error:", e);
+    redirect("/");
+  }
+}, []);
+
   const fetchEmployees = async () => {
+    if (!userEmail) return;
+    
+    const{data: company_data } = await supabase
+    .from("HRMS")
+    .select("*")
+    .eq("user_email", userEmail);
+
+    if (!company_data || company_data.length === 0) return;
+
+    const company_id = company_data[0].id;
+
     const { data, error } = await supabase
       .from("Employees")
       .select("*")
+      .eq("company_id", company_id)
       .order("name");
     if (error) return console.error(error);
     setEmployees(data);
   };
 
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    if (userEmail) fetchEmployees();
+  }, [userEmail]);
 
   const handleUpdate = async () => {
     const { error } = await supabase
