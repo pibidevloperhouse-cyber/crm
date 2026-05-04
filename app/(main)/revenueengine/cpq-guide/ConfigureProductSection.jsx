@@ -31,7 +31,20 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { ProductConfigCard } from "@/components/ProductConfig";
-import { Settings, Search, CheckCircle } from "lucide-react";
+import { Settings, Search, CheckCircle, Package, AlertCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { CurrencyDropDown } from "@/components/ui/CurrencyDropDown";
+import { BillingCycleSelect } from "@/components/BillingCycleSelect";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const SkeletonCard = () => (
   <div className="mb-6 border border-slate-200/50 dark:border-white/20 rounded-lg p-4 animate-pulse">
@@ -56,6 +69,19 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
   const [isLoading, setIsLoading] = useState(true);
   const [dealConfig, setDealConfig] = useState([]);
   const [activeDealId, setActiveDealId] = useState(null);
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    category: "",
+    basePrice: "",
+    currency: "",
+    billingCycle: "",
+    stock: "",
+    description: "",
+    isActive: true,
+    isConfigurable: false,
+    configurations: {},
+  });
+  const [errors, setErrors] = useState({ newProduct: {} });
 
   const fetchData = async (email) => {
     if (!email) return;
@@ -187,9 +213,91 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
     }
   };
 
+  const validateNewProduct = () => {
+    const newErrors = {};
+    if (!newProduct.name.trim()) newErrors.name = "Product name is required.";
+    if (!newProduct.description.trim()) newErrors.description = "Description is required.";
+    if (!newProduct.category.trim()) newErrors.category = "Category is required.";
+    setErrors({ newProduct: newErrors });
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const addProduct = async () => {
+    if (!validateNewProduct()) return;
+    
+    try {
+      const { data: insertedProduct, error: productError } = await supabase
+        .from("products")
+        .insert([{
+          name: newProduct.name,
+          description: newProduct.description,
+          category: newProduct.category,
+          base_price: parseFloat(newProduct.basePrice) || 0,
+          stock: parseInt(newProduct.stock) || 0,
+          is_configurable: newProduct.isConfigurable,
+          configurations: newProduct.configurations || {},
+          user_email: userEmail,
+        }])
+        .select("*")
+        .single();
+
+      if (productError) throw productError;
+
+      const productToAdd = { ...newProduct, id: insertedProduct.id };
+      const updatedProductsList = [...products, productToAdd];
+
+      const { error: userError } = await supabase
+        .from("Users")
+        .update({ products: updatedProductsList })
+        .eq("email", userEmail);
+
+      if (userError) throw userError;
+
+      setProducts(updatedProductsList);
+
+      // AUTOMATICALLY ASSIGN TO ACTIVE DEAL IF IT HAS NO PRODUCTS
+      if (activeDealId) {
+        const activeDeal = dealsData.find(d => d.id === activeDealId);
+        const existingProducts = activeDeal?.products || [];
+        const updatedDealProducts = [...existingProducts, insertedProduct.name];
+
+        const { error: dealUpdateError } = await supabase
+          .from("Deals")
+          .update({ products: updatedDealProducts })
+          .eq("id", activeDealId);
+
+        if (dealUpdateError) {
+          console.error("Error assigning product to deal:", dealUpdateError);
+        } else {
+          // Update local deals data to reflect the change
+          const updatedDeals = dealsData.map(d => 
+            d.id === activeDealId ? { ...d, products: updatedDealProducts } : d
+          );
+          setDealsData(updatedDeals);
+          setDealsToShow(updatedDeals);
+          
+          // Inform parent about the new product status
+          onDealSelect(activeDealId, true);
+        }
+      }
+
+      setNewProduct({
+        name: "", category: "", currency: "", basePrice: "", billingCycle: "",
+        description: "", stock: "", isActive: true, isConfigurable: false, configurations: {},
+      });
+      setErrors({ newProduct: {} });
+      toast.success("Product added and assigned to deal!");
+    } catch (err) {
+      console.error("Error adding product:", err);
+      toast.error("Failed to add product. Please try again.");
+    }
+  };
+
   const selectDeal = (dealId) => {
     setActiveDealId(dealId);
-    onDealSelect(dealId);
+    const deal = dealsData.find(d => d.id === dealId);
+    const hasProducts = deal?.products && deal.products.length > 0;
+    onDealSelect(dealId, hasProducts);
   };
 
   return (
@@ -265,8 +373,135 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                     <CardContent className="px-0">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {!deal.products || deal.products.length === 0 ? (
-                          <div className="col-span-full p-10 text-center border-2 border-dashed rounded-3xl text-slate-500">
-                            No products assigned to this deal.
+                          <div className="col-span-full flex flex-col items-center justify-center p-12 border border-teal-100 rounded-[2.5rem] bg-teal-50/30 text-center space-y-5">
+                            <div className="bg-teal-100 p-5 rounded-full text-teal-600 shadow-inner">
+                              <Package className="h-10 w-10" />
+                            </div>
+                            <div className="space-y-2">
+                              <h3 className="text-xl font-bold text-teal-900">No products assigned to this deal</h3>
+                              <p className="text-sm text-teal-600/80 max-w-sm mx-auto leading-relaxed">
+                                This deal doesn't have any products assigned yet. You can start by adding a new product to your global catalog.
+                              </p>
+                            </div>
+
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-8 h-12 font-bold shadow-xl shadow-teal-600/20 cursor-pointer transition-all hover:scale-105 active:scale-95">
+                                  + Add New Product
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-xl backdrop-blur-md bg-white/90 border border-teal-100 shadow-2xl rounded-3xl p-8 overflow-y-auto max-h-[90vh]">
+                                <DialogHeader>
+                                  <DialogTitle className="text-2xl font-bold text-slate-800">Add New Product</DialogTitle>
+                                  <DialogDescription className="text-slate-500">
+                                    Please fill in the details of the new product you want to add to your catalog.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex flex-col gap-5 py-6">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                      <Label htmlFor="name" className="text-sm font-semibold text-slate-700 ml-1">Product Name</Label>
+                                      <Input
+                                        id="name"
+                                        placeholder="e.g. Premium Subscription"
+                                        value={newProduct.name}
+                                        className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                        onChange={(e) => setNewProduct((prev) => ({ ...prev, name: e.target.value }))}
+                                      />
+                                      {errors.newProduct?.name && (
+                                        <p className="text-red-500 text-xs mt-1 ml-1 font-medium">{errors.newProduct.name}</p>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                      <Label htmlFor="category" className="text-sm font-semibold text-slate-700 ml-1">Product Category</Label>
+                                      <Input
+                                        id="category"
+                                        placeholder="e.g. Software"
+                                        value={newProduct.category}
+                                        className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                        onChange={(e) => setNewProduct((prev) => ({ ...prev, category: e.target.value }))}
+                                      />
+                                      {errors.newProduct?.category && (
+                                        <p className="text-red-500 text-xs mt-1 ml-1 font-medium">{errors.newProduct.category}</p>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col gap-2">
+                                    <Label htmlFor="description" className="text-sm font-semibold text-slate-700 ml-1">Product Description</Label>
+                                    <Input
+                                      id="description"
+                                      placeholder="Briefly describe the product..."
+                                      value={newProduct.description}
+                                      className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                      onChange={(e) => setNewProduct((prev) => ({ ...prev, description: e.target.value }))}
+                                    />
+                                    {errors.newProduct?.description && (
+                                      <p className="text-red-500 text-xs mt-1 ml-1 font-medium">{errors.newProduct.description}</p>
+                                    )}
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                      <Label htmlFor="stock" className="text-sm font-semibold text-slate-700 ml-1">Product Stock</Label>
+                                      <Input
+                                        id="stock"
+                                        type="number"
+                                        placeholder="0"
+                                        value={newProduct.stock}
+                                        className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                        onChange={(e) => setNewProduct((prev) => ({ ...prev, stock: e.target.value }))}
+                                      />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                      <Label htmlFor="basePrice" className="text-sm font-semibold text-slate-700 ml-1">Base Price</Label>
+                                      <Input
+                                        id="basePrice"
+                                        placeholder="0.00"
+                                        type="number"
+                                        value={newProduct.basePrice}
+                                        className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                        onChange={(e) => setNewProduct((prev) => ({ ...prev, basePrice: e.target.value }))}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-4 items-end">
+                                    <div className="flex flex-col gap-2">
+                                      <Label className="text-sm font-semibold text-slate-700 ml-1">Currency</Label>
+                                      <CurrencyDropDown
+                                        value={newProduct.currency}
+                                        onValueChange={(value) => setNewProduct((prev) => ({ ...prev, currency: value }))}
+                                      />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                      <Label className="text-sm font-semibold text-slate-700 ml-1">Billing Cycle</Label>
+                                      <BillingCycleSelect
+                                        value={newProduct.billingCycle}
+                                        onChange={(value) => setNewProduct((prev) => ({ ...prev, billingCycle: value }))}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center justify-between p-4 bg-teal-50/50 rounded-2xl border border-teal-100">
+                                    <div className="space-y-0.5">
+                                      <Label htmlFor="isConfigurable" className="text-sm font-bold text-teal-900">Enable Configuration</Label>
+                                      <p className="text-xs text-teal-600/70 font-medium">Allow custom features for this product</p>
+                                    </div>
+                                    <Switch
+                                      id="isConfigurable"
+                                      checked={newProduct.isConfigurable}
+                                      onCheckedChange={(value) => setNewProduct((prev) => ({ ...prev, isConfigurable: value }))}
+                                    />
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold h-12 rounded-2xl shadow-lg shadow-teal-500/20" onClick={addProduct}>
+                                    Add Product to Catalog
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
                           </div>
                         ) : (
                           deal.products.map((productName, productIndex) => {
@@ -320,7 +555,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                 ))}
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center p-10 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem] text-slate-400">
+            <div className="h-full flex flex-col items-center justify-center p-10 border border-slate-200 dark:border-slate-800 rounded-[3rem] text-slate-400">
               <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-full mb-4">
                 <Search className="h-10 w-10" />
               </div>

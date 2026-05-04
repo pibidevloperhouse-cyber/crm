@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Wrench,
   DollarSign,
@@ -53,6 +52,7 @@ export default function CPQGuidePage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDealId, setSelectedDealId] = useState(null);
+  const [dealHasProducts, setDealHasProducts] = useState(false);
 
   const nextStep = () => {
     if (currentStep < 3) setCurrentStep(currentStep + 1);
@@ -91,12 +91,9 @@ export default function CPQGuidePage() {
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0" />
 
           {/* Active Line */}
-          <motion.div
-            className="absolute top-1/2 left-0 h-0.5 bg-teal-500 -translate-y-1/2 z-0 origin-left"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: (currentStep - 1) / 2 }}
-            transition={{ duration: 0.5 }}
-            style={{ width: '100%' }}
+          <div
+            className="absolute top-1/2 left-0 h-0.5 bg-teal-500 -translate-y-1/2 z-0 origin-left transition-all duration-500"
+            style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
           />
 
           {steps.map((step) => {
@@ -106,20 +103,19 @@ export default function CPQGuidePage() {
 
             return (
               <div key={step.id} className="relative z-10 flex flex-col items-center">
-                <motion.button
+                <button
                   onClick={() => step.id <= currentStep && setCurrentStep(step.id)}
                   className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border-2 shadow-lg",
+                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border-2 shadow-lg hover:scale-110",
                     isActive
                       ? "bg-white dark:bg-slate-900 border-teal-500 text-teal-500 scale-110"
                       : isCompleted
                         ? "bg-teal-500 border-teal-500 text-white"
                         : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
                   )}
-                  whileHover={{ scale: step.id <= currentStep ? 1.1 : 1 }}
                 >
                   {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
-                </motion.button>
+                </button>
                 <div className="absolute -bottom-10 whitespace-nowrap text-center">
                   <p className={cn(
                     "text-sm font-bold transition-colors duration-300",
@@ -138,37 +134,29 @@ export default function CPQGuidePage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="mt-20 w-full max-w-7xl mx-auto">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="min-h-[60vh] pb-32"
-          >
-            {currentStep === 1 && (
-              <ConfigureProductSection
-                onDealSelect={(id) => setSelectedDealId(id)}
-                onNext={nextStep}
-              />
-            )}
-            {currentStep === 2 && (
-              <PricingDetailsSection
-                selectedDealId={selectedDealId}
-                onNext={nextStep}
-                onBack={prevStep}
-              />
-            )}
-            {currentStep === 3 && (
-              <PreviewQuoteSection
-                selectedDealId={selectedDealId}
-                onBack={prevStep}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
+      <div className="mt-20 w-full max-w-7xl mx-auto min-h-[60vh] pb-32">
+        {currentStep === 1 && (
+          <ConfigureProductSection
+            onDealSelect={(id, hasProducts) => {
+              setSelectedDealId(id);
+              setDealHasProducts(hasProducts);
+            }}
+            onNext={nextStep}
+          />
+        )}
+        {currentStep === 2 && (
+          <PricingDetailsSection
+            selectedDealId={selectedDealId}
+            onNext={nextStep}
+            onBack={prevStep}
+          />
+        )}
+        {currentStep === 3 && (
+          <PreviewQuoteSection
+            selectedDealId={selectedDealId}
+            onBack={prevStep}
+          />
+        )}
       </div>
 
       {/* Navigation Buttons (Floating or Bottom) */}
@@ -185,7 +173,7 @@ export default function CPQGuidePage() {
         <div className="w-px h-6 bg-slate-200 dark:bg-slate-800" />
         <Button
           onClick={nextStep}
-          disabled={currentStep === 3 || (currentStep === 1 && !selectedDealId)}
+          disabled={currentStep === 3 || (currentStep === 1 && (!selectedDealId || !dealHasProducts))}
           className="rounded-full bg-teal-600 hover:bg-teal-500 text-white px-8 gap-2"
         >
           {currentStep === 3 ? "Complete" : "Next Level"}
@@ -194,17 +182,15 @@ export default function CPQGuidePage() {
       </div>
 
       {/* Info Warning */}
-      {currentStep === 1 && !selectedDealId && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-12 flex justify-center"
-        >
+      {currentStep === 1 && (!selectedDealId || !dealHasProducts) && (
+        <div className="mt-12 flex justify-center">
           <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-full text-amber-700 dark:text-amber-400 text-sm">
             <AlertCircle className="w-4 h-4" />
-            Please select a deal to proceed to the next level.
+            {!selectedDealId 
+              ? "Please select a deal to proceed to the next level." 
+              : "This deal has no products. Please add a product to proceed."}
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );
