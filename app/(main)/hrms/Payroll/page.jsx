@@ -190,7 +190,7 @@ export default function PayrollPage() {
 
                   {payrollRoles.length > 0 && (
                     <div className="mt-8">
-                      <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <h3 className="text-xs font-black text-gray-700 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <Separator className="flex-1" />
                         Existing Roles
                         <Separator className="flex-1" />
