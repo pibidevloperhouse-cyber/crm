@@ -21,14 +21,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Users, TrendingUp, DollarSign, ChevronLeft, ChevronRight, Upload, Plus } from "lucide-react";
+import {
+  Users,
+  TrendingUp,
+  DollarSign,
+  ChevronLeft,
+  ChevronRight,
+  Upload,
+  Plus,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { supabase } from "@/utils/supabase/client";
-import {
-  customerStatus,
-  dealStatus,
-  leadStatus,
-} from "@/constants/constant";
+import { customerStatus, dealStatus, leadStatus } from "@/constants/constant";
 import { redirect } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -59,14 +63,28 @@ const normalizeStatuses = (arr) => {
   if (!arr || !Array.isArray(arr)) return [];
   return arr
     .map((s) =>
-      typeof s === "string" ? s : s?.value || s?.label || s?.name || ""
+      typeof s === "string" ? s : s?.value || s?.label || s?.name || "",
     )
     .filter(Boolean);
 };
 
 // ─── Fallback status lists ────────────────────────────────────────────────────
-const LEAD_DEFAULTS = ["New", "Contacted", "Qualified", "Not Qualified", "Converted"];
-const DEAL_DEFAULTS = ["New Lead", "Qualified", "Proposal", "Negotiation", "Closed-won", "Closed", "Closed-lost"];
+const LEAD_DEFAULTS = [
+  "New",
+  "Contacted",
+  "Qualified",
+  "Not Qualified",
+  "Converted",
+];
+const DEAL_DEFAULTS = [
+  "New Lead",
+  "Qualified",
+  "Proposal",
+  "Negotiation",
+  "Closed-won",
+  "Closed",
+  "Closed-lost",
+];
 const CUSTOMER_DEFAULTS = ["Active", "Inactive", "Churned"];
 
 export default function CRM() {
@@ -90,7 +108,7 @@ export default function CRM() {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) redirect("/");
     setProducts(
-      user?.products?.map((p) => ({ value: p.name, label: p.name })) || []
+      user?.products?.map((p) => ({ value: p.name, label: p.name })) || [],
     );
     const sessionJSON = JSON.parse(localStorage.getItem("session"));
     setSession(sessionJSON);
@@ -165,19 +183,25 @@ export default function CRM() {
   // ── Status column builders ────────────────────────────────────────────────
   const getLeadStatuses = () => {
     const fromConst = normalizeStatuses(leadStatus);
-    const fromData = [...new Set(leadsData.map((l) => l.status).filter(Boolean))];
+    const fromData = [
+      ...new Set(leadsData.map((l) => l.status).filter(Boolean)),
+    ];
     const merged = [...new Set([...fromConst, ...fromData])];
     return merged.length ? merged : LEAD_DEFAULTS;
   };
   const getDealStatuses = () => {
     const fromConst = normalizeStatuses(dealStatus);
-    const fromData = [...new Set(dealsData.map((d) => d.status).filter(Boolean))];
+    const fromData = [
+      ...new Set(dealsData.map((d) => d.status).filter(Boolean)),
+    ];
     const merged = [...new Set([...fromConst, ...fromData])];
     return merged.length ? merged : DEAL_DEFAULTS;
   };
   const getCustomerStatuses = () => {
     const fromConst = normalizeStatuses(customerStatus);
-    const fromData = [...new Set(customersData.map((c) => c.status).filter(Boolean))];
+    const fromData = [
+      ...new Set(customersData.map((c) => c.status).filter(Boolean)),
+    ];
     const merged = [...new Set([...fromConst, ...fromData])];
     return merged.length ? merged : CUSTOMER_DEFAULTS;
   };
@@ -223,7 +247,10 @@ export default function CRM() {
           <div className="flex-1 flex items-center justify-center py-4">
             <span
               className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 select-none"
-              style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+              style={{
+                writingMode: "vertical-rl",
+                transform: "rotate(180deg)",
+              }}
             >
               {title} ({count})
             </span>
@@ -263,12 +290,20 @@ export default function CRM() {
   // ── CSV sheet content ─────────────────────────────────────────────────────
   const CsvSheetContent = () => (
     <>
-      <div className={`${activeTab === "Customers" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}>
+      <div
+        className={`${activeTab === "Customers" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}
+      >
         <div>
-          <h3 className="font-semibold text-lg mb-2">📄 CSV Format Requirements</h3>
+          <h3 className="font-semibold text-lg mb-2">
+            📄 CSV Format Requirements
+          </h3>
           <ul className="list-disc pl-5 space-y-1 text-sm text-slate-900 dark:text-slate-400">
-            <li>Required: <b>name, number, email, status</b></li>
-            <li>Optional: address, website, industry, linkedIn, price, issues</li>
+            <li>
+              Required: <b>name, number, email, status</b>
+            </li>
+            <li>
+              Optional: address, website, industry, linkedIn, price, issues
+            </li>
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4 text-sm text-blue-700">
             💡 Download the template to ensure proper formatting.
@@ -277,21 +312,46 @@ export default function CRM() {
         <div className="space-y-4 mt-2">
           <div>
             <h3 className="font-semibold mb-2">📥 Download Template</h3>
-            <Button variant="outline" onClick={() => window.open("/templates/customer_template.xlsx")}>Download Sample Excel</Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open("/templates/customer_template.xlsx")}
+            >
+              Download Sample Excel
+            </Button>
           </div>
           <div>
             <h3 className="font-semibold mb-2">📂 Select CSV File</h3>
-            <Button onClick={() => fileInputRef.current.click()} className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer">Choose File</Button>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <Button
+              onClick={() => fileInputRef.current.click()}
+              className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer"
+            >
+              Choose File
+            </Button>
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
       </div>
-      <div className={`${activeTab === "Leads" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}>
+      <div
+        className={`${activeTab === "Leads" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}
+      >
         <div>
-          <h3 className="font-semibold text-lg mb-2">📄 CSV Format Requirements</h3>
+          <h3 className="font-semibold text-lg mb-2">
+            📄 CSV Format Requirements
+          </h3>
           <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-            <li>Required: <b>name, number, status</b></li>
-            <li>Optional: email, age, industry, company, income, address, linkedIn, description, website, source</li>
+            <li>
+              Required: <b>name, number, status</b>
+            </li>
+            <li>
+              Optional: email, age, industry, company, income, address,
+              linkedIn, description, website, source
+            </li>
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4 text-sm text-blue-700">
             💡 Download the template to ensure proper formatting.
@@ -300,20 +360,42 @@ export default function CRM() {
         <div className="space-y-4 mt-2">
           <div>
             <h3 className="font-semibold mb-2">📥 Download Template</h3>
-            <Button variant="outline" onClick={() => window.open("/templates/leads_template.xlsx")}>Download Sample Excel</Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open("/templates/leads_template.xlsx")}
+            >
+              Download Sample Excel
+            </Button>
           </div>
           <div>
             <h3 className="font-semibold mb-2">📂 Select CSV File</h3>
-            <Button onClick={() => fileInputRef.current.click()} className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer">Choose File</Button>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <Button
+              onClick={() => fileInputRef.current.click()}
+              className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer"
+            >
+              Choose File
+            </Button>
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
       </div>
-      <div className={`${activeTab === "Deals" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}>
+      <div
+        className={`${activeTab === "Deals" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}
+      >
         <div>
-          <h3 className="font-semibold text-lg mb-2">📄 CSV Format Requirements</h3>
+          <h3 className="font-semibold text-lg mb-2">
+            📄 CSV Format Requirements
+          </h3>
           <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-            <li>Required: <b>name, title, number, email, status, value</b></li>
+            <li>
+              Required: <b>name, title, number, email, status, value</b>
+            </li>
             <li>Optional: owner, source, priority, closeDate</li>
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4 text-sm text-blue-700">
@@ -323,12 +405,28 @@ export default function CRM() {
         <div className="space-y-4 mt-2">
           <div>
             <h3 className="font-semibold mb-2">📥 Download Template</h3>
-            <Button variant="outline" onClick={() => window.open("/templates/deals_template.xlsx")}>Download Sample Excel</Button>
+            <Button
+              variant="outline"
+              onClick={() => window.open("/templates/deals_template.xlsx")}
+            >
+              Download Sample Excel
+            </Button>
           </div>
           <div>
             <h3 className="font-semibold mb-2">📂 Select CSV File</h3>
-            <Button onClick={() => fileInputRef.current.click()} className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer">Choose File</Button>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <Button
+              onClick={() => fileInputRef.current.click()}
+              className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer"
+            >
+              Choose File
+            </Button>
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
       </div>
@@ -378,15 +476,21 @@ export default function CRM() {
               </SheetHeader>
             </SheetContent>
           </Sheet>
-
+          <Button
+            onClick={() => router.push("/crm/agent-workflow")}
+            className="bg-gradient-to-r from-sky-600 to-teal-500 text-white"
+          >
+            <Users size={16} className="mr-2" />
+            Agent Workflow
+          </Button>
           {/* TASK BUTTON */}
-<Button
-  size="sm"
-  onClick={() => router.push("/Task")}
-  className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
->
-  Task
-</Button>
+          <Button
+            size="sm"
+            onClick={() => router.push("/Task")}
+            className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+          >
+            Task
+          </Button>
           {/* ADD BUTTON */}
           <Sheet>
             <SheetTrigger asChild>
@@ -542,12 +646,6 @@ export default function CRM() {
   );
 }
 
-
-
-
-
-
-
 // "use client";
 
 // import { useEffect, useState, useRef } from "react";
@@ -595,7 +693,7 @@ export default function CRM() {
 //   Unqualified: "bg-orange-400",
 //   "New Lead": "bg-blue-400",
 //   Proposal: "bg-violet-500",
-//   Negotiation: 
+//   Negotiation:
 // "bg-orange-400",
 //   "Closed-won": "bg-emerald-500",
 //   "Closed-lost": "bg-red-500",
@@ -756,16 +854,15 @@ export default function CRM() {
 //   );
 // }
 
-// the above is helped by gemini 
+// the above is helped by gemini
 
 //previous versionb of tightly packed page , left right scroll missing here
 
-
-
-
-
-        {/* Replace all your TabsContent blocks (Leads, Deals, Customers) with this structure */}
-        {/*
+{
+  /* Replace all your TabsContent blocks (Leads, Deals, Customers) with this structure */
+}
+{
+  /*
         <TabsContent value={activeTab} className="flex-1 min-h-0 m-0 overflow-hidden">
           <div className="flex gap-3 h-full pb-4 overflow-x-auto custom-scrollbar items-start">
       
@@ -786,57 +883,7 @@ export default function CRM() {
     </div>
         </TabsContent >
  */
-        }
-
-
-
-
-
-
-       
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 // "use client";
 
@@ -1082,7 +1129,6 @@ export default function CRM() {
 //             Manage customers, leads, and deals with comprehensive filtering
 //           </p>
 //         </div>
-
 
 //       </div>
 
@@ -1651,9 +1697,8 @@ export default function CRM() {
 //   );
 // }
 
-
-
-{/* <div className="flex sm:flex-col py-5 md:py-0 md:flex-row md:ml-auto gap-2 mr-2">
+{
+  /* <div className="flex sm:flex-col py-5 md:py-0 md:flex-row md:ml-auto gap-2 mr-2">
           <Sheet>
             <SheetTrigger asChild>
               <Button className="bg-gradient-to-r px-3 py-2 rounded-xl from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white w-full md:ml-5 cursor-pointer">
@@ -1966,9 +2011,11 @@ export default function CRM() {
               </SheetHeader>
             </SheetContent>
           </Sheet>
-        </div> */}
+        </div> */
+}
 
-{/* <Sheet>
+{
+  /* <Sheet>
           <SheetTrigger asChild>
             <Button className="bg-gradient-to-r px-3 py-2 rounded-xl from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white md:ml-5">
               Add New {activeTab}
@@ -2006,4 +2053,5 @@ export default function CRM() {
               </SheetDescription>
             </SheetHeader>
           </SheetContent>
-        </Sheet> */}
+        </Sheet> */
+}

@@ -468,7 +468,7 @@ export default function TemplateCreator() {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex items-center justify-between mt-4 mb-6 gap-4">
+        <div className="flex items-center justify-between mt-4 mb-0 gap-4">
           <div className="flex gap-2">
             <Dialog
               open={openPastTemplates}
@@ -582,12 +582,12 @@ export default function TemplateCreator() {
               </DialogContent>
             </Dialog>
 
-            <Button
+            {/* <Button
               className="bg-green-200 text-black px-6"
               onClick={handleNewTemplate}
             >
               New Template
-            </Button>
+            </Button> */}
           </div>
 
           <div className="flex gap-2 items-center">
@@ -600,7 +600,7 @@ export default function TemplateCreator() {
           </div>
         </div>
 
-        <div className="mt-8 space-y-10 text-sm max-w-5xl mx-auto">
+        <div className="mt-8 space-y-5 text-sm max-w-5xl ">
           <section className="border rounded-md bg-blue-50 p-4 shadow-sm">
             <h3 className="font-bold text-lg mb-2">HEADER (Brand Area)</h3>
             {!data.headerImage && (
@@ -640,12 +640,18 @@ export default function TemplateCreator() {
               <label className="font-semibold block mb-2">
                 Header Image (banner)
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageUpload(e, "headerImage")}
-                className="mb-2"
-              />
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Choose Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, "headerImage")}
+                  className="hidden"
+                />
+              </label>
               {data.headerImage && (
                 <div className="flex gap-2 items-start">
                   <img
@@ -665,7 +671,7 @@ export default function TemplateCreator() {
             </div>
           </section>
 
-          <section className="border p-4 rounded-md">
+          {/* <section className="border p-4 rounded-md">
             <h3 className="font-semibold">COMPANY INFO</h3>
             <div className="mt-3 space-y-2">
               <Input
@@ -746,9 +752,9 @@ export default function TemplateCreator() {
               onChange={(e) => update("description", e.target.value)}
               className="h-24 mt-3"
             />
-          </section>
+          </section> */}
 
-          <section className="border p-4 rounded-md">
+          {/* <section className="border p-4 rounded-md">
             <h3 className="font-semibold">ITEMIZED PRODUCTS / SERVICES</h3>
             <div className="mt-3 space-y-2">
               {(data.products || []).map((prod, i) => (
@@ -805,7 +811,7 @@ export default function TemplateCreator() {
                 </p>
               </div>
             </div>
-          </section>
+          </section> */}
 
           <section className="border p-4 rounded-md bg-yellow-50">
             <h3 className="font-semibold">FOOTER</h3>
@@ -813,11 +819,18 @@ export default function TemplateCreator() {
               <label className="font-semibold block mb-2">
                 Footer Image (optional)
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageUpload(e, "footerImage")}
-              />
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Choose Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, "footerImage")}
+                  className="hidden"
+                />
+              </label>
               {data.footerImage && (
                 <div className="flex gap-2 items-start mt-2">
                   <img

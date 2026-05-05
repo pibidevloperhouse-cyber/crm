@@ -146,7 +146,28 @@ export default function HRMSDashboard() {
         }
       }
 
-      setFeatures((prev) => [...prev, newFeature]);
+      const formattedNewFeatures = [];
+      const startDate = new Date(newFeature.start);
+      const endDate = new Date(newFeature.end);
+      for (
+        let d = new Date(startDate);
+        d <= endDate;
+        d.setDate(d.getDate() + 1)
+      ) {
+        formattedNewFeatures.push({
+          id: newFeature.id,
+          name: newFeature.title,
+          startAt: new Date(d),
+          endAt: new Date(d),
+          status: {
+            id: 1,
+            name: "Leave",
+            color: "#A8E4A0",
+          },
+        });
+      }
+
+      setFeatures((prev) => [...prev, ...formattedNewFeatures]);
       setOpen(false);
       setReason("");
       setDate(undefined);

@@ -18,6 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@supabase/supabase-js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -52,6 +53,11 @@ const categoryIcon = (category) => {
   return <Calendar size={14} />;
 };
 
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function TaskPage() {
   const router = useRouter();
@@ -71,33 +77,40 @@ export default function TaskPage() {
   const [modalMode, setModalMode] = useState("add");
   const [submitting, setSubmitting] = useState(false);
 
-  // Form state
+  // Form state - matches your database columns
   const [formData, setFormData] = useState({
     title: "",
     dueAt: "",
-    description: "",
-    category: "Task",
+    assigneeId: "",
+    lead_id: "",
   });
 
-  // ─── Fetch Tasks from your API ─────────────────────────────────────────────
+  // ─── Fetch Tasks from your table ─────────────────────────────────────────────
   const fetchTasks = async () => {
     setLoading(true);
     try {
-      // Call your Next.js API route instead of direct Supabase
-      const response = await fetch('/api/tasks');
-      const data = await response.json();
+      // Get the table name - based on your data, it might be 'email_memory' or another name
+      // Let me use the correct table name from your data
+      const { data, error } = await supabase
+        .from('tasks')  // Change this to your actual table name
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
       
-      if (data.success) {
-        const formattedTasks = data.tasks.map(task => ({
+      if (data) {
+        const formattedTasks = data.map(task => ({
           id: task.id,
           title: task.title || "Untitled Task",
           date: task.dueAt ? task.dueAt.split('T')[0] : new Date().toISOString().split('T')[0],
-          description: task.description || "No description",
-          category: task.category || "Task",
-          status: task.status || "active",
-          assignedId: task.assignedId,
+          description: task.metadata?.description || "No description", // Get description from metadata if available
+          category: task.title || "Task", // Using title as category since no category column
+          status: task.metadata?.status || "active", // Store status in metadata
+          assigneeId: task.assigneeId,
+          lead_id: task.lead_id,
           dueAt: task.dueAt,
-          color: getCategoryColor(task.category || "Task"),
+          metadata: task.metadata,
+          color: getCategoryColor(task.title || "Task"),
         }));
         setTasks(formattedTasks);
       }
@@ -122,7 +135,7 @@ export default function TaskPage() {
     fetchTasks();
   }, []);
 
-  // ─── CRUD Operations with your API ─────────────────────────────────────────
+  // ─── CRUD Operations matching your table structure ─────────────────────────────────────────
   const handleAddTask = async () => {
     if (!formData.title) {
       alert("Please enter a task title");
@@ -131,37 +144,47 @@ export default function TaskPage() {
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          dueAt: formData.dueAt || new Date().toISOString().split('T')[0],
-          description: formData.description,
-          category: formData.category,
-        }),
-      });
+      const { data, error } = await supabase
+        .from('tasks')  // Change this to your actual table name
+        .insert([
+          {
+            title: formData.title,
+            dueAt: formData.dueAt ? new Date(formData.dueAt).toISOString() : new Date().toISOString(),
+            assigneeId: formData.assigneeId || null,
+            lead_id: formData.lead_id || null,
+            metadata: {
+              description: formData.description || "",
+              status: "active",
+              category: formData.category || "Task"
+            },
+            created_at: new Date().toISOString(),
+          }
+        ])
+        .select();
+
+      if (error) throw error;
       
-      const data = await response.json();
-      
-      if (data.success && data.task) {
+      if (data && data[0]) {
         const newTask = {
-          id: data.task.id,
-          title: data.task.title,
-          date: data.task.dueAt.split('T')[0],
-          description: data.task.description,
-          category: data.task.category,
+          id: data[0].id,
+          title: data[0].title,
+          date: data[0].dueAt ? data[0].dueAt.split('T')[0] : new Date().toISOString().split('T')[0],
+          description: data[0].metadata?.description || "",
+          category: formData.category || "Task",
           status: "active",
-          dueAt: data.task.dueAt,
-          color: getCategoryColor(data.task.category),
+          assigneeId: data[0].assigneeId,
+          lead_id: data[0].lead_id,
+          dueAt: data[0].dueAt,
+          metadata: data[0].metadata,
+          color: getCategoryColor(formData.category || "Task"),
         };
-        setTasks([...tasks, newTask]);
+        setTasks([newTask, ...tasks]);
         setIsModalOpen(false);
         resetForm();
       }
     } catch (error) {
       console.error("Error adding task:", error);
-      alert("Failed to add task");
+      alert("Failed to add task: " + error.message);
     } finally {
       setSubmitting(false);
     }
@@ -170,31 +193,43 @@ export default function TaskPage() {
   const handleUpdateTask = async () => {
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/tasks/${selectedTask.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { error } = await supabase
+        .from('email_memory')  // Change this to your actual table name
+        .update({
           title: formData.title,
-          dueAt: formData.dueAt,
-          description: formData.description,
-          category: formData.category,
-        }),
-      });
+          dueAt: formData.dueAt ? new Date(formData.dueAt).toISOString() : null,
+          assigneeId: formData.assigneeId || null,
+          lead_id: formData.lead_id || null,
+          metadata: {
+            ...selectedTask.metadata,
+            description: formData.description,
+            category: formData.category
+          },
+        })
+        .eq('id', selectedTask.id);
+
+      if (error) throw error;
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setTasks(tasks.map(task => 
-          task.id === selectedTask.id 
-            ? { ...task, ...formData, date: formData.dueAt, color: getCategoryColor(formData.category) }
-            : task
-        ));
-        setIsModalOpen(false);
-        resetForm();
-      }
+      setTasks(tasks.map(task => 
+        task.id === selectedTask.id 
+          ? { 
+              ...task, 
+              title: formData.title,
+              dueAt: formData.dueAt,
+              date: formData.dueAt,
+              description: formData.description,
+              category: formData.category,
+              assigneeId: formData.assigneeId,
+              lead_id: formData.lead_id,
+              color: getCategoryColor(formData.category)
+            }
+          : task
+      ));
+      setIsModalOpen(false);
+      resetForm();
     } catch (error) {
       console.error("Error updating task:", error);
-      alert("Failed to update task");
+      alert("Failed to update task: " + error.message);
     } finally {
       setSubmitting(false);
     }
@@ -203,20 +238,19 @@ export default function TaskPage() {
   const handleDeleteTask = async () => {
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/tasks/${selectedTask.id}`, {
-        method: 'DELETE',
-      });
+      const { error } = await supabase
+        .from('tasks')  // Change this to your actual table name
+        .delete()
+        .eq('id', selectedTask.id);
+
+      if (error) throw error;
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setTasks(tasks.filter(task => task.id !== selectedTask.id));
-        setIsModalOpen(false);
-        resetForm();
-      }
+      setTasks(tasks.filter(task => task.id !== selectedTask.id));
+      setIsModalOpen(false);
+      resetForm();
     } catch (error) {
       console.error("Error deleting task:", error);
-      alert("Failed to delete task");
+      alert("Failed to delete task: " + error.message);
     } finally {
       setSubmitting(false);
     }
@@ -225,22 +259,28 @@ export default function TaskPage() {
   const handleCloseTask = async () => {
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/tasks/${selectedTask.id}/close`, {
-        method: 'PATCH',
-      });
+      const { error } = await supabase
+        .from('tasks')  // Change this to your actual table name
+        .update({
+          metadata: {
+            ...selectedTask.metadata,
+            status: "closed"
+          }
+        })
+        .eq('id', selectedTask.id);
+
+      if (error) throw error;
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setTasks(tasks.map(task => 
-          task.id === selectedTask.id ? { ...task, status: "closed" } : task
-        ));
-        setIsModalOpen(false);
-        resetForm();
-      }
+      setTasks(tasks.map(task => 
+        task.id === selectedTask.id 
+          ? { ...task, status: "closed", metadata: { ...task.metadata, status: "closed" } }
+          : task
+      ));
+      setIsModalOpen(false);
+      resetForm();
     } catch (error) {
       console.error("Error closing task:", error);
-      alert("Failed to close task");
+      alert("Failed to close task: " + error.message);
     } finally {
       setSubmitting(false);
     }
@@ -255,6 +295,8 @@ export default function TaskPage() {
         dueAt: task.date,
         description: task.description,
         category: task.category,
+        assigneeId: task.assigneeId || "",
+        lead_id: task.lead_id || "",
       });
     } else {
       resetForm();
@@ -268,6 +310,8 @@ export default function TaskPage() {
       dueAt: selectedDate,
       description: "",
       category: "Task",
+      assigneeId: "",
+      lead_id: "",
     });
     setSelectedTask(null);
   };
@@ -276,7 +320,7 @@ export default function TaskPage() {
     resetForm();
   };
 
-  // Rest of your component (calendar and UI remains the same)
+  // Calendar and filtering logic
   const tasksOnDate = (dateStr) => tasks.filter((t) => t.date === dateStr);
   
   const selectedTasks = tasks
@@ -501,7 +545,7 @@ export default function TaskPage() {
         </div>
       </div>
 
-      {/* Modal (same as before) */}
+      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
@@ -518,25 +562,65 @@ export default function TaskPage() {
                 <>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1">Task Title</label>
-                    <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg" />
+                    <input 
+                      type="text" 
+                      value={formData.title} 
+                      onChange={(e) => setFormData({...formData, title: e.target.value})} 
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                      placeholder="Enter task title"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1">Due Date</label>
-                    <input type="date" value={formData.dueAt} onChange={(e) => setFormData({...formData, dueAt: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg" />
+                    <input 
+                      type="date" 
+                      value={formData.dueAt} 
+                      onChange={(e) => setFormData({...formData, dueAt: e.target.value})} 
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1">Category</label>
-                    <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                    <select 
+                      value={formData.category} 
+                      onChange={(e) => setFormData({...formData, category: e.target.value})} 
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                    >
                       <option value="Meeting">Meeting</option>
-                      <option value="Email">Email</option>
                       <option value="Call">Call</option>
-                      <option value="Productdemo">Product Demo</option>
                       <option value="Task">Task</option>
+                      <option value="Follow up">Follow up</option>
                     </select>
-                  </div> 
+                  </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
-                    <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-lg" rows="3" />
+                    <textarea 
+                      value={formData.description} 
+                      onChange={(e) => setFormData({...formData, description: e.target.value})} 
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg" 
+                      rows="3"
+                      placeholder="Enter task description"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Assignee ID (Optional)</label>
+                    <input 
+                      type="text" 
+                      value={formData.assigneeId} 
+                      onChange={(e) => setFormData({...formData, assigneeId: e.target.value})} 
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                      placeholder="Assignee ID"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1">Lead ID (Optional)</label>
+                    <input 
+                      type="text" 
+                      value={formData.lead_id} 
+                      onChange={(e) => setFormData({...formData, lead_id: e.target.value})} 
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                      placeholder="Lead ID"
+                    />
                   </div>
                 </>
               ) : modalMode === "delete" ? (
@@ -559,3 +643,4 @@ export default function TaskPage() {
     </div>
   );
 }
+

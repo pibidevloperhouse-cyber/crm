@@ -252,20 +252,8 @@ export const navigation = [
   {
     key: "crm",
     name: "CRM",
-    href: "", // ✅ make parent non-clickable
+    href: "/crm", // ✅ make parent non-clickable
     icon: <Database />,
-    subpages: [
-      {
-        name: "Dashboard",
-        href: "/crm", // ✅ CRM main page
-        icon: <Home />,
-      },
-      {
-        name: "Agent Workflow",
-        href: "/crm/agent-workflow", // ✅ FIXED
-        icon: <Users />,
-      },
-    ],
   },
   {
     key: "cpq",
