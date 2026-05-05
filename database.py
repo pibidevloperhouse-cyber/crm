@@ -176,34 +176,39 @@ def update_entity_status(
 
 
 def save_email_memory(
-    lead_id,
-    lead_email: str,
-    user_email: str,
-    direction: str,  # "inbound" | "outbound"
-    summary: str,
+    client_id: int,
+    email: str,
+    name: str,
+    stage: str,
+    inbound_message: str,
+    inbound_summary: str,
+    outbound_message: str,
+    outbound_summary: str,
     status_before: str,
     status_after: str,
     llm_reasoning: str = "",
-    original_content: str = "",
 ):
     """Save a summarized memory entry for each email interaction."""
     try:
         supabase.table("email_memory").insert(
             {
-                "lead_id": lead_id,
-                "lead_email": lead_email,
-                "user_email": user_email,
-                "direction": direction,
-                "summary": summary,
+                "client_id": client_id,
+                "email": email,
+                "name": name,
+                "stage": stage,
+                "inbound_message": inbound_message,
+                "inbound_summary": inbound_summary,
+                "outbound_message": outbound_message,
+                "outbound_summary": outbound_summary,
                 "status_before": status_before,
                 "status_after": status_after,
                 "llm_reasoning": llm_reasoning,
-                "original_content": original_content,
                 "created_at": datetime.now().isoformat(),
             }
         ).execute()
+        print(f"✅ Email memory saved for client_id={client_id}")
     except Exception as e:
-        print("Error saving email memory:", e)
+        print("❌ Error saving email memory:", e)
 
 
 def delete_lead_memory(lead_id) -> None:
@@ -215,20 +220,19 @@ def delete_lead_memory(lead_id) -> None:
         print("Error deleting lead memory:", e)
 
 
-def get_email_memory(lead_id, limit: int = 6) -> list:
-    """Fetch last N memory entries for a lead (for LLM context)."""
+def get_email_memory(client_id: int) -> list:
+    """Fetch full conversation history for a client."""
     try:
         response = (
             supabase.table("email_memory")
-            .select("direction, summary, status_after, created_at")
-            .eq("lead_id", lead_id)
+            .select("*")
+            .eq("client_id", client_id)
             .order("created_at", desc=False)
-            .limit(limit)
             .execute()
         )
         return response.data or []
     except Exception as e:
-        print("Error fetching email memory:", e)
+        print("❌ Error fetching email memory:", e)
         return []
 
 

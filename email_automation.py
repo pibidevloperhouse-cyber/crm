@@ -202,218 +202,73 @@ def process_email(email_data: dict, user: dict, entity_type: str = "lead"):
     email_content = f"Subject: {email_data['subject']}\nBody: {email_data['body']}"
     refresh_token = user["refresh_token"]
 
-    products = get_products(user_email)
-    products_str = format_products(products)
-    company_desc = user.get("companyDescription", "")
+    # Check if the client exists in Leads, Deals, or Customers
+    stage, client = get_client_stage(contact_email, user_email)
 
-    print(f"\n{'='*70}")
-    print(f"📩 Processing {entity_type.upper()} | From: {contact_email}")
-    print(f"📌 Subject: {email_data['subject']}")
-    print(f"{'='*70}")
+    if client:
+        client_id = client["id"]
+        current_status = client.get("status", DEFAULT_STATUS[stage])
 
-    existing = get_entity_by_email(entity_type, user_email, contact_email)
+        # Fetch conversation history from email_memory
+        conversation_history = get_email_memory(client_id)
 
-    if existing:
-        current_status = existing.get("status", DEFAULT_STATUS[entity_type])
-        entity_id = existing.get("id")
-
-        if is_terminal(entity_type, current_status):
-            print(
-                f"🔒 Terminal status [{current_status}] — respecting human decision (no back-push)"
-            )
-            return
-
-        print(f"🔁 Existing {entity_type} | Status: {current_status}")
-
-        memories = get_email_memory(entity_id)
-        history = format_conversation_history(memories)
-        valid_next = get_valid_next_statuses(entity_type, current_status)
-
+        # Analyze the email with LLM
         result = analyze_existing_lead(
             email_content=email_content,
-            description=company_desc,
-            products=products_str,
-            conversation_history=history,
+            description=user.get("companyDescription", ""),
+            products=format_products(get_products(user_email)),
+            conversation_history=format_conversation_history(conversation_history),
             current_status=current_status,
-            valid_next_statuses=valid_next,
+            valid_next_statuses=get_valid_next_statuses(stage, current_status),
         )
 
-        if not result:
-            return
+        if result:
+            new_status = safe_transition(stage, current_status, result["next_status"])
 
-        new_status = safe_transition(entity_type, current_status, result["next_status"])
-
-        upsert_entity(
-            entity_type=entity_type,
-            contact_email=contact_email,
-            message=email_data["body"],
-            status=new_status,
-            user_email=user_email,
-            direction="inbound",
-        )
-
-        save_email_memory(
-            lead_id=entity_id,
-            lead_email=contact_email,
-            user_email=user_email,
-            direction="inbound",
-            summary=result["summary"],
-            status_before=current_status,
-            status_after=new_status,
-            llm_reasoning=result["reasoning"],
-            original_content=email_data["body"],
-        )
-
-        # Send reply using response_leads
-        sent = send_email(
-            refresh_token=refresh_token,
-            to_email=contact_email,
-            subject=f"Re: {email_data['subject']}",
-            body=result["reply_text"],
-            sender_email=user_email,
-        )
-
-        if sent:
+            # Save the interaction in email_memory
             save_email_memory(
-                lead_id=entity_id,
-                lead_email=contact_email,
-                user_email=user_email,
-                direction="outbound",
-                summary=f"We replied: {result['reply_text'][:120]}...",
-                status_before=new_status,
+                client_id=client_id,
+                email=contact_email,
+                name=client.get("name", "Unknown"),
+                stage=stage,
+                inbound_message=email_data["body"],
+                inbound_summary=result["summary"],
+                outbound_message=result["reply_text"],
+                outbound_summary=f"We replied: {result['reply_text'][:120]}...",
+                status_before=current_status,
                 status_after=new_status,
-                llm_reasoning="Outbound reply sent",
+                llm_reasoning=result["reasoning"],
             )
 
-        print(f"✅ Status: {current_status} → {new_status}")
+            # Update the client status in the respective table
+            update_client_stage(stage, client_id, new_status)
 
-        if entity_type == "lead" and new_status in DEAL_PROMOTABLE_STATUSES:
-            try_promote_to_deal(
-                existing,
-                email_content,
-                products_str,
-                user_email,
-                contact_email,
-                entity_id,
-                new_status,
+            # Send the reply
+            sent = send_email(
+                refresh_token=refresh_token,
+                to_email=contact_email,
+                subject=f"Re: {email_data['subject']}",
+                body=result["reply_text"],
+                sender_email=user_email,
             )
 
-        if new_status in DEAL_DEAD_STATUSES:
-            delete_lead_memory(entity_id)
+            if sent:
+                save_email_memory(
+                    lead_id=client_id,
+                    lead_email=contact_email,
+                    user_email=user_email,
+                    direction="outbound",
+                    summary=f"We replied: {result['reply_text'][:120]}...",
+                    status_before=new_status,
+                    status_after=new_status,
+                    llm_reasoning="Outbound reply sent",
+                )
 
+            print(f"✅ Status updated: {current_status} → {new_status}")
+        else:
+            print("❌ No valid response from LLM.")
     else:
-        # New contact
-        screen = screen_sender(
-            sender=email_data["from"],
-            subject=email_data["subject"],
-            body=email_data["body"],
-        )
-        if not screen or not screen.get("is_human"):
-            print("🚫 Not a human — skipping")
-            return
-
-        # result = analyze_new_email(
-        #     email_content=email_content,
-        #     description=company_desc,
-        #     products=products_str,
-        # )
-
-        try:
-            result = analyze_new_email(
-                email_content=email_content,
-                description=company_desc,
-                products=products_str,
-            )
-        except Exception as llm_err:
-            err_str = str(llm_err)
-            result = None
-            if "failed_generation" in err_str:
-                try:
-                    match = re.search(
-                        r"<function=\w+>\s*(\{.*?)(?:\s*</function>|$)",
-                        err_str,
-                        re.DOTALL,
-                    )
-                    if match:
-                        raw = match.group(1).strip()
-                        # patch missing closing braces
-                        raw += "}" * (raw.count("{") - raw.count("}"))
-                        parsed = json.loads(raw)
-                        # rebuild result in expected shape
-                        ec = parsed.get("extracted_content", {})
-                        result = {
-                            "is_lead": parsed.get("is_lead")
-                            or ec.get("is_lead", False),
-                            "summary": parsed.get("summary") or ec.get("summary", ""),
-                            "reasoning": parsed.get("reasoning")
-                            or ec.get("reasoning", ""),
-                            "reply_text": parsed.get("reply_text")
-                            or ec.get("reply_text", ""),
-                            "extracted_content": ec,
-                        }
-                        print(
-                            f"⚠️ Recovered from malformed LLM output for {contact_email}"
-                        )
-                except Exception as parse_err:
-                    print(f"❌ Recovery failed: {parse_err}")
-            else:
-                print(f"❌ analyze_new_email error: {llm_err}")
-
-        if not result or not result.get("is_lead"):
-            print("❌ Not a valid lead")
-            return
-
-        initial_status = DEFAULT_STATUS[entity_type]
-        after_reply_status = FIRST_REPLY_STATUS[entity_type]
-
-        upsert_entity(
-            entity_type=entity_type,
-            contact_email=contact_email,
-            message=email_data["body"],
-            status=initial_status,
-            user_email=user_email,
-            content=result.get("extracted_content"),
-            direction="inbound",
-        )
-
-        new_entity = get_entity_by_email(entity_type, user_email, contact_email)
-        entity_id = new_entity["id"] if new_entity else None
-
-        save_email_memory(
-            lead_id=entity_id,
-            lead_email=contact_email,
-            user_email=user_email,
-            direction="inbound",
-            summary=result["summary"],
-            status_before=initial_status,
-            status_after=initial_status,
-            llm_reasoning=result["reasoning"],
-            original_content=email_data["body"],
-        )
-
-        sent = send_email(
-            refresh_token=refresh_token,
-            to_email=contact_email,
-            subject=f"Re: {email_data['subject']}",
-            body=result["reply_text"],
-            sender_email=user_email,
-        )
-
-        if sent:
-            update_entity_status(
-                entity_type, contact_email, user_email, after_reply_status
-            )
-            save_email_memory(
-                lead_id=entity_id,
-                lead_email=contact_email,
-                user_email=user_email,
-                direction="outbound",
-                summary=f"We replied: {result['reply_text'][:120]}...",
-                status_before=initial_status,
-                status_after=after_reply_status,
-                llm_reasoning="First outbound reply sent",
-            )
-            print(f"✅ New {entity_type} created → {after_reply_status}")
+        print("❌ Client not found in Leads, Deals, or Customers.")
 
 
 def monitor_emails(refresh_token, client_id, client_secret, user):

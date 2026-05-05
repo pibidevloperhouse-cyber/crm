@@ -241,7 +241,7 @@ def analyze_new_email(email_content: str, description: str, products: str) -> di
         )
         return result.model_dump()
     except Exception as e:
-        print(f"LLM analyze_new_email error: {e}")
+        print(f"❌ LLM analyze_new_email error: {e}")
         return None
 
 
