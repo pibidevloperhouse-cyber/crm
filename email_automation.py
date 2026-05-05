@@ -25,6 +25,10 @@ from database import (
     get_products,
     create_deal,
     get_deal_by_email,
+    # ALPHA BRAVO: Imported new helper functions
+    get_client_stage,
+    update_client_stage,
+    promote_deal_to_customer,
 )
 from lead import (
     screen_sender,
@@ -243,6 +247,25 @@ def process_email(email_data: dict, user: dict, entity_type: str = "lead"):
             # Update the client status in the respective table
             update_client_stage(stage, client_id, new_status)
 
+            # ALPHA BRAVO: Stage Promotion Logic
+            # 1. Lead -> Deal if status becomes 'Qualified'
+            if stage == "lead" and new_status == "Qualified":
+                print(f"🚀 Status is Qualified! Attempting promotion to Deal...")
+                try_promote_to_deal(
+                    existing=client,
+                    email_content=email_content,
+                    products_str=format_products(get_products(user_email)),
+                    user_email=user_email,
+                    contact_email=contact_email,
+                    entity_id=client_id,
+                    current_status=new_status
+                )
+
+            # 2. Deal -> Customer if status becomes 'Closed-won'
+            elif stage == "deal" and new_status == "Closed-won":
+                print(f"🎉 Deal Won! Promoting to Customer...")
+                promote_deal_to_customer(user_email, contact_email, client)
+
             # Send the reply
             sent = send_email(
                 refresh_token=refresh_token,
@@ -252,23 +275,71 @@ def process_email(email_data: dict, user: dict, entity_type: str = "lead"):
                 sender_email=user_email,
             )
 
-            if sent:
-                save_email_memory(
-                    lead_id=client_id,
-                    lead_email=contact_email,
-                    user_email=user_email,
-                    direction="outbound",
-                    summary=f"We replied: {result['reply_text'][:120]}...",
-                    status_before=new_status,
-                    status_after=new_status,
-                    llm_reasoning="Outbound reply sent",
-                )
-
             print(f"✅ Status updated: {current_status} → {new_status}")
         else:
             print("❌ No valid response from LLM.")
     else:
-        print("❌ Client not found in Leads, Deals, or Customers.")
+        # ALPHA BRAVO: Handle new potential leads with deep screening
+        print(f"🔍 New contact detected: {contact_email}. Running screening...")
+        
+        # 1. Screen sender (human vs bot)
+        screen = screen_sender(email_data["from"], email_data["subject"], email_data["body"])
+        if not screen or not screen.get("is_human"):
+            print(f"🚫 Non-human or junk detected ({screen.get('sender_type') if screen else 'unknown'}) — skipping.")
+            return
+
+        # 2. Analyze as new lead
+        result = analyze_new_email(
+            email_content=email_content,
+            description=user.get("companyDescription", ""),
+            products=format_products(get_products(user_email))
+        )
+
+        if result and result.get("is_lead"):
+            print(f"✅ Lead confirmed! Initial Status: {result.get('initial_status', 'New')}")
+            
+            # 3. Create lead in database
+            status, code = upsert_entity(
+                entity_type="lead",
+                contact_email=contact_email,
+                message=email_data["body"],
+                status=result.get("initial_status", "New"),
+                user_email=user_email,
+                content=result.get("extracted_content"),
+                direction="inbound"
+            )
+
+            if code in [200, 201]:
+                # Get the newly created lead ID for memory
+                _, new_client = get_client_stage(contact_email, user_email)
+                client_id = new_client["id"] if new_client else 0
+
+                # 4. Save interaction memory
+                save_email_memory(
+                    client_id=client_id,
+                    email=contact_email,
+                    name=result.get("extracted_content", {}).get("name", "Unknown"),
+                    stage="lead",
+                    inbound_message=email_data["body"],
+                    inbound_summary=result["summary"],
+                    outbound_message=result["reply_text"],
+                    outbound_summary=f"First reply: {result['reply_text'][:120]}...",
+                    status_before="None",
+                    status_after=result.get("initial_status", "New"),
+                    llm_reasoning=result["reasoning"]
+                )
+
+                # 5. Send automated reply
+                send_email(
+                    refresh_token=refresh_token,
+                    to_email=contact_email,
+                    subject=f"Re: {email_data['subject']}",
+                    body=result["reply_text"],
+                    sender_email=user_email,
+                )
+                print(f"📧 Automated reply sent to new lead: {contact_email}")
+        else:
+            print(f"❌ Not a lead ({result.get('reasoning') if result else 'LLM failed'})")
 
 
 def monitor_emails(refresh_token, client_id, client_secret, user):

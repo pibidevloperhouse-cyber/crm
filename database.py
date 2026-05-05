@@ -154,20 +154,56 @@ def upsert_entity(
         return {"error": str(e)}, 500
 
 
+# ALPHA BRAVO: Added missing helper functions for email automation
+def get_client_stage(contact_email: str, user_email: str):
+    """Checks all tables to find where the client currently resides."""
+    for stage in ["lead", "deal", "customer"]:
+        client = get_entity_by_email(stage, user_email, contact_email)
+        if client:
+            return stage, client
+    return None, None
+
+
+def update_client_stage(stage: str, client_id: int, new_status: str):
+    """Updates status of a client in a specific table by ID."""
+    table = ENTITY_TABLES.get(stage)
+    if not table:
+        return
+    try:
+        supabase.table(table).update({
+            "status": new_status,
+            "updated_at": datetime.now().isoformat()
+        }).eq("id", client_id).execute()
+        print(f"✅ [{stage}] ID {client_id} status updated to {new_status}")
+    except Exception as e:
+        print(f"❌ Error updating {stage} stage: {e}")
+
+
+def promote_deal_to_customer(user_email: str, contact_email: str, deal: dict):
+    """Move a deal to the Customers table."""
+    try:
+        # Create customer record
+        data = {
+            "user_email": user_email,
+            "email": contact_email,
+            "name": deal.get("name", contact_email),
+            "status": "Active",
+            "created_at": datetime.now().isoformat()
+        }
+        supabase.table("Customers").insert(data).execute()
+        print(f"🎉 Deal promoted to Customer for {contact_email}")
+        
+        # Update deal status to Closed-won (user doesn't want deletion)
+        update_entity_status("deal", contact_email, user_email, "Closed-won")
+        return True
+    except Exception as e:
+        print(f"❌ Error promoting deal to customer: {e}")
+        return False
+
+
 def update_entity_status(
     entity_type: str, contact_email: str, user_email: str, new_status: str
 ):
-    """Update only the status field."""
-    table = ENTITY_TABLES.get(entity_type)
-    try:
-        supabase.table(table).update(
-            {
-                "status": new_status,
-                "updated_at": datetime.now().isoformat(),
-            }
-        ).eq("email", contact_email).eq("user_email", user_email).execute()
-    except Exception as e:
-        print(f"Error updating status:", e)
 
 
 # ─────────────────────────────────────────────

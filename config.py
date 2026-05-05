@@ -2,7 +2,8 @@
 
 STATUS_TRANSITIONS = {
     "lead": {
-        "New": ["InProgress", "Contact Attempted", "NotQualified"],
+        # ALPHA BRAVO: Added Meeting Booked to New transitions to allow direct jump
+        "New": ["InProgress", "Contact Attempted", "Meeting Booked", "NotQualified"],
         "InProgress": ["Contact Attempted", "NotQualified"],
         "Contact Attempted": ["Contacted", "NotQualified"],
         "Contacted": ["Meeting Booked", "Qualified", "NotQualified"],
@@ -36,8 +37,9 @@ DEFAULT_STATUS = {
     "customer": "Active",
 }
 
+# ALPHA BRAVO: Updated lead first reply status to Contacted (more accurate than Contact Attempted)
 FIRST_REPLY_STATUS = {
-    "lead": "Contact Attempted",
+    "lead": "Contacted",
     "deal": "Proposal Sent",
     "customer": "Active",
 }

@@ -43,6 +43,10 @@ class NewLeadAnalysis(BaseModel):
     )
     confidence: float = Field(..., ge=0, le=1)
     extracted_content: Optional[ExtractedContent] = Field(None)
+    # ALPHA BRAVO: Added initial_status to allow direct jump to Meeting Booked
+    initial_status: str = Field(
+        default="New", description="Status to assign. Usually 'New', but 'Meeting Booked' if high intent for Nova."
+    )
     reply_text: str = Field(
         ..., description="Reply to send. Empty string if not a lead."
     )
@@ -107,6 +111,7 @@ Return strictly as JSON.
     input_variables=["sender", "subject", "body_preview"],
 )
 
+# ALPHA BRAVO: Added Nova product shortcut logic for new leads
 NEW_LEAD_PROMPT = PromptTemplate(
     template="""
 You are a strict lead qualifier for a B2B tech software company.
@@ -126,6 +131,10 @@ A TRUE LEAD is ONLY when this person is:
 ✅ Describing their business problem that OUR product solves
 ✅ Aware of us and reaching out intentionally
 
+Instructions for initial_status:
+- Default is "New".
+- CRITICAL: If the lead specifically asks about the "Nova" product and expresses strong interest or asks for a meeting/details, set initial_status to "Meeting Booked" immediately.
+
 NOT a lead — reject immediately if:
 ❌ They are selling their own product/service TO us
 ❌ Newsletter, blog post, tutorial, or content
@@ -142,6 +151,7 @@ Return strictly as JSON.
     input_variables=["email_content", "description", "products"],
 )
 
+# ALPHA BRAVO: Added specific instructions for Nova product interest
 EXISTING_LEAD_PROMPT = PromptTemplate(
     template="""
 You are managing an active CRM lead conversation for a B2B tech software company.
@@ -160,7 +170,8 @@ New Email Just Received:
 
 Instructions:
 1. Study the full history + new email carefully.
-2. Pick next_status from valid options only. Stay on current if none fit.
+2. Pick next_status from valid options only. 
+   - CRITICAL: If the lead mentions our 'Nova' product and shows interest or needs details, you MUST jump straight to 'Meeting Booked' if it's available in next statuses.
 3. Write a warm, specific reply that references past conversation context.
 4. Summarize the new email in max 2 lines.
 5. Explain your status decision.
