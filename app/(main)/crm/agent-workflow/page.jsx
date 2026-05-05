@@ -42,13 +42,14 @@ function formatDate(dateStr) {
   });
 }
 
+// ALPHA BRAVO: Updated to use new column names from email_memory
 function getLeadName(lead) {
-  if (lead.lead_name) return lead.lead_name;
-  if (lead.lead_email) {
-    const part = lead.lead_email.split("@")[0];
+  if (lead.name) return lead.name;
+  if (lead.email) {
+    const part = lead.email.split("@")[0];
     return part.replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
-  return `Lead ${lead.lead_id}`;
+  return `Client ${lead.client_id}`;
 }
 
 /* ── Toast helper (no lib needed) ─────────────────────── */
@@ -78,7 +79,7 @@ export default function AgentWorkflowPage() {
 
   const { toasts, success, error: toastError, info } = useToast();
 
-  /* ── 1. Fetch email_memory data — poll every 30s when running ── */
+  /* ALPHA BRAVO: Updated to use new table name 'email_memory' and 'client_id' */
   useEffect(() => {
     const fetchData = async () => {
       const { data, error } = await supabase
@@ -87,8 +88,9 @@ export default function AgentWorkflowPage() {
         .order("created_at", { ascending: true });
       if (!error && data) {
         const g = data.reduce((acc, item) => {
-          if (!acc[item.lead_id]) acc[item.lead_id] = [];
-          acc[item.lead_id].push(item);
+          const cid = item.client_id;
+          if (!acc[cid]) acc[cid] = [];
+          acc[cid].push(item);
           return acc;
         }, {});
         setGrouped(g);
@@ -172,12 +174,12 @@ export default function AgentWorkflowPage() {
 
 
 
-  /* ── Derived ── */
+  /* ALPHA BRAVO: Updated to use 'name' and 'email' */
   const leadIds = Object.keys(grouped);
   const filteredLeadIds = leadIds.filter((leadId) => {
     const lead = grouped[leadId][0];
     const name = getLeadName(lead).toLowerCase();
-    const email = (lead.lead_email || "").toLowerCase();
+    const email = (lead.email || "").toLowerCase();
     const q = search.toLowerCase();
     return name.includes(q) || email.includes(q);
   });
@@ -334,7 +336,7 @@ export default function AgentWorkflowPage() {
                   <div className="min-w-0">
                     <p className="font-semibold text-gray-900 text-sm truncate">{name}</p>
                     <p className={`text-xs font-semibold mt-0.5 ${getStatusTextClass(status)}`}>{status}</p>
-                    <p className="text-xs text-gray-400 truncate mt-0.5">{lead.lead_email}</p>
+                    <p className="text-xs text-gray-400 truncate mt-0.5">{lead.email}</p>
                     <p className="text-xs text-gray-400">{formatDate(lead.created_at)}</p>
                   </div>
                 </div>
@@ -367,8 +369,8 @@ export default function AgentWorkflowPage() {
                     {getLeadName(selectedLeadFirst)}
                   </h2>
                   <p className="text-xs text-gray-500">
-                    Lead ID: <span className="font-medium text-gray-700">{selectedLead}</span>
-                    &nbsp;·&nbsp;{selectedLeadFirst.lead_email}
+                    Client ID: <span className="font-medium text-gray-700">{selectedLead}</span>
+                    &nbsp;·&nbsp;{selectedLeadFirst.email}
                   </p>
                 </div>
               </div>
@@ -441,59 +443,74 @@ export default function AgentWorkflowPage() {
                   className="absolute top-0 bottom-0 w-px"
                   style={{ left: "50%", transform: "translateX(-50%)", background: "#cbd5e1" }}
                 />
+                {/* ALPHA BRAVO: Updated timeline to show both inbound and outbound summaries from one record */}
                 {selectedLeadData.map((item, index) => {
-                  const isInbound = item.direction === "inbound";
-                  const content = item.original_content || item.summary || "";
                   return (
-                    <div key={index} className="relative flex w-full mb-10">
-                      <div className="w-1/2 flex justify-end pr-10">
-                        {isInbound && (
-                          <div
-                            className="p-4 rounded-2xl max-w-sm w-full"
-                            style={{ background: "#dbeafe", boxShadow: "0 1px 4px rgba(59,130,246,0.08)" }}
-                          >
-                            <p className="text-xs font-bold tracking-wide mb-1.5" style={{ color: "#2563eb" }}>AGENT (INBOUND)</p>
-                            <p className="text-sm text-gray-700 leading-relaxed">{content.slice(0, 300)}</p>
-                            <p className="text-xs text-gray-400 mt-2">{formatDate(item.created_at)}</p>
-                          </div>
-                        )}
-                      </div>
-                      <div
-                        className="absolute z-10 flex items-center justify-center"
-                        style={{
-                          left: "50%", top: "12px", transform: "translateX(-50%)",
-                          width: 32, height: 32, borderRadius: "50%",
-                          border: "2px solid #0ea5a4", background: "#fff",
-                          boxShadow: "0 1px 4px rgba(14,165,164,0.15)",
-                        }}
-                      >
-                        {isInbound ? (
-                          <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="w-1/2 flex justify-start pl-10">
-                        {!isInbound && (
-                          <div
-                            className="p-4 rounded-2xl max-w-sm w-full"
-                            style={{ background: "#d1fae5", boxShadow: "0 1px 4px rgba(16,185,129,0.08)" }}
-                          >
-                            <p className="text-xs font-bold tracking-wide mb-1.5" style={{ color: "#059669" }}>HUMAN (OUTBOUND)</p>
-                            <p className="text-sm text-gray-700 leading-relaxed">{content.slice(0, 300)}</p>
-                            <div className="flex items-center justify-between mt-2">
-                              <p className="text-xs text-gray-400">{formatDate(item.created_at)}</p>
-                              <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
+                    <div key={index} className="flex flex-col gap-4">
+                      {/* Inbound Message Bubble */}
+                      {item.inbound_summary && (
+                        <div className="relative flex w-full mb-4">
+                          <div className="w-1/2 flex justify-end pr-10">
+                            <div
+                              className="p-4 rounded-2xl max-w-sm w-full"
+                              style={{ background: "#dbeafe", boxShadow: "0 1px 4px rgba(59,130,246,0.08)" }}
+                            >
+                              <p className="text-xs font-bold tracking-wide mb-1.5" style={{ color: "#2563eb" }}>AGENT (INBOUND)</p>
+                              <p className="text-sm text-gray-700 leading-relaxed">{item.inbound_summary}</p>
+                              <p className="text-xs text-gray-400 mt-2">{formatDate(item.created_at)}</p>
                             </div>
                           </div>
-                        )}
-                      </div>
+                          <div
+                            className="absolute z-10 flex items-center justify-center"
+                            style={{
+                              left: "50%", top: "12px", transform: "translateX(-50%)",
+                              width: 32, height: 32, borderRadius: "50%",
+                              border: "2px solid #0ea5a4", background: "#fff",
+                              boxShadow: "0 1px 4px rgba(14,165,164,0.15)",
+                            }}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                            </svg>
+                          </div>
+                          <div className="w-1/2" />
+                        </div>
+                      )}
+
+                      {/* Outbound Message Bubble */}
+                      {item.outbound_summary && (
+                        <div className="relative flex w-full mb-10">
+                          <div className="w-1/2" />
+                          <div
+                            className="absolute z-10 flex items-center justify-center"
+                            style={{
+                              left: "50%", top: "12px", transform: "translateX(-50%)",
+                              width: 32, height: 32, borderRadius: "50%",
+                              border: "2px solid #0ea5a4", background: "#fff",
+                              boxShadow: "0 1px 4px rgba(14,165,164,0.15)",
+                            }}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                          </div>
+                          <div className="w-1/2 flex justify-start pl-10">
+                            <div
+                              className="p-4 rounded-2xl max-w-sm w-full"
+                              style={{ background: "#d1fae5", boxShadow: "0 1px 4px rgba(16,185,129,0.08)" }}
+                            >
+                              <p className="text-xs font-bold tracking-wide mb-1.5" style={{ color: "#059669" }}>HUMAN (OUTBOUND)</p>
+                              <p className="text-sm text-gray-700 leading-relaxed">{item.outbound_summary}</p>
+                              <div className="flex items-center justify-between mt-2">
+                                <p className="text-xs text-gray-400">{formatDate(item.created_at)}</p>
+                                <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
