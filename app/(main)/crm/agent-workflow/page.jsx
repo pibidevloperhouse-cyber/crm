@@ -42,7 +42,6 @@ function formatDate(dateStr) {
   });
 }
 
-// ALPHA BRAVO: Updated to use new column names from email_memory
 function getLeadName(lead) {
   if (lead.name) return lead.name;
   if (lead.email) {
@@ -52,7 +51,6 @@ function getLeadName(lead) {
   return `Client ${lead.client_id}`;
 }
 
-/* ── Toast helper (no lib needed) ─────────────────────── */
 function useToast() {
   const [toasts, setToasts] = useState([]);
   const add = (msg, type = "info") => {
@@ -63,23 +61,17 @@ function useToast() {
   return { toasts, success: (m) => add(m, "success"), error: (m) => add(m, "error"), info: (m) => add(m, "info") };
 }
 
-/* ══════════════════════════════════════════════════════════ */
 export default function AgentWorkflowPage() {
   const [grouped, setGrouped] = useState({});
   const [selectedLead, setSelectedLead] = useState(null);
   const [search, setSearch] = useState("");
-
-  /* Email auto state */
   const [isRunning, setIsRunning] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [statusChecked, setStatusChecked] = useState(false);
   const [wakeMsg, setWakeMsg] = useState("");
 
-
-
   const { toasts, success, error: toastError, info } = useToast();
 
-  /* ALPHA BRAVO: Updated to use new table name 'email_memory' and 'client_id' */
   useEffect(() => {
     const fetchData = async () => {
       const { data, error } = await supabase
@@ -97,11 +89,10 @@ export default function AgentWorkflowPage() {
       }
     };
     fetchData();
-    const id = setInterval(fetchData, 30000); // refresh every 30s
+    const id = setInterval(fetchData, 30000);
     return () => clearInterval(id);
   }, []);
 
-  /* ── 2. Check actual backend status on mount ── */
   useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -110,44 +101,31 @@ export default function AgentWorkflowPage() {
           const data = await res.json();
           setIsRunning(!!data.running);
         }
-      } catch {
-        /* Render cold-start or network issue — leave as false */
-      } finally {
+      } catch { } finally {
         setStatusChecked(true);
       }
     };
     checkStatus();
   }, []);
 
-  /* ── Email toggle with wake-up ping ── */
   const handleEmailToggle = async () => {
     if (emailLoading) return;
     setEmailLoading(true);
     setWakeMsg("");
     const endpoint = isRunning ? "stop" : "start";
-
     try {
-      /* Step 1: ping / to wake Render (fire-and-forget, don't await) */
       fetch(`${API}/`).catch(() => { });
-
-      /* Step 2: wait up to 60s for Render to fully wake */
       setWakeMsg("Waking up backend… (Render cold-start, up to 60s)");
-
-      /* Poll /status every 3s until alive, max 20 tries (60s) */
       let alive = false;
       for (let i = 0; i < 20; i++) {
         await new Promise((r) => setTimeout(r, 3000));
         try {
           const ping = await fetch(`${API}/status`, { signal: AbortSignal.timeout(4000) });
           if (ping.ok) { alive = true; break; }
-        } catch { /* still waking */ }
+        } catch { }
       }
-
       if (!alive) throw new Error("Backend didn't respond after 60s. Check Render dashboard.");
-
       setWakeMsg(`Sending ${endpoint} command…`);
-
-      /* Step 3: actual start/stop */
       const res = await fetch(`${API}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -162,7 +140,6 @@ export default function AgentWorkflowPage() {
     } catch (err) {
       setWakeMsg("");
       toastError(`❌ ${err.message}`);
-      /* Re-sync */
       try {
         const s = await fetch(`${API}/status`, { signal: AbortSignal.timeout(5000) });
         if (s.ok) { const d = await s.json(); setIsRunning(!!d.running); }
@@ -172,9 +149,6 @@ export default function AgentWorkflowPage() {
     }
   };
 
-
-
-  /* ALPHA BRAVO: Updated to use 'name' and 'email' */
   const leadIds = Object.keys(grouped);
   const filteredLeadIds = leadIds.filter((leadId) => {
     const lead = grouped[leadId][0];
@@ -189,11 +163,10 @@ export default function AgentWorkflowPage() {
   const currentStatus = selectedLeadFirst?.status_after || "New";
   const stageIndex = STAGES.findIndex((s) => s.toLowerCase() === currentStatus.toLowerCase());
 
-  /* ══════════════ RENDER ══════════════ */
   return (
-    <div className="flex h-screen overflow-hidden relative" style={{ backgroundColor: "#e6f2f1" }}>
+    <div className="flex h-screen overflow-hidden relative bg-[#e6f2f1] dark:bg-[#0d1117]">
 
-      {/* ── Toast stack ── */}
+      {/* Toast stack */}
       <div className="fixed top-4 right-4 z-[9999] space-y-2 pointer-events-none">
         {toasts.map((t) => (
           <div
@@ -211,152 +184,141 @@ export default function AgentWorkflowPage() {
         ))}
       </div>
 
-      {/* ════════════ LEFT PANEL ════════════ */}
+      {/* ════ LEFT PANEL ════ */}
       <div
-        className="flex flex-col bg-white transition-all duration-300"
+        className="flex flex-col bg-white dark:bg-[#161b22] transition-all duration-300"
         style={{
           width: selectedLead ? "320px" : "380px",
           minWidth: "280px",
-          borderRight: "1px solid #d1e8e7",
+          borderRight: "1px solid",
+          borderColor: "inherit",
           flexShrink: 0,
         }}
       >
-        {/* Top controls */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 gap-2 flex-wrap" style={{ borderBottom: "1px solid #e5f0ef" }}>
-          <div
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-sm font-semibold"
-            style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-            </svg>
-            EMAIL
+        {/* border color via className for dark support */}
+        <div className="flex flex-col h-full border-r border-[#d1e8e7] dark:border-[#30363d]">
+
+          {/* Top controls */}
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 gap-2 flex-wrap border-b border-[#e5f0ef] dark:border-[#30363d]">
+            <div
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-sm font-semibold"
+              style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+              </svg>
+              EMAIL
+            </div>
+
+            <button
+              onClick={handleEmailToggle}
+              disabled={emailLoading || !statusChecked}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-sm font-semibold transition-all duration-200 disabled:opacity-60"
+              style={{
+                background: emailLoading
+                  ? "#9ca3af"
+                  : isRunning
+                    ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                    : "linear-gradient(135deg, #22c55e, #16a34a)",
+                minWidth: 72,
+              }}
+            >
+              {emailLoading ? (
+                <>
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Wait…
+                </>
+              ) : isRunning ? "■ STOP" : "▶ START"}
+            </button>
+
+            {statusChecked && (
+              <div className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${isRunning ? "bg-green-500 animate-pulse" : "bg-gray-500"}`} />
+                <span className="text-xs text-gray-500 dark:text-gray-400">{isRunning ? "Live" : "Idle"}</span>
+              </div>
+            )}
           </div>
 
-          {/* Start / Stop */}
-          <button
-            onClick={handleEmailToggle}
-            disabled={emailLoading || !statusChecked}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-sm font-semibold transition-all duration-200 disabled:opacity-60"
-            style={{
-              background: emailLoading
-                ? "#9ca3af"
-                : isRunning
-                  ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                  : "linear-gradient(135deg, #22c55e, #16a34a)",
-              minWidth: 72,
-            }}
-          >
-            {emailLoading ? (
-              <>
-                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                </svg>
-                Wait…
-              </>
-            ) : isRunning ? (
-              "■ STOP"
-            ) : (
-              "▶ START"
-            )}
-          </button>
-
-          {/* Live indicator */}
-          {statusChecked && (
-            <div className="flex items-center gap-1.5">
-              <div
-                className={`w-2 h-2 rounded-full ${isRunning ? "bg-green-500 animate-pulse" : "bg-gray-300"}`}
-              />
-              <span className="text-xs text-gray-500">{isRunning ? "Live" : "Idle"}</span>
+          {/* Wake-up message */}
+          {wakeMsg && (
+            <div className="mx-4 mb-2 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-yellow-900/30 border border-yellow-600/40 text-yellow-300">
+              <svg className="w-3.5 h-3.5 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              {wakeMsg}
             </div>
           )}
-        </div>
 
-        {/* Wake-up progress message */}
-        {wakeMsg && (
-          <div
-            className="mx-4 mb-2 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium"
-            style={{ background: "#fef9c3", border: "1px solid #fde047", color: "#713f12" }}
-          >
-            <svg className="w-3.5 h-3.5 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-            {wakeMsg}
+          {/* Search */}
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-2 rounded-xl px-3 py-2 bg-[#f0f9f8] dark:bg-[#21262d] border border-[#c8e6e5] dark:border-[#30363d]">
+              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
+              </svg>
+              <input
+                className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none"
+                placeholder="Search leads..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
-        )}
 
-        {/* Search */}
-        <div className="px-4 py-3">
-          <div
-            className="flex items-center gap-2 rounded-xl px-3 py-2"
-            style={{ background: "#f0f9f8", border: "1px solid #c8e6e5" }}
-          >
-            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
-            </svg>
-            <input
-              className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none"
-              placeholder="Search leads..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Lead list */}
-        <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
-          {filteredLeadIds.length === 0 && (
-            <p className="text-center text-sm text-gray-400 py-8">No leads found</p>
-          )}
-          {filteredLeadIds.map((leadId) => {
-            const lead = grouped[leadId][0];
-            const name = getLeadName(lead);
-            const status = lead.status_after || "New";
-            const isSelected = selectedLead === leadId;
-            return (
-              <div
-                key={leadId}
-                onClick={() => setSelectedLead(leadId)}
-                className="flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer transition-all"
-                style={{
-                  background: isSelected ? "#e6f9f8" : "#fff",
-                  border: isSelected ? "1.5px solid #0ea5a4" : "1px solid #e5f0ef",
-                  boxShadow: isSelected ? "0 2px 8px rgba(14,165,164,0.1)" : "none",
-                }}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
-                    style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
-                  >
-                    {name.charAt(0).toUpperCase()}
+          {/* Lead list */}
+          <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
+            {filteredLeadIds.length === 0 && (
+              <p className="text-center text-sm text-gray-400 py-8">No leads found</p>
+            )}
+            {filteredLeadIds.map((leadId) => {
+              const lead = grouped[leadId][0];
+              const name = getLeadName(lead);
+              const status = lead.status_after || "New";
+              const isSelected = selectedLead === leadId;
+              return (
+                <div
+                  key={leadId}
+                  onClick={() => setSelectedLead(leadId)}
+                  className={`flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer transition-all
+                    ${isSelected
+                      ? "bg-[#e6f9f8] dark:bg-[#0ea5a420] border-[1.5px] border-[#0ea5a4]"
+                      : "bg-white dark:bg-[#21262d] border border-[#e5f0ef] dark:border-[#30363d] hover:border-[#0ea5a4]/50"
+                    }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+                      style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
+                    >
+                      {name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{name}</p>
+                      <p className={`text-xs font-semibold mt-0.5 ${getStatusTextClass(status)}`}>{status}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{lead.email}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(lead.created_at)}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm truncate">{name}</p>
-                    <p className={`text-xs font-semibold mt-0.5 ${getStatusTextClass(status)}`}>{status}</p>
-                    <p className="text-xs text-gray-400 truncate mt-0.5">{lead.email}</p>
-                    <p className="text-xs text-gray-400">{formatDate(lead.created_at)}</p>
-                  </div>
+                  <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
                 </div>
-                <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* ════════════ RIGHT PANEL ════════════ */}
-      <div className="flex-1 flex flex-col bg-white overflow-hidden">
+      {/* ════ RIGHT PANEL ════ */}
+      <div className="flex-1 flex flex-col bg-white dark:bg-[#0d1117] overflow-hidden">
 
-        {/* ── Timeline Panel ── */}
         {selectedLead && selectedLeadFirst && (
           <>
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #e5f0ef" }}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5f0ef] dark:border-[#30363d]">
               <div className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
@@ -365,29 +327,23 @@ export default function AgentWorkflowPage() {
                   {getLeadName(selectedLeadFirst).charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h2 className="font-bold text-gray-900 text-lg leading-tight">
+                  <h2 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">
                     {getLeadName(selectedLeadFirst)}
                   </h2>
-                  <p className="text-xs text-gray-500">
-                    Client ID: <span className="font-medium text-gray-700">{selectedLead}</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Client ID: <span className="font-medium text-gray-700 dark:text-gray-300">{selectedLead}</span>
                     &nbsp;·&nbsp;{selectedLeadFirst.email}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
-                  style={{ border: "1px solid #d1d5db" }}
-                >
+                <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
                   </svg>
                   Email
                 </button>
-                <button
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
-                  style={{ border: "1px solid #d1d5db" }}
-                >
+                <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3l2 4-2.5 1.5A11 11 0 0014.5 15L16 12.5l4 2v3a2 2 0 01-2 2A16 16 0 013 5z" />
                   </svg>
@@ -397,7 +353,7 @@ export default function AgentWorkflowPage() {
             </div>
 
             {/* Stage bar */}
-            <div className="px-6 py-3 overflow-x-auto" style={{ borderBottom: "1px solid #e5f0ef" }}>
+            <div className="px-6 py-3 overflow-x-auto border-b border-[#e5f0ef] dark:border-[#30363d]">
               <div className="flex items-center min-w-max gap-1">
                 {STAGES.map((stage, i) => {
                   const isActive = i === stageIndex;
@@ -410,25 +366,25 @@ export default function AgentWorkflowPage() {
                         style={{
                           border: isActive
                             ? isNotQual ? "1.5px solid #fca5a5" : "1.5px solid #0ea5a4"
-                            : "1px solid #e5e7eb",
+                            : "1px solid #30363d",
                           background: isActive
-                            ? isNotQual ? "#fff1f2" : "#e6f9f8"
-                            : isPast ? "#f9fafb" : "#fff",
+                            ? isNotQual ? "rgba(239,68,68,0.15)" : "rgba(14,165,164,0.15)"
+                            : isPast ? "rgba(255,255,255,0.04)" : "transparent",
                           color: isActive
                             ? isNotQual ? "#ef4444" : "#0ea5a4"
-                            : isPast ? "#9ca3af" : "#9ca3af",
+                            : isPast ? "#6b7280" : "#6b7280",
                         }}
                       >
                         {(isActive || isPast) && (
                           <div
                             className="w-1.5 h-1.5 rounded-full shrink-0"
-                            style={{ background: isActive ? (isNotQual ? "#ef4444" : "#0ea5a4") : "#9ca3af" }}
+                            style={{ background: isActive ? (isNotQual ? "#ef4444" : "#0ea5a4") : "#6b7280" }}
                           />
                         )}
                         {stage}
                       </div>
                       {i < STAGES.length - 1 && (
-                        <div className="w-4 h-px mx-0.5" style={{ background: i < stageIndex ? "#9ca3af" : "#e5e7eb" }} />
+                        <div className="w-4 h-px mx-0.5" style={{ background: i < stageIndex ? "#6b7280" : "#30363d" }} />
                       )}
                     </div>
                   );
@@ -437,83 +393,88 @@ export default function AgentWorkflowPage() {
             </div>
 
             {/* Timeline */}
-            <div className="flex-1 overflow-y-auto px-6 py-6" style={{ background: "#f8fffe" }}>
+            <div className="flex-1 overflow-y-auto px-6 py-6 bg-[#f8fffe] dark:bg-[#0d1117]">
               <div className="relative max-w-4xl mx-auto">
                 <div
                   className="absolute top-0 bottom-0 w-px"
-                  style={{ left: "50%", transform: "translateX(-50%)", background: "#cbd5e1" }}
+                  style={{ left: "50%", transform: "translateX(-50%)", background: "#30363d" }}
                 />
-                {/* ALPHA BRAVO: Updated timeline to show both inbound and outbound summaries from one record */}
-                {selectedLeadData.map((item, index) => {
-                  return (
-                    <div key={index} className="flex flex-col gap-4">
-                      {/* Inbound Message Bubble */}
-                      {item.inbound_summary && (
-                        <div className="relative flex w-full mb-4">
-                          <div className="w-1/2 flex justify-end pr-10">
-                            <div
-                              className="p-4 rounded-2xl max-w-sm w-full"
-                              style={{ background: "#dbeafe", boxShadow: "0 1px 4px rgba(59,130,246,0.08)" }}
-                            >
-                              <p className="text-xs font-bold tracking-wide mb-1.5" style={{ color: "#2563eb" }}>AGENT (INBOUND)</p>
-                              <p className="text-sm text-gray-700 leading-relaxed">{item.inbound_summary}</p>
-                              <p className="text-xs text-gray-400 mt-2">{formatDate(item.created_at)}</p>
-                            </div>
-                          </div>
+                {selectedLeadData.map((item, index) => (
+                  <div key={index} className="flex flex-col gap-4">
+                    {/* Inbound */}
+                    {item.inbound_summary && (
+                      <div className="relative flex w-full mb-4">
+                        <div className="w-1/2 flex justify-end pr-10">
                           <div
-                            className="absolute z-10 flex items-center justify-center"
+                            className="p-4 rounded-2xl max-w-sm w-full"
                             style={{
-                              left: "50%", top: "12px", transform: "translateX(-50%)",
-                              width: 32, height: 32, borderRadius: "50%",
-                              border: "2px solid #0ea5a4", background: "#fff",
-                              boxShadow: "0 1px 4px rgba(14,165,164,0.15)",
+                              background: "rgba(37,99,235,0.15)",
+                              border: "1px solid rgba(59,130,246,0.25)",
+                              boxShadow: "0 1px 4px rgba(59,130,246,0.08)",
                             }}
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-                            </svg>
+                            <p className="text-xs font-bold tracking-wide mb-1.5 text-blue-400">AGENT (INBOUND)</p>
+                            <p className="text-sm text-gray-300 leading-relaxed">{item.inbound_summary}</p>
+                            <p className="text-xs text-gray-500 mt-2">{formatDate(item.created_at)}</p>
                           </div>
-                          <div className="w-1/2" />
                         </div>
-                      )}
+                        <div
+                          className="absolute z-10 flex items-center justify-center"
+                          style={{
+                            left: "50%", top: "12px", transform: "translateX(-50%)",
+                            width: 32, height: 32, borderRadius: "50%",
+                            border: "2px solid #0ea5a4", background: "#161b22",
+                            boxShadow: "0 1px 4px rgba(14,165,164,0.25)",
+                          }}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                          </svg>
+                        </div>
+                        <div className="w-1/2" />
+                      </div>
+                    )}
 
-                      {/* Outbound Message Bubble */}
-                      {item.outbound_summary && (
-                        <div className="relative flex w-full mb-10">
-                          <div className="w-1/2" />
+                    {/* Outbound */}
+                    {item.outbound_summary && (
+                      <div className="relative flex w-full mb-10">
+                        <div className="w-1/2" />
+                        <div
+                          className="absolute z-10 flex items-center justify-center"
+                          style={{
+                            left: "50%", top: "12px", transform: "translateX(-50%)",
+                            width: 32, height: 32, borderRadius: "50%",
+                            border: "2px solid #0ea5a4", background: "#161b22",
+                            boxShadow: "0 1px 4px rgba(14,165,164,0.25)",
+                          }}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <div className="w-1/2 flex justify-start pl-10">
                           <div
-                            className="absolute z-10 flex items-center justify-center"
+                            className="p-4 rounded-2xl max-w-sm w-full"
                             style={{
-                              left: "50%", top: "12px", transform: "translateX(-50%)",
-                              width: 32, height: 32, borderRadius: "50%",
-                              border: "2px solid #0ea5a4", background: "#fff",
-                              boxShadow: "0 1px 4px rgba(14,165,164,0.15)",
+                              background: "rgba(5,150,105,0.15)",
+                              border: "1px solid rgba(16,185,129,0.25)",
+                              boxShadow: "0 1px 4px rgba(16,185,129,0.08)",
                             }}
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </div>
-                          <div className="w-1/2 flex justify-start pl-10">
-                            <div
-                              className="p-4 rounded-2xl max-w-sm w-full"
-                              style={{ background: "#d1fae5", boxShadow: "0 1px 4px rgba(16,185,129,0.08)" }}
-                            >
-                              <p className="text-xs font-bold tracking-wide mb-1.5" style={{ color: "#059669" }}>HUMAN (OUTBOUND)</p>
-                              <p className="text-sm text-gray-700 leading-relaxed">{item.outbound_summary}</p>
-                              <div className="flex items-center justify-between mt-2">
-                                <p className="text-xs text-gray-400">{formatDate(item.created_at)}</p>
-                                <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                              </div>
+                            <p className="text-xs font-bold tracking-wide mb-1.5 text-emerald-400">HUMAN (OUTBOUND)</p>
+                            <p className="text-sm text-gray-300 leading-relaxed">{item.outbound_summary}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <p className="text-xs text-gray-500">{formatDate(item.created_at)}</p>
+                              <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
                             </div>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </>
@@ -526,8 +487,8 @@ export default function AgentWorkflowPage() {
               <svg className="w-16 h-16 mx-auto mb-3 opacity-20" fill="none" stroke="#0ea5a4" strokeWidth={1} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z" />
               </svg>
-              <p className="text-sm text-gray-400">Select a lead to view the email timeline</p>
-              <p className="text-xs text-gray-300 mt-1">or use ICP Analyser on the left</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">Select a lead to view the email timeline</p>
+              <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">or use ICP Analyser on the left</p>
             </div>
           </div>
         )}
@@ -535,9 +496,6 @@ export default function AgentWorkflowPage() {
     </div>
   );
 }
-
-
-
 
 
 
