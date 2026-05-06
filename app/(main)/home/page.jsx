@@ -7,7 +7,6 @@ import {
   Users,
   Trophy,
   Calendar,
-  Phone,
   DollarSign,
   PieChart,
   BarChart3,
@@ -16,7 +15,6 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/utils/supabase/client";
 import { round } from "lodash";
 import { redirect } from "next/navigation";
-import { Switch } from "@/components/ui/switch";
 
 export default function Home() {
   const [leads, setLeads] = useState([]);
@@ -26,41 +24,13 @@ export default function Home() {
   useEffect(() => {
     const fetchTheme = () => {
       const theme = localStorage.getItem("theme");
-      if (theme !== null) {
-        setDarkMode(theme === "false");
-      }
+      if (theme !== null) setDarkMode(theme === "false");
     };
-
     fetchTheme();
-
-    const intervalId = setInterval(() => {
-      fetchTheme();
-    }, 200);
-
+    const intervalId = setInterval(fetchTheme, 200);
     return () => clearInterval(intervalId);
-  }, [setDarkMode]);
+  }, []);
 
-  const fetchData = async () => {
-    const { data: leadsData, error: leadsError } = await supabase
-      .from("Leads")
-      .select("*")
-      .eq("user_email", userEmail);
-    const { data: dealsData, error: dealsError } = await supabase
-      .from("Deals")
-      .select("*")
-      .eq("user_email", userEmail);
-    const { data: customersData, error: customersError } = await supabase
-      .from("Customers")
-      .select("*")
-      .eq("user_email", userEmail);
-    if (leadsError) console.error("Error fetching leads:", leadsError);
-    if (dealsError) console.error("Error fetching deals:", dealsError);
-    if (customersError)
-      console.error("Error fetching customers:", customersError);
-    setLeads(leadsData);
-    setDeals(dealsData);
-    setCustomers(customersData);
-  };
   const [customers, setCustomers] = useState([]);
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
@@ -68,53 +38,35 @@ export default function Home() {
   useEffect(() => {
     const getSession = () => {
       const sessionJSON = JSON.parse(localStorage.getItem("session"));
-      if (sessionJSON == null) {
-        redirect("/");
-      }
+      if (sessionJSON == null) redirect("/");
       setUserEmail(sessionJSON.user.email);
       setUserName(JSON.parse(localStorage.getItem("user")).name);
     };
-
     getSession();
   }, []);
 
   const fetchCustomers = async () => {
-    const { data: customersData } = await supabase
-      .from("Customers")
-      .select("*")
+    const { data } = await supabase
+      .from("Customers").select("*")
       .eq("user_email", !userEmail ? "undefined" : userEmail)
       .order("created_at", { ascending: false });
-    if (customersData) {
-      setCustomers(customersData);
-    } else {
-      console.error("Error fetching customers");
-    }
+    if (data) setCustomers(data);
   };
 
   const fetchLeads = async () => {
-    const { data: leadsData } = await supabase
-      .from("Leads")
-      .select("*")
+    const { data } = await supabase
+      .from("Leads").select("*")
       .eq("user_email", !userEmail ? "undefined" : userEmail)
       .order("created_at", { ascending: false });
-    if (leadsData) {
-      setLeads(leadsData);
-    } else {
-      console.error("Error fetching leads");
-    }
+    if (data) setLeads(data);
   };
 
   const fetchDeals = async () => {
-    const { data: dealsData } = await supabase
-      .from("Deals")
-      .select("*")
+    const { data } = await supabase
+      .from("Deals").select("*")
       .eq("user_email", !userEmail ? "undefined" : userEmail)
       .order("created_at", { ascending: false });
-    if (dealsData) {
-      setDeals(dealsData);
-    } else {
-      console.error("Error fetching deals");
-    }
+    if (data) setDeals(data);
   };
 
   useEffect(() => {
@@ -123,60 +75,40 @@ export default function Home() {
       fetchLeads();
       fetchDeals();
     }
-
     const intervalId = setInterval(() => {
       fetchCustomers();
       fetchLeads();
       fetchDeals();
     }, 60000);
-
     return () => clearInterval(intervalId);
   }, [userEmail]);
 
-  const QualifiedLeads = leads.filter(
-    (lead) => lead.status === "Qualified",
-  ).length;
-
+  const QualifiedLeads = leads.filter((l) => l.status === "Qualified").length;
   const onboardingData = {
-    rate:
-      leads?.length != 0
-        ? round(((QualifiedLeads || 0) / leads.length) * 100, 2)
-        : 0,
-    change: 12,
+    rate: leads?.length !== 0 ? round(((QualifiedLeads || 0) / leads.length) * 100, 2) : 0,
   };
-
   const customerEmails = new Set(customers.map((c) => c.email));
-  const commonEmails = leads
-    .filter((lead) => customerEmails.has(lead.email))
-    .map((lead) => lead.email);
-
-  const leadsData = { converted: commonEmails.length, change: +8 };
-
-  const dealsWon = deals.filter((deal) => deal.status === "Closed-won").length;
-  const dealsData = { won: dealsWon, change: +15 };
-
+  const commonEmails = leads.filter((l) => customerEmails.has(l.email));
+  const leadsData = { converted: commonEmails.length };
+  const dealsWon = deals.filter((d) => d.status === "Closed-won").length;
+  const dealsData = { won: dealsWon };
   const totalDeals = deals?.length || 0;
 
   const dealStatuses = [
-    { name: "New", status: "New", color: "bg-red-500" },
-    { name: "Proposal Sent", status: "Proposal Sent", color: "bg-yellow-500" },
-    { name: "Negotiation", status: "Negotiation", color: "bg-blue-500" },
-    { name: "Closed Won", status: "Closed-won", color: "bg-green-500" },
-    { name: "Closed Lost", status: "Closed-lost", color: "bg-gray-500" },
-    {
-      name: "Meeting Booked",
-      status: "Meeting Booked",
-      color: "bg-purple-500",
-    },
-    { name: "On Hold", status: "On-hold", color: "bg-pink-500" },
-    { name: "Abandoned", status: "Abandoned", color: "bg-orange-500" },
+    { name: "New", status: "New", color: "bg-red-500", hex: "#ef4444" },
+    { name: "Proposal Sent", status: "Proposal Sent", color: "bg-yellow-500", hex: "#eab308" },
+    { name: "Negotiation", status: "Negotiation", color: "bg-blue-500", hex: "#3b82f6" },
+    { name: "Closed Won", status: "Closed-won", color: "bg-green-500", hex: "#10b981" },
+    { name: "Closed Lost", status: "Closed-lost", color: "bg-gray-500", hex: "#6b7280" },
+    { name: "Meeting Booked", status: "Meeting Booked", color: "bg-purple-500", hex: "#a855f7" },
+    { name: "On Hold", status: "On-hold", color: "bg-pink-500", hex: "#ec4899" },
+    { name: "Abandoned", status: "Abandoned", color: "bg-orange-500", hex: "#f97316" },
   ];
 
-  const dealClassification = dealStatuses.map(({ name, status, color }) => {
-    const value = deals.filter((deal) => deal.status === status).length;
+  const dealClassification = dealStatuses.map(({ name, status, color, hex }) => {
+    const value = deals.filter((d) => d.status === status).length;
     const rate = totalDeals > 0 ? round((value / totalDeals) * 100, 2) : 0;
-
-    return { name, value, rate, color };
+    return { name, value, rate, color, hex };
   });
 
   const sourceCount = leads?.reduce((acc, { source }) => {
@@ -185,15 +117,8 @@ export default function Home() {
   }, {});
 
   const leadSources = [
-    "External referral",
-    "Chat",
-    "Facebook",
-    "X(Twitter)",
-    "Public relations",
-  ].map((name) => ({
-    name,
-    value: sourceCount?.[name] || 0,
-  }));
+    "External referral", "Chat", "Facebook", "X(Twitter)", "Public relations",
+  ].map((name) => ({ name, value: sourceCount?.[name] || 0 }));
 
   const revenueData = [
     { month: "Jan", revenue: 45000, deals: 12 },
@@ -216,134 +141,98 @@ export default function Home() {
     { company: "MegaCorp", value: "$89,000", stage: "Demo" },
   ];
 
-  const priorityTasks = [
-    { task: "Follow up with Enterprise Co", priority: "high" },
-    { task: "Prepare demo for TechStart", priority: "medium" },
-    { task: "Update CRM records", priority: "low" },
-    { task: "Send proposal to MegaCorp", priority: "high" },
-  ];
   const [chartsMode, setChartsMode] = useState("graphic");
 
-  const MetricCard = ({ title, value, change, icon: Icon }) => (
-    <Card className="backdrop-blur-sm bg-white/40 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 hover:bg-white/20 dark:hover:bg-slate-800/60 transition-all duration-300 cursor-pointer group">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-              {title}
-            </p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">
-              {value}
-              {title.includes("rate") || title.includes("Rate") ? "%" : ""}
-            </p>
-            {/* <p
-              className={cn(
-                "text-sm flex items-center mt-1",
-                change > 0 ? "text-green-600" : "text-red-600"
-              )}
-            >
-              <TrendingUp className="w-4 h-4 mr-1" />
-              {change > 0 ? "+" : ""}
-              {change}% from last month
-            </p> */}
-          </div>
-          <Icon className="h-8 w-8 text-[#25C2A0] group-hover:text-[#235d76] group-hover:scale-110 transition-transform" />
+  // ── Shared dark-mode colors (same as page bg = fully blended) ──
+  const cardClass = `
+    bg-white dark:bg-[#0d1117]
+    border border-slate-200 dark:border-[#0d1117]
+    shadow-sm hover:shadow-md transition-all duration-300
+    rounded-2xl
+  `;
+
+  const cardTitleClass = "flex items-center text-slate-700 dark:text-slate-200 text-base font-semibold";
+
+  const numericRowClass = `
+    flex justify-between items-center
+    border-b border-slate-100 dark:border-[#161b22]
+    pb-2 text-slate-800 dark:text-slate-300
+  `;
+
+  const rowClass = `
+    flex justify-between items-center
+    bg-slate-50 dark:bg-[#161b22]
+    p-3 rounded-xl
+    hover:bg-slate-100 dark:hover:bg-[#21262d]
+    transition-all duration-200
+  `;
+
+  // ── Metric Card ──
+  const MetricCard = ({ title, value, icon: Icon }) => (
+    <div className="relative overflow-hidden rounded-2xl p-6 cursor-pointer group
+      transition-all duration-300
+      bg-white dark:bg-[#0d1117]
+      border border-slate-200 dark:border-[#0d1117]
+      shadow-sm hover:shadow-md"
+    >
+      {/* Decorative glow blob */}
+      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-[0.07]
+        bg-gradient-to-br from-[#25C2A0] to-[#0284c7] pointer-events-none" />
+
+      <div className="flex items-center justify-between relative z-10">
+        <div>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
+            {title}
+          </p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">
+            {value}{title.toLowerCase().includes("rate") ? "%" : ""}
+          </p>
         </div>
-      </CardContent>
-    </Card>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0
+          bg-[#0ea5a4]/10 dark:bg-[#0ea5a4]/15
+          group-hover:bg-[#0ea5a4]/20 dark:group-hover:bg-[#0ea5a4]/25
+          transition-all duration-300"
+        >
+          <Icon className="h-7 w-7 text-[#25C2A0] group-hover:scale-110 transition-transform duration-300" />
+        </div>
+      </div>
+    </div>
   );
 
+  // ── Pie Chart ──
   const PieChartSVG = () => {
     const total = dealClassification.reduce((sum, item) => sum + item.value, 0);
-    let cumulativePercentage = 0;
-
-    const colors = {
-      "bg-red-500": "#ef4444",
-      "bg-yellow-500": "#eab308",
-      "bg-blue-500": "#3b82f6",
-      "bg-green-500": "#10b981",
-      "bg-orange-500": "#f97316",
-      "bg-purple-500": "#a855f7",
-      "bg-pink-500": "#ec4899",
-      "bg-gray-500": "#6b7280",
-    };
-
+    let cum = 0;
     return (
       <div className="h-64 flex flex-col items-center justify-center space-y-4">
-        <div className="shrink-0">
-          <svg
-            width="160"
-            height="160"
-            viewBox="0 0 200 200"
-            className="mx-auto"
-          >
-            {dealClassification.map((item, index) => {
-              const percentage = item.value / total;
-              const startAngle = cumulativePercentage * 360;
-              const endAngle = (cumulativePercentage + percentage) * 360;
-
-              cumulativePercentage += percentage;
-
-              const startAngleRad = (startAngle - 90) * (Math.PI / 180);
-              const endAngleRad = (endAngle - 90) * (Math.PI / 180);
-
-              const largeArcFlag = percentage > 0.5 ? 1 : 0;
-
-              const x1 = 100 + 80 * Math.cos(startAngleRad);
-              const y1 = 100 + 80 * Math.sin(startAngleRad);
-              const x2 = 100 + 80 * Math.cos(endAngleRad);
-              const y2 = 100 + 80 * Math.sin(endAngleRad);
-              const x3 = 100 + 50 * Math.cos(endAngleRad);
-              const y3 = 100 + 50 * Math.sin(endAngleRad);
-              const x4 = 100 + 50 * Math.cos(startAngleRad);
-              const y4 = 100 + 50 * Math.sin(startAngleRad);
-
-              const outerR = 80;
-              const innerR = 50;
-
-              // Outer arc start/end (same as before)
-              const pathData = [
-                "M",
-                x1,
-                y1, // start outer arc
-                "A",
-                outerR,
-                outerR,
-                0,
-                largeArcFlag,
-                1,
-                x2,
-                y2, // outer arc
-                "L",
-                x3,
-                y3, // line to inner arc start
-                "A",
-                innerR,
-                innerR,
-                0,
-                largeArcFlag,
-                0,
-                x4,
-                y4, // inner arc (reverse direction)
-                "Z",
-              ].join(" ");
-
-              return (
-                <path
-                  key={index}
-                  d={pathData}
-                  fill={colors[item.color]}
-                  className="hover:opacity-80 transition-opacity cursor-pointer"
-                />
-              );
-            })}
-          </svg>
-        </div>
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-center">
-          {dealClassification.map((item, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <div className={cn("w-3 h-3 rounded-full", item.color)}></div>
-              <span className="text-xs font-medium whitespace-nowrap">
+        <svg width="160" height="160" viewBox="0 0 200 200">
+          {dealClassification.map((item, i) => {
+            if (item.value === 0) return null;
+            const pct = item.value / total;
+            const start = cum * 360;
+            const end = (cum + pct) * 360;
+            cum += pct;
+            const s = (start - 90) * (Math.PI / 180);
+            const e = (end - 90) * (Math.PI / 180);
+            const large = pct > 0.5 ? 1 : 0;
+            const x1 = 100 + 80 * Math.cos(s), y1 = 100 + 80 * Math.sin(s);
+            const x2 = 100 + 80 * Math.cos(e), y2 = 100 + 80 * Math.sin(e);
+            const x3 = 100 + 50 * Math.cos(e), y3 = 100 + 50 * Math.sin(e);
+            const x4 = 100 + 50 * Math.cos(s), y4 = 100 + 50 * Math.sin(s);
+            return (
+              <path key={i}
+                d={`M ${x1} ${y1} A 80 80 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A 50 50 0 ${large} 0 ${x4} ${y4} Z`}
+                fill={item.hex}
+                className="hover:opacity-80 transition-opacity cursor-pointer"
+              />
+            );
+          })}
+        </svg>
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+          {dealClassification.map((item, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <div className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", item.color)} />
+              <span className="text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
                 {item.name}: {item.rate}%
               </span>
             </div>
@@ -353,9 +242,11 @@ export default function Home() {
     );
   };
 
+  // ── Bar Chart ──
   const BarChartSVG = () => {
-    const maxValue = Math.max(...leadSources.map((s) => s.value));
-
+    const maxValue = Math.max(...leadSources.map((s) => s.value), 1);
+    const textFill = darkMode ? "#94a3b8" : "#64748b";
+    const valueFill = darkMode ? "#f1f5f9" : "#0f172a";
     return (
       <div className="h-64">
         <svg width="100%" height="100%" viewBox="0 0 400 240">
@@ -365,42 +256,19 @@ export default function Home() {
               <stop offset="100%" stopColor="#57bba9" />
             </linearGradient>
           </defs>
-
-          {leadSources.map((source, index) => {
-            // prevent division by zero
-            const barHeight =
-              maxValue > 0 ? (source.value / maxValue) * 160 : 0;
-
-            const barWidth = 50;
-            const x = index * 75 + 25;
-            const y = 180 - barHeight;
-
+          {leadSources.map((source, i) => {
+            const barH = (source.value / maxValue) * 160;
+            const bw = 50, x = i * 75 + 25, y = 180 - barH;
             return (
-              <g key={index}>
-                <rect
-                  x={x}
-                  y={y}
-                  width={barWidth}
-                  height={barHeight}
+              <g key={i}>
+                <rect x={x} y={y} width={bw} height={barH}
                   fill="url(#barGradient)"
-                  className="hover:opacity-80 transition-opacity cursor-pointer"
-                />
-                <text
-                  x={x + barWidth / 2}
-                  y={200}
-                  textAnchor="middle"
-                  className="text-xs fill-slate-600 dark:fill-slate-400"
-                  fontSize="10"
-                >
+                  className="hover:opacity-80 transition-opacity cursor-pointer" />
+                <text x={x + bw / 2} y={200} textAnchor="middle" fill={textFill} fontSize="10">
                   {source.name}
                 </text>
-                <text
-                  x={x + barWidth / 2}
-                  y={y - 5}
-                  textAnchor="middle"
-                  className="text-xs font-medium fill-slate-900 dark:fill-white"
-                  fontSize="10"
-                >
+                <text x={x + bw / 2} y={y - 5} textAnchor="middle"
+                  fill={valueFill} fontSize="10" fontWeight="600">
                   {source.value}
                 </text>
               </g>
@@ -411,10 +279,11 @@ export default function Home() {
     );
   };
 
+  // ── Line + Histogram Chart ──
   const LineHistogramChart = () => {
-    const maxRevenue = Math.max(...revenueData.map((d) => d.revenue));
-    const maxDeals = Math.max(...revenueData.map((d) => d.deals));
-
+    const maxR = Math.max(...revenueData.map((d) => d.revenue));
+    const maxD = Math.max(...revenueData.map((d) => d.deals));
+    const textFill = darkMode ? "#94a3b8" : "#64748b";
     return (
       <div className="h-64">
         <svg width="100%" height="100%" viewBox="0 0 600 240">
@@ -424,100 +293,36 @@ export default function Home() {
               <stop offset="100%" stopColor="#8b5cf6" />
             </linearGradient>
           </defs>
-
-          {revenueData.map((month, index) => {
-            const barHeight = (month.deals / maxDeals) * 80;
-            const barWidth = 25;
-            const x = index * 90 + 40;
-            const y = 180 - barHeight;
-
+          {revenueData.map((m, i) => {
+            const bh = (m.deals / maxD) * 80;
+            const x = i * 90 + 40, y = 180 - bh;
             return (
-              <rect
-                key={`bar-${index}`}
-                x={x}
-                y={y}
-                width={barWidth}
-                height={barHeight}
-                fill="rgba(139, 92, 246, 0.4)"
-                className="hover:fill-purple-500/60 transition-all cursor-pointer"
-              />
+              <rect key={`b-${i}`} x={x} y={y} width={25} height={bh}
+                fill="rgba(139,92,246,0.4)"
+                className="hover:fill-purple-500/60 transition-all cursor-pointer" />
             );
           })}
-
           <path
-            d={revenueData
-              .map((month, index) => {
-                const x = index * 90 + 52.5;
-                const y = 160 - (month.revenue / maxRevenue) * 120;
-                return index === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
-              })
-              .join(" ")}
-            stroke="url(#lineGradient)"
-            strokeWidth="3"
-            fill="none"
-            className="drop-shadow-sm"
-          />
-
-          {revenueData.map((month, index) => {
-            const x = index * 90 + 52.5;
-            const y = 160 - (month.revenue / maxRevenue) * 120;
-            return (
-              <circle
-                key={`point-${index}`}
-                cx={x}
-                cy={y}
-                r="4"
-                fill="#3b82f6"
-                className="hover:r-6 transition-all cursor-pointer"
-              />
-            );
+            d={revenueData.map((m, i) => {
+              const x = i * 90 + 52.5;
+              const y = 160 - (m.revenue / maxR) * 120;
+              return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+            }).join(" ")}
+            stroke="url(#lineGradient)" strokeWidth="3" fill="none" />
+          {revenueData.map((m, i) => {
+            const x = i * 90 + 52.5;
+            const y = 160 - (m.revenue / maxR) * 120;
+            return <circle key={`p-${i}`} cx={x} cy={y} r="4" fill="#3b82f6" className="cursor-pointer" />;
           })}
-
-          {revenueData.map((month, index) => (
-            <text
-              key={`label-${index}`}
-              x={index * 90 + 52.5}
-              y={200}
-              textAnchor="middle"
-              className="text-xs fill-slate-600 dark:fill-slate-400"
-              fontSize="10"
-            >
-              {month.month}
-            </text>
+          {revenueData.map((m, i) => (
+            <text key={`l-${i}`} x={i * 90 + 52.5} y={205}
+              textAnchor="middle" fill={textFill} fontSize="10">{m.month}</text>
           ))}
-
-          <g transform="translate(20, 20)">
-            <line
-              x1="0"
-              y1="4"
-              x2="20"
-              y2="4"
-              stroke="#3b82f6"
-              strokeWidth="2"
-            />
-            <text
-              x="25"
-              y="8"
-              className="text-xs fill-slate-600 dark:fill-slate-400"
-              fontSize="10"
-            >
-              Revenue
-            </text>
-            <rect
-              x="80"
-              y="0"
-              width="15"
-              height="8"
-              fill="rgba(139, 92, 246, 0.4)"
-            />
-            <text
-              x="100"
-              y="8"
-              className="text-xs fill-slate-600 dark:fill-slate-400"
-              fontSize="10"
-            >
-              Deals
-            </text>
+          <g transform="translate(20,15)">
+            <line x1="0" y1="4" x2="20" y2="4" stroke="#3b82f6" strokeWidth="2" />
+            <text x="25" y="8" fill={textFill} fontSize="10">Revenue</text>
+            <rect x="80" y="0" width="15" height="8" fill="rgba(139,92,246,0.4)" />
+            <text x="100" y="8" fill={textFill} fontSize="10">Deals</text>
           </g>
         </svg>
       </div>
@@ -525,71 +330,53 @@ export default function Home() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-white
-p-8 space-y-8 text-slate-900"
-    >
+    <div className="min-h-screen bg-white dark:bg-[#0d1117] p-8 space-y-8
+      text-slate-900 dark:text-white transition-colors duration-300">
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent">
             GTM Dashboard
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
             Welcome back, {userName}! Here's your pipeline overview.
           </p>
         </div>
 
-        {/* Toggle */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-full shadow-inner w-fit">
-          {/* Graphic */}
-          <button
-            onClick={() => setChartsMode("graphic")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300
-      ${
-        chartsMode === "graphic"
-          ? "text-white bg-gradient-to-r from-[#1f6fa8] to-[#19b6a5] shadow-md"
-          : "text-slate-500"
-      }`}
-          >
-            Graphic
-          </button>
-
-          {/* Numeric */}
-          <button
-            onClick={() => setChartsMode("numeric")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300
-      ${
-        chartsMode === "numeric"
-          ? "text-white bg-gradient-to-r from-[#1f6fa8] to-[#19b6a5] shadow-md"
-          : "text-slate-500"
-      }`}
-          >
-            Numeric
-          </button>
+        {/* Graphic / Numeric toggle */}
+        <div className="flex items-center
+          bg-slate-100 dark:bg-[#0d1117]
+          border border-slate-200 dark:border-[#0d1117]
+          p-1 rounded-full shadow-inner w-fit"
+        >
+          {["graphic", "numeric"].map((mode) => (
+            <button key={mode}
+              onClick={() => setChartsMode(mode)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-all duration-300
+                ${chartsMode === mode
+                  ? "text-white bg-gradient-to-r from-[#1f6fa8] to-[#19b6a5] shadow-md"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                }`}
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* METRIC CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <MetricCard
-          title="Onboarding Rate"
-          value={onboardingData.rate}
-          icon={Users}
-        />
-        <MetricCard
-          title="Leads Converted"
-          value={leadsData.converted}
-          icon={TrendingUp}
-        />
+        <MetricCard title="Onboarding Rate" value={onboardingData.rate} icon={Users} />
+        <MetricCard title="Leads Converted" value={leadsData.converted} icon={TrendingUp} />
         <MetricCard title="Deals Won" value={dealsData.won} icon={Trophy} />
       </div>
 
-      {/* CHARTS */}
+      {/* CHARTS ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
+        <Card className={cardClass}>
           <CardHeader>
-            <CardTitle className="flex items-center text-slate-700">
+            <CardTitle className={cardTitleClass}>
               <PieChart className="w-5 h-5 mr-2 text-[#25C2A0]" />
               Deal Classification
             </CardTitle>
@@ -600,10 +387,7 @@ p-8 space-y-8 text-slate-900"
             ) : (
               <div className="space-y-2">
                 {dealClassification.map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between border-b border-slate-100 pb-2"
-                  >
+                  <div key={i} className={numericRowClass}>
                     <span>{item.name}</span>
                     <span className="font-bold">{item.rate}%</span>
                   </div>
@@ -613,9 +397,9 @@ p-8 space-y-8 text-slate-900"
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
+        <Card className={cardClass}>
           <CardHeader>
-            <CardTitle className="flex items-center text-slate-700">
+            <CardTitle className={cardTitleClass}>
               <BarChart3 className="w-5 h-5 mr-2 text-blue-500" />
               Customer Sources
             </CardTitle>
@@ -626,10 +410,7 @@ p-8 space-y-8 text-slate-900"
             ) : (
               <div className="space-y-2">
                 {leadSources.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between border-b border-slate-100 pb-2"
-                  >
+                  <div key={i} className={numericRowClass}>
                     <span>{s.name}</span>
                     <span className="font-bold">{s.value}</span>
                   </div>
@@ -641,9 +422,9 @@ p-8 space-y-8 text-slate-900"
       </div>
 
       {/* REVENUE */}
-      <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
+      <Card className={cardClass}>
         <CardHeader>
-          <CardTitle className="flex items-center text-slate-700">
+          <CardTitle className={cardTitleClass}>
             <DollarSign className="w-5 h-5 mr-2 text-green-500" />
             Revenue Analytics
           </CardTitle>
@@ -654,12 +435,9 @@ p-8 space-y-8 text-slate-900"
           ) : (
             <div className="space-y-2">
               {revenueData.map((m, i) => (
-                <div
-                  key={i}
-                  className="flex justify-between border-b border-slate-100 pb-2"
-                >
+                <div key={i} className={numericRowClass}>
                   <span>{m.month}</span>
-                  <span className="font-bold">${m.revenue}</span>
+                  <span className="font-bold">${m.revenue.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -667,49 +445,43 @@ p-8 space-y-8 text-slate-900"
         </CardContent>
       </Card>
 
-      {/* BOTTOM */}
+      {/* BOTTOM ROW */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl">
+        <Card className={cardClass}>
           <CardHeader>
-            <CardTitle className="flex items-center text-slate-700">
+            <CardTitle className={cardTitleClass}>
               <Calendar className="w-5 h-5 mr-2 text-purple-500" />
               Upcoming Meetings
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {upcomingMeetings.map((m, i) => (
-              <div
-                key={i}
-                className="flex justify-between bg-slate-50 p-3 rounded-xl hover:bg-slate-100 transition"
-              >
+              <div key={i} className={rowClass}>
                 <div>
-                  <p className="font-medium">{m.client}</p>
-                  <p className="text-xs text-slate-500">{m.type}</p>
+                  <p className="font-medium text-slate-800 dark:text-slate-200">{m.client}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{m.type}</p>
                 </div>
-                <span className="text-sm">{m.time}</span>
+                <span className="text-sm text-slate-600 dark:text-slate-300">{m.time}</span>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl">
+        <Card className={cardClass}>
           <CardHeader>
-            <CardTitle className="flex items-center text-slate-700">
+            <CardTitle className={cardTitleClass}>
               <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
               Active Deals
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {activeDeals.map((d, i) => (
-              <div
-                key={i}
-                className="flex justify-between bg-slate-50 p-3 rounded-xl hover:bg-slate-100 transition"
-              >
+              <div key={i} className={rowClass}>
                 <div>
-                  <p className="font-medium">{d.company}</p>
-                  <p className="text-xs text-slate-500">{d.stage}</p>
+                  <p className="font-medium text-slate-800 dark:text-slate-200">{d.company}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{d.stage}</p>
                 </div>
-                <span className="font-bold text-green-600">{d.value}</span>
+                <span className="font-bold text-green-500 dark:text-green-400">{d.value}</span>
               </div>
             ))}
           </CardContent>
@@ -718,3 +490,725 @@ p-8 space-y-8 text-slate-900"
     </div>
   );
 }
+
+// old version 
+// "use client";
+
+// import { use, useEffect, useState } from "react";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import {
+//   TrendingUp,
+//   Users,
+//   Trophy,
+//   Calendar,
+//   Phone,
+//   DollarSign,
+//   PieChart,
+//   BarChart3,
+// } from "lucide-react";
+// import { cn } from "@/lib/utils";
+// import { supabase } from "@/utils/supabase/client";
+// import { round } from "lodash";
+// import { redirect } from "next/navigation";
+// import { Switch } from "@/components/ui/switch";
+
+// export default function Home() {
+//   const [leads, setLeads] = useState([]);
+//   const [deals, setDeals] = useState([]);
+//   const [darkMode, setDarkMode] = useState(false);
+
+//   useEffect(() => {
+//     const fetchTheme = () => {
+//       const theme = localStorage.getItem("theme");
+//       if (theme !== null) {
+//         setDarkMode(theme === "false");
+//       }
+//     };
+
+//     fetchTheme();
+
+//     const intervalId = setInterval(() => {
+//       fetchTheme();
+//     }, 200);
+
+//     return () => clearInterval(intervalId);
+//   }, [setDarkMode]);
+
+//   const fetchData = async () => {
+//     const { data: leadsData, error: leadsError } = await supabase
+//       .from("Leads")
+//       .select("*")
+//       .eq("user_email", userEmail);
+//     const { data: dealsData, error: dealsError } = await supabase
+//       .from("Deals")
+//       .select("*")
+//       .eq("user_email", userEmail);
+//     const { data: customersData, error: customersError } = await supabase
+//       .from("Customers")
+//       .select("*")
+//       .eq("user_email", userEmail);
+//     if (leadsError) console.error("Error fetching leads:", leadsError);
+//     if (dealsError) console.error("Error fetching deals:", dealsError);
+//     if (customersError)
+//       console.error("Error fetching customers:", customersError);
+//     setLeads(leadsData);
+//     setDeals(dealsData);
+//     setCustomers(customersData);
+//   };
+//   const [customers, setCustomers] = useState([]);
+//   const [userEmail, setUserEmail] = useState("");
+//   const [userName, setUserName] = useState("");
+
+//   useEffect(() => {
+//     const getSession = () => {
+//       const sessionJSON = JSON.parse(localStorage.getItem("session"));
+//       if (sessionJSON == null) {
+//         redirect("/");
+//       }
+//       setUserEmail(sessionJSON.user.email);
+//       setUserName(JSON.parse(localStorage.getItem("user")).name);
+//     };
+
+//     getSession();
+//   }, []);
+
+//   const fetchCustomers = async () => {
+//     const { data: customersData } = await supabase
+//       .from("Customers")
+//       .select("*")
+//       .eq("user_email", !userEmail ? "undefined" : userEmail)
+//       .order("created_at", { ascending: false });
+//     if (customersData) {
+//       setCustomers(customersData);
+//     } else {
+//       console.error("Error fetching customers");
+//     }
+//   };
+
+//   const fetchLeads = async () => {
+//     const { data: leadsData } = await supabase
+//       .from("Leads")
+//       .select("*")
+//       .eq("user_email", !userEmail ? "undefined" : userEmail)
+//       .order("created_at", { ascending: false });
+//     if (leadsData) {
+//       setLeads(leadsData);
+//     } else {
+//       console.error("Error fetching leads");
+//     }
+//   };
+
+//   const fetchDeals = async () => {
+//     const { data: dealsData } = await supabase
+//       .from("Deals")
+//       .select("*")
+//       .eq("user_email", !userEmail ? "undefined" : userEmail)
+//       .order("created_at", { ascending: false });
+//     if (dealsData) {
+//       setDeals(dealsData);
+//     } else {
+//       console.error("Error fetching deals");
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (userEmail) {
+//       fetchCustomers();
+//       fetchLeads();
+//       fetchDeals();
+//     }
+
+//     const intervalId = setInterval(() => {
+//       fetchCustomers();
+//       fetchLeads();
+//       fetchDeals();
+//     }, 60000);
+
+//     return () => clearInterval(intervalId);
+//   }, [userEmail]);
+
+//   const QualifiedLeads = leads.filter(
+//     (lead) => lead.status === "Qualified",
+//   ).length;
+
+//   const onboardingData = {
+//     rate:
+//       leads?.length != 0
+//         ? round(((QualifiedLeads || 0) / leads.length) * 100, 2)
+//         : 0,
+//     change: 12,
+//   };
+
+//   const customerEmails = new Set(customers.map((c) => c.email));
+//   const commonEmails = leads
+//     .filter((lead) => customerEmails.has(lead.email))
+//     .map((lead) => lead.email);
+
+//   const leadsData = { converted: commonEmails.length, change: +8 };
+
+//   const dealsWon = deals.filter((deal) => deal.status === "Closed-won").length;
+//   const dealsData = { won: dealsWon, change: +15 };
+
+//   const totalDeals = deals?.length || 0;
+
+//   const dealStatuses = [
+//     { name: "New", status: "New", color: "bg-red-500" },
+//     { name: "Proposal Sent", status: "Proposal Sent", color: "bg-yellow-500" },
+//     { name: "Negotiation", status: "Negotiation", color: "bg-blue-500" },
+//     { name: "Closed Won", status: "Closed-won", color: "bg-green-500" },
+//     { name: "Closed Lost", status: "Closed-lost", color: "bg-gray-500" },
+//     {
+//       name: "Meeting Booked",
+//       status: "Meeting Booked",
+//       color: "bg-purple-500",
+//     },
+//     { name: "On Hold", status: "On-hold", color: "bg-pink-500" },
+//     { name: "Abandoned", status: "Abandoned", color: "bg-orange-500" },
+//   ];
+
+//   const dealClassification = dealStatuses.map(({ name, status, color }) => {
+//     const value = deals.filter((deal) => deal.status === status).length;
+//     const rate = totalDeals > 0 ? round((value / totalDeals) * 100, 2) : 0;
+
+//     return { name, value, rate, color };
+//   });
+
+//   const sourceCount = leads?.reduce((acc, { source }) => {
+//     acc[source] = (acc[source] || 0) + 1;
+//     return acc;
+//   }, {});
+
+//   const leadSources = [
+//     "External referral",
+//     "Chat",
+//     "Facebook",
+//     "X(Twitter)",
+//     "Public relations",
+//   ].map((name) => ({
+//     name,
+//     value: sourceCount?.[name] || 0,
+//   }));
+
+//   const revenueData = [
+//     { month: "Jan", revenue: 45000, deals: 12 },
+//     { month: "Feb", revenue: 52000, deals: 15 },
+//     { month: "Mar", revenue: 48000, deals: 13 },
+//     { month: "Apr", revenue: 61000, deals: 18 },
+//     { month: "May", revenue: 55000, deals: 16 },
+//     { month: "Jun", revenue: 67000, deals: 19 },
+//   ];
+
+//   const upcomingMeetings = [
+//     { time: "10:00 AM", client: "Acme Corp", type: "Demo" },
+//     { time: "2:30 PM", client: "TechStart Inc", type: "Follow-up" },
+//     { time: "4:00 PM", client: "Global Solutions", type: "Proposal" },
+//   ];
+
+//   const activeDeals = [
+//     { company: "Enterprise Co", value: "$45,000", stage: "Negotiation" },
+//     { company: "StartupXYZ", value: "$12,000", stage: "Proposal" },
+//     { company: "MegaCorp", value: "$89,000", stage: "Demo" },
+//   ];
+
+//   const priorityTasks = [
+//     { task: "Follow up with Enterprise Co", priority: "high" },
+//     { task: "Prepare demo for TechStart", priority: "medium" },
+//     { task: "Update CRM records", priority: "low" },
+//     { task: "Send proposal to MegaCorp", priority: "high" },
+//   ];
+//   const [chartsMode, setChartsMode] = useState("graphic");
+
+//   const MetricCard = ({ title, value, change, icon: Icon }) => (
+//     <Card className="backdrop-blur-sm bg-white/40 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 hover:bg-white/20 dark:hover:bg-slate-800/60 transition-all duration-300 cursor-pointer group">
+//       <CardContent className="p-6">
+//         <div className="flex items-center justify-between">
+//           <div>
+//             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+//               {title}
+//             </p>
+//             <p className="text-2xl font-bold text-slate-900 dark:text-white">
+//               {value}
+//               {title.includes("rate") || title.includes("Rate") ? "%" : ""}
+//             </p>
+//             {/* <p
+//               className={cn(
+//                 "text-sm flex items-center mt-1",
+//                 change > 0 ? "text-green-600" : "text-red-600"
+//               )}
+//             >
+//               <TrendingUp className="w-4 h-4 mr-1" />
+//               {change > 0 ? "+" : ""}
+//               {change}% from last month
+//             </p> */}
+//           </div>
+//           <Icon className="h-8 w-8 text-[#25C2A0] group-hover:text-[#235d76] group-hover:scale-110 transition-transform" />
+//         </div>
+//       </CardContent>
+//     </Card>
+//   );
+
+//   const PieChartSVG = () => {
+//     const total = dealClassification.reduce((sum, item) => sum + item.value, 0);
+//     let cumulativePercentage = 0;
+
+//     const colors = {
+//       "bg-red-500": "#ef4444",
+//       "bg-yellow-500": "#eab308",
+//       "bg-blue-500": "#3b82f6",
+//       "bg-green-500": "#10b981",
+//       "bg-orange-500": "#f97316",
+//       "bg-purple-500": "#a855f7",
+//       "bg-pink-500": "#ec4899",
+//       "bg-gray-500": "#6b7280",
+//     };
+
+//     return (
+//       <div className="h-64 flex flex-col items-center justify-center space-y-4">
+//         <div className="shrink-0">
+//           <svg
+//             width="160"
+//             height="160"
+//             viewBox="0 0 200 200"
+//             className="mx-auto"
+//           >
+//             {dealClassification.map((item, index) => {
+//               const percentage = item.value / total;
+//               const startAngle = cumulativePercentage * 360;
+//               const endAngle = (cumulativePercentage + percentage) * 360;
+
+//               cumulativePercentage += percentage;
+
+//               const startAngleRad = (startAngle - 90) * (Math.PI / 180);
+//               const endAngleRad = (endAngle - 90) * (Math.PI / 180);
+
+//               const largeArcFlag = percentage > 0.5 ? 1 : 0;
+
+//               const x1 = 100 + 80 * Math.cos(startAngleRad);
+//               const y1 = 100 + 80 * Math.sin(startAngleRad);
+//               const x2 = 100 + 80 * Math.cos(endAngleRad);
+//               const y2 = 100 + 80 * Math.sin(endAngleRad);
+//               const x3 = 100 + 50 * Math.cos(endAngleRad);
+//               const y3 = 100 + 50 * Math.sin(endAngleRad);
+//               const x4 = 100 + 50 * Math.cos(startAngleRad);
+//               const y4 = 100 + 50 * Math.sin(startAngleRad);
+
+//               const outerR = 80;
+//               const innerR = 50;
+
+//               // Outer arc start/end (same as before)
+//               const pathData = [
+//                 "M",
+//                 x1,
+//                 y1, // start outer arc
+//                 "A",
+//                 outerR,
+//                 outerR,
+//                 0,
+//                 largeArcFlag,
+//                 1,
+//                 x2,
+//                 y2, // outer arc
+//                 "L",
+//                 x3,
+//                 y3, // line to inner arc start
+//                 "A",
+//                 innerR,
+//                 innerR,
+//                 0,
+//                 largeArcFlag,
+//                 0,
+//                 x4,
+//                 y4, // inner arc (reverse direction)
+//                 "Z",
+//               ].join(" ");
+
+//               return (
+//                 <path
+//                   key={index}
+//                   d={pathData}
+//                   fill={colors[item.color]}
+//                   className="hover:opacity-80 transition-opacity cursor-pointer"
+//                 />
+//               );
+//             })}
+//           </svg>
+//         </div>
+//         <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-center">
+//           {dealClassification.map((item, index) => (
+//             <div key={index} className="flex items-center space-x-2">
+//               <div className={cn("w-3 h-3 rounded-full", item.color)}></div>
+//               <span className="text-xs font-medium whitespace-nowrap">
+//                 {item.name}: {item.rate}%
+//               </span>
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+//     );
+//   };
+
+//   const BarChartSVG = () => {
+//     const maxValue = Math.max(...leadSources.map((s) => s.value));
+
+//     return (
+//       <div className="h-64">
+//         <svg width="100%" height="100%" viewBox="0 0 400 240">
+//           <defs>
+//             <linearGradient id="barGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+//               <stop offset="0%" stopColor="#16699d" />
+//               <stop offset="100%" stopColor="#57bba9" />
+//             </linearGradient>
+//           </defs>
+
+//           {leadSources.map((source, index) => {
+//             // prevent division by zero
+//             const barHeight =
+//               maxValue > 0 ? (source.value / maxValue) * 160 : 0;
+
+//             const barWidth = 50;
+//             const x = index * 75 + 25;
+//             const y = 180 - barHeight;
+
+//             return (
+//               <g key={index}>
+//                 <rect
+//                   x={x}
+//                   y={y}
+//                   width={barWidth}
+//                   height={barHeight}
+//                   fill="url(#barGradient)"
+//                   className="hover:opacity-80 transition-opacity cursor-pointer"
+//                 />
+//                 <text
+//                   x={x + barWidth / 2}
+//                   y={200}
+//                   textAnchor="middle"
+//                   className="text-xs fill-slate-600 dark:fill-slate-400"
+//                   fontSize="10"
+//                 >
+//                   {source.name}
+//                 </text>
+//                 <text
+//                   x={x + barWidth / 2}
+//                   y={y - 5}
+//                   textAnchor="middle"
+//                   className="text-xs font-medium fill-slate-900 dark:fill-white"
+//                   fontSize="10"
+//                 >
+//                   {source.value}
+//                 </text>
+//               </g>
+//             );
+//           })}
+//         </svg>
+//       </div>
+//     );
+//   };
+
+//   const LineHistogramChart = () => {
+//     const maxRevenue = Math.max(...revenueData.map((d) => d.revenue));
+//     const maxDeals = Math.max(...revenueData.map((d) => d.deals));
+
+//     return (
+//       <div className="h-64">
+//         <svg width="100%" height="100%" viewBox="0 0 600 240">
+//           <defs>
+//             <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+//               <stop offset="0%" stopColor="#3b82f6" />
+//               <stop offset="100%" stopColor="#8b5cf6" />
+//             </linearGradient>
+//           </defs>
+
+//           {revenueData.map((month, index) => {
+//             const barHeight = (month.deals / maxDeals) * 80;
+//             const barWidth = 25;
+//             const x = index * 90 + 40;
+//             const y = 180 - barHeight;
+
+//             return (
+//               <rect
+//                 key={`bar-${index}`}
+//                 x={x}
+//                 y={y}
+//                 width={barWidth}
+//                 height={barHeight}
+//                 fill="rgba(139, 92, 246, 0.4)"
+//                 className="hover:fill-purple-500/60 transition-all cursor-pointer"
+//               />
+//             );
+//           })}
+
+//           <path
+//             d={revenueData
+//               .map((month, index) => {
+//                 const x = index * 90 + 52.5;
+//                 const y = 160 - (month.revenue / maxRevenue) * 120;
+//                 return index === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+//               })
+//               .join(" ")}
+//             stroke="url(#lineGradient)"
+//             strokeWidth="3"
+//             fill="none"
+//             className="drop-shadow-sm"
+//           />
+
+//           {revenueData.map((month, index) => {
+//             const x = index * 90 + 52.5;
+//             const y = 160 - (month.revenue / maxRevenue) * 120;
+//             return (
+//               <circle
+//                 key={`point-${index}`}
+//                 cx={x}
+//                 cy={y}
+//                 r="4"
+//                 fill="#3b82f6"
+//                 className="hover:r-6 transition-all cursor-pointer"
+//               />
+//             );
+//           })}
+
+//           {revenueData.map((month, index) => (
+//             <text
+//               key={`label-${index}`}
+//               x={index * 90 + 52.5}
+//               y={200}
+//               textAnchor="middle"
+//               className="text-xs fill-slate-600 dark:fill-slate-400"
+//               fontSize="10"
+//             >
+//               {month.month}
+//             </text>
+//           ))}
+
+//           <g transform="translate(20, 20)">
+//             <line
+//               x1="0"
+//               y1="4"
+//               x2="20"
+//               y2="4"
+//               stroke="#3b82f6"
+//               strokeWidth="2"
+//             />
+//             <text
+//               x="25"
+//               y="8"
+//               className="text-xs fill-slate-600 dark:fill-slate-400"
+//               fontSize="10"
+//             >
+//               Revenue
+//             </text>
+//             <rect
+//               x="80"
+//               y="0"
+//               width="15"
+//               height="8"
+//               fill="rgba(139, 92, 246, 0.4)"
+//             />
+//             <text
+//               x="100"
+//               y="8"
+//               className="text-xs fill-slate-600 dark:fill-slate-400"
+//               fontSize="10"
+//             >
+//               Deals
+//             </text>
+//           </g>
+//         </svg>
+//       </div>
+//     );
+//   };
+
+//   return (
+//     <div
+//       className="min-h-screen bg-white
+// p-8 space-y-8 text-slate-900"
+//     >
+//       {/* HEADER */}
+//       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+//         <div>
+//           <h1 className="text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent">
+//             GTM Dashboard
+//           </h1>
+//           <p className="text-slate-500 mt-1">
+//             Welcome back, {userName}! Here's your pipeline overview.
+//           </p>
+//         </div>
+
+//         {/* Toggle */}
+//         <div className="flex items-center bg-slate-100 p-1 rounded-full shadow-inner w-fit">
+//           {/* Graphic */}
+//           <button
+//             onClick={() => setChartsMode("graphic")}
+//             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300
+//       ${
+//         chartsMode === "graphic"
+//           ? "text-white bg-gradient-to-r from-[#1f6fa8] to-[#19b6a5] shadow-md"
+//           : "text-slate-500"
+//       }`}
+//           >
+//             Graphic
+//           </button>
+
+//           {/* Numeric */}
+//           <button
+//             onClick={() => setChartsMode("numeric")}
+//             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300
+//       ${
+//         chartsMode === "numeric"
+//           ? "text-white bg-gradient-to-r from-[#1f6fa8] to-[#19b6a5] shadow-md"
+//           : "text-slate-500"
+//       }`}
+//           >
+//             Numeric
+//           </button>
+//         </div>
+//       </div>
+
+//       {/* METRIC CARDS */}
+//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+//         <MetricCard
+//           title="Onboarding Rate"
+//           value={onboardingData.rate}
+//           icon={Users}
+//         />
+//         <MetricCard
+//           title="Leads Converted"
+//           value={leadsData.converted}
+//           icon={TrendingUp}
+//         />
+//         <MetricCard title="Deals Won" value={dealsData.won} icon={Trophy} />
+//       </div>
+
+//       {/* CHARTS */}
+//       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+//         <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
+//           <CardHeader>
+//             <CardTitle className="flex items-center text-slate-700">
+//               <PieChart className="w-5 h-5 mr-2 text-[#25C2A0]" />
+//               Deal Classification
+//             </CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             {chartsMode === "graphic" ? (
+//               <PieChartSVG />
+//             ) : (
+//               <div className="space-y-2">
+//                 {dealClassification.map((item, i) => (
+//                   <div
+//                     key={i}
+//                     className="flex justify-between border-b border-slate-100 pb-2"
+//                   >
+//                     <span>{item.name}</span>
+//                     <span className="font-bold">{item.rate}%</span>
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+//           </CardContent>
+//         </Card>
+
+//         <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
+//           <CardHeader>
+//             <CardTitle className="flex items-center text-slate-700">
+//               <BarChart3 className="w-5 h-5 mr-2 text-blue-500" />
+//               Customer Sources
+//             </CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             {chartsMode === "graphic" ? (
+//               <BarChartSVG />
+//             ) : (
+//               <div className="space-y-2">
+//                 {leadSources.map((s, i) => (
+//                   <div
+//                     key={i}
+//                     className="flex justify-between border-b border-slate-100 pb-2"
+//                   >
+//                     <span>{s.name}</span>
+//                     <span className="font-bold">{s.value}</span>
+//                   </div>
+//                 ))}
+//               </div>
+//             )}
+//           </CardContent>
+//         </Card>
+//       </div>
+
+//       {/* REVENUE */}
+//       <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl hover:shadow-xl transition">
+//         <CardHeader>
+//           <CardTitle className="flex items-center text-slate-700">
+//             <DollarSign className="w-5 h-5 mr-2 text-green-500" />
+//             Revenue Analytics
+//           </CardTitle>
+//         </CardHeader>
+//         <CardContent>
+//           {chartsMode === "graphic" ? (
+//             <LineHistogramChart />
+//           ) : (
+//             <div className="space-y-2">
+//               {revenueData.map((m, i) => (
+//                 <div
+//                   key={i}
+//                   className="flex justify-between border-b border-slate-100 pb-2"
+//                 >
+//                   <span>{m.month}</span>
+//                   <span className="font-bold">${m.revenue}</span>
+//                 </div>
+//               ))}
+//             </div>
+//           )}
+//         </CardContent>
+//       </Card>
+
+//       {/* BOTTOM */}
+//       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//         <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl">
+//           <CardHeader>
+//             <CardTitle className="flex items-center text-slate-700">
+//               <Calendar className="w-5 h-5 mr-2 text-purple-500" />
+//               Upcoming Meetings
+//             </CardTitle>
+//           </CardHeader>
+//           <CardContent className="space-y-3">
+//             {upcomingMeetings.map((m, i) => (
+//               <div
+//                 key={i}
+//                 className="flex justify-between bg-slate-50 p-3 rounded-xl hover:bg-slate-100 transition"
+//               >
+//                 <div>
+//                   <p className="font-medium">{m.client}</p>
+//                   <p className="text-xs text-slate-500">{m.type}</p>
+//                 </div>
+//                 <span className="text-sm">{m.time}</span>
+//               </div>
+//             ))}
+//           </CardContent>
+//         </Card>
+
+//         <Card className="bg-white shadow-lg border border-slate-200 rounded-2xl">
+//           <CardHeader>
+//             <CardTitle className="flex items-center text-slate-700">
+//               <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+//               Active Deals
+//             </CardTitle>
+//           </CardHeader>
+//           <CardContent className="space-y-3">
+//             {activeDeals.map((d, i) => (
+//               <div
+//                 key={i}
+//                 className="flex justify-between bg-slate-50 p-3 rounded-xl hover:bg-slate-100 transition"
+//               >
+//                 <div>
+//                   <p className="font-medium">{d.company}</p>
+//                   <p className="text-xs text-slate-500">{d.stage}</p>
+//                 </div>
+//                 <span className="font-bold text-green-600">{d.value}</span>
+//               </div>
+//             ))}
+//           </CardContent>
+//         </Card>
+//       </div>
+//     </div>
+//   );
+// }
