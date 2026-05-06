@@ -73,7 +73,6 @@ export default function TaskPage() {
     lead_id: "",
   });
 
-  // ── Read dark mode (same pattern as all other pages) ──
   useEffect(() => {
     const fetchTheme = () => {
       const theme = localStorage.getItem("theme");
@@ -84,7 +83,7 @@ export default function TaskPage() {
     return () => clearInterval(id);
   }, []);
 
-  // ─── Fetch Tasks ───────────────────────────────────────────────────────────
+
   const fetchTasks = async () => {
     setLoading(true);
     try {
@@ -128,7 +127,7 @@ export default function TaskPage() {
 
   useEffect(() => { fetchTasks(); }, []);
 
-  // ─── CRUD ─────────────────────────────────────────────────────────────────
+
   const handleAddTask = async () => {
     if (!formData.title) { alert("Please enter a task title"); return; }
     setSubmitting(true);
@@ -280,7 +279,6 @@ export default function TaskPage() {
     else setViewMonth((m) => m + 1);
   };
 
-  // ── Theme tokens ──────────────────────────────────────────────────────────
   const dm = darkMode;
   const pageBg     = dm ? "bg-[#0d1117]" : "bg-slate-50";
   const panelBg    = dm ? "bg-[#0d1117]" : "bg-white";
