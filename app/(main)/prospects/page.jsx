@@ -11,7 +11,7 @@ export default function OurProspects() {
     setIcpLoading(true);
     setIcpError("");
     try {
-      const res = await fetch("/api/icp", {
+      const res = await fetch("/api/ICP", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSend),

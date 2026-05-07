@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Save, Upload, Plus, Trash2, Package, AlertCircle } from "lucide-react";
+import { Save, Upload, Plus, Trash2, Package, AlertCircle, Bot } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,27 +26,47 @@ const ErrorMessage = ({ error }) => {
    ICP result display — handles BOTH shapes:
    • Supabase shape: { icp, high, medium, low }
    • Render /icp/chat shape: { ICP, high_prospect_group, … }
-───────────────────────────────────────────────────────── */
-function IcpCard({ icpData }) {
-  if (!icpData) return null;
+─�  // Helper to safely parse JSON strings
+  const safeParse = (val) => {
+    if (!val) return null;
+    if (typeof val === "object") return val;
+    try {
+      return JSON.parse(val);
+    } catch (e) {
+      return { profile: val, conversion_chance: "N/A" };
+    }
+  };
 
   // Normalise to a single shape
   const icp = icpData.ICP || icpData.icp || null;
-  const high =
-    icpData.high_prospect_group ||
-    (icpData.high ? { conversion_chance: icpData.high.conversion_chance, profile: icpData.high.profile } : null);
-  const medium =
-    icpData.medium_prospect_group ||
-    (icpData.medium ? { conversion_chance: icpData.medium.conversion_chance, profile: icpData.medium.profile } : null);
-  const low =
-    icpData.low_prospect_group ||
-    (icpData.low ? { conversion_chance: icpData.low.conversion_chance, profile: icpData.low.profile } : null);
+  const high = safeParse(icpData.high_prospect_group || icpData.high);
+  const medium = safeParse(icpData.medium_prospect_group || icpData.medium);
+  const low = safeParse(icpData.low_prospect_group || icpData.low);
 
   const groups = [
-    { label: "High Conversion", data: high, bg: "bg-green-50/50 dark:bg-green-900/20", border: "border-green-200 dark:border-green-800", text: "text-green-700 dark:text-green-300" },
-    { label: "Medium Conversion", data: medium, bg: "bg-yellow-50/50 dark:bg-yellow-900/20", border: "border-yellow-200 dark:border-yellow-800", text: "text-yellow-700 dark:text-yellow-300" },
+    { label: "High Conversion", data: high, bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-200 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-300", accent: "bg-emerald-200 text-emerald-800" },
+    { label: "Medium Conversion", data: medium, bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-200 dark:border-amber-800", text: "text-amber-700 dark:text-amber-300", accent: "bg-amber-200 text-amber-800" },
+    { label: "Low Conversion", data: low, bg: "bg-red-50/50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-300", accent: "bg-red-200 text-red-800" },
+  ];yellow-800", text: "text-yellow-700 dark:text-yellow-300" },
     { label: "Low Conversion", data: low, bg: "bg-red-50/50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-300" },
   ];
+
+  // Helper to safely parse and normalize icp data
+  const getIcpEntries = () => {
+    if (!icp) return [];
+    let parsed = icp;
+    if (typeof icp === "string") {
+      try {
+        parsed = JSON.parse(icp);
+      } catch (e) {
+        // If not JSON, return as a single entry for display
+        return [["Description", icp]];
+      }
+    }
+    return typeof parsed === "object" && parsed !== null ? Object.entries(parsed) : [];
+  };
+
+  const icpEntries = getIcpEntries();
 
   return (
     <Card className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm">
@@ -55,16 +75,18 @@ function IcpCard({ icpData }) {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Core demographics */}
-        {icp && (
+        {icpEntries.length > 0 && (
           <div>
             <h4 className="font-medium text-slate-900 dark:text-white mb-4">Core Demographics</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {Object.entries(icp).map(([k, v]) => (
-                <div key={k}>
+            <div className={icpEntries.length === 1 ? "space-y-2" : "grid grid-cols-2 md:grid-cols-3 gap-6"}>
+              {icpEntries.map(([k, v]) => (
+                <div key={k} className={icpEntries.length === 1 ? "bg-slate-50 dark:bg-slate-900/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800" : ""}>
                   <Label className="text-sm text-slate-500 dark:text-slate-400 capitalize">
                     {k.replace(/_/g, " ")}
                   </Label>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">{String(v)}</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
+                    {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -431,7 +453,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
       </Card>
 
       {/* Action buttons */}
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <Button
           onClick={handleSaveChanges}
           disabled={loading}
@@ -441,29 +463,52 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
           <Save className="mr-2 w-4 h-4" />
           Save Locally
         </Button>
-
+        
         <Button
           onClick={handleUpdateDB}
           disabled={loading}
-          className="cursor-pointer bg-gradient-to-r from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white"
+          className="cursor-pointer bg-[#25C2A0] hover:bg-[#1a8a72] text-white"
         >
           {loading ? (
-            <>
-              <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-              </svg>
-              Saving…
-            </>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
           ) : (
-            <>
-              <Upload className="mr-2 w-4 h-4" />
-              Update Database
-            </>
+            <Upload className="mr-2 w-4 h-4" />
           )}
+          Update Database
+        </Button>
+
+        <Button
+          onClick={async () => {
+            setLoading(true);
+            try {
+              const res = await fetch("/api/ICP", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  user_email: userEmail,
+                  description: companyData,
+                }),
+              });
+              if (res.ok) {
+                const json = await res.json();
+                setFreshIcp(json.response || json);
+                toast.success("ICP Analysis Generated!");
+              } else {
+                throw new Error(`Error ${res.status}`);
+              }
+            } catch (err) {
+              toast.error("ICP Generation failed: " + err.message);
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}
+          className="cursor-pointer bg-gradient-to-r from-[#235d76] to-[#154b5f] hover:from-[#1a4456] hover:to-[#0f3442] text-white shadow-md hover:shadow-lg transition-all"
+        >
+          <Bot className="mr-2 w-4 h-4" />
+          Generate ICP Analysis
         </Button>
       </div>
-
       {/* ICP from Supabase (persisted) — shown until fresh result arrives */}
       {icpData && !freshIcp && <IcpCard icpData={icpData} />}
 
@@ -472,6 +517,8 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     </div>
   );
 }
+
+
 
 
 

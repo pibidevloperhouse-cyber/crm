@@ -17,12 +17,32 @@ export async function POST(req) {
       try {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 60000);
-        const res = await fetch(`${API}/icp/chat`, {
+        
+        // Try /icp/chat first, fallback to /chat if 404
+        let targetEndpoint = `${API}/icp/chat`;
+        if (i > 0) {
+          // On retries or if we suspect 404, we could toggle, but let's be explicit
+          // Actually, let's just try both in the same loop if needed
+        }
+
+        let res = await fetch(targetEndpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
           signal: controller.signal,
         });
+
+        // If /icp/chat is 404, try /chat immediately
+        if (res.status === 404) {
+          console.log("ICP: /icp/chat not found, falling back to /chat");
+          res = await fetch(`${API}/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+            signal: controller.signal,
+          });
+        }
+
         clearTimeout(timer);
         if (!res.ok) throw new Error(`Render error ${res.status}`);
         const data = await res.json();

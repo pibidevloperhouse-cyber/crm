@@ -10,6 +10,7 @@ export default function OurProspects() {
   const [userEmail, setUserEmail] = useState("");
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -62,6 +63,7 @@ export default function OurProspects() {
   const handleClick = async () => {
     if (!companyData_1) return;
     setLoading(true);
+    setError("");
 
     try {
       const res = await fetch("/api/ICP", {
@@ -91,6 +93,7 @@ export default function OurProspects() {
       }
     } catch (error) {
       console.error("Error generating ICP:", error);
+      setError(`ICP Analysis failed: ${error.message}. Please try again in 30s.`);
     } finally {
       setLoading(false);
     }
@@ -98,6 +101,12 @@ export default function OurProspects() {
 
   return (
     <div className="space-y-8 pb-20 max-w-6xl mx-auto px-4">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+          <span className="font-medium">{error}</span>
+        </div>
+      )}
       <div className="flex justify-between items-center border-b pb-6">
         <div>
           <h1 className="text-5xl font-extrabold bg-gradient-to-r from-[#25C2A0] via-[#1a8a72] to-[#154b5f] bg-clip-text text-transparent">
