@@ -48,6 +48,23 @@ function IcpCard({ icpData }) {
     { label: "Low Conversion", data: low, bg: "bg-red-50/50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-300" },
   ];
 
+  // Helper to safely parse and normalize icp data
+  const getIcpEntries = () => {
+    if (!icp) return [];
+    let parsed = icp;
+    if (typeof icp === "string") {
+      try {
+        parsed = JSON.parse(icp);
+      } catch (e) {
+        // If not JSON, return as a single entry for display
+        return [["Description", icp]];
+      }
+    }
+    return typeof parsed === "object" && parsed !== null ? Object.entries(parsed) : [];
+  };
+
+  const icpEntries = getIcpEntries();
+
   return (
     <Card className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm">
       <CardHeader>
@@ -55,16 +72,18 @@ function IcpCard({ icpData }) {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Core demographics */}
-        {icp && (
+        {icpEntries.length > 0 && (
           <div>
             <h4 className="font-medium text-slate-900 dark:text-white mb-4">Core Demographics</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {Object.entries(icp).map(([k, v]) => (
-                <div key={k}>
+            <div className={icpEntries.length === 1 ? "space-y-2" : "grid grid-cols-2 md:grid-cols-3 gap-6"}>
+              {icpEntries.map(([k, v]) => (
+                <div key={k} className={icpEntries.length === 1 ? "bg-slate-50 dark:bg-slate-900/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800" : ""}>
                   <Label className="text-sm text-slate-500 dark:text-slate-400 capitalize">
                     {k.replace(/_/g, " ")}
                   </Label>
-                  <p className="font-semibold text-slate-800 dark:text-slate-200">{String(v)}</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
+                    {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                  </p>
                 </div>
               ))}
             </div>
