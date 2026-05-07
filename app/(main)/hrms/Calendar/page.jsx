@@ -26,7 +26,9 @@ export default function HRMSDashboard() {
   const [type, setType] = useState(null);
 
   useEffect(() => {
-    setType(localStorage.getItem("type"));
+    const storedType = localStorage.getItem("type");
+    setType(storedType);
+
     const fetchUserData = async (company_id) => {
       const { data, error } = await supabase
         .from("HRMS")
@@ -42,12 +44,17 @@ export default function HRMSDashboard() {
       if (data) setUserData(data.user_email);
     };
 
-    if (type === "employee") {
-      fetchUserData(JSON.parse(localStorage.getItem("employee"))?.company_id);
+    if (storedType === "employee") {
+      const emp = JSON.parse(localStorage.getItem("employee"));
+      if (emp?.company_id) {
+        fetchUserData(emp.company_id);
+      }
     } else {
       const rawSession = localStorage.getItem("session");
-      const userData = rawSession ? JSON.parse(rawSession) : null;
-      setUserData(userData.user?.email);
+      const sessionData = rawSession ? JSON.parse(rawSession) : null;
+      if (sessionData?.user?.email) {
+        setUserData(sessionData.user.email);
+      }
     }
   }, []);
 
@@ -94,13 +101,7 @@ export default function HRMSDashboard() {
 
   const HandleLeave = async () => {
     if (date?.from && reason) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (date.from < today) {
-        toast.error("You can't apply leave for past date");
-        return;
-      }
+      // Removed past date restriction to allow adding leaves for any date
 
       const newFeature = {
         id: Math.random().toString(36).substring(2, 9),
@@ -110,22 +111,29 @@ export default function HRMSDashboard() {
         allDay: true,
       };
 
-      const { data: newFeatureData, error } = await supabase
+      const { data: hrmsData, error: hrmsError } = await supabase
         .from("HRMS")
         .select("*")
         .eq("user_email", userData);
 
-      if (error) {
+      if (hrmsError) {
         toast.error("Error applying leave");
         return;
       }
 
-      if (newFeatureData && newFeatureData.length > 0) {
-        const existingLeaves = newFeatureData[0].leave || [];
-        if (existingLeaves.find((leave) => leave.title === newFeature.title)) {
-          toast.error("Leave already exists");
+      if (hrmsData && hrmsData.length > 0) {
+        const existingLeaves = hrmsData[0].leave || [];
+        // Fixed duplicate check: check for same date AND title
+        const isDuplicate = existingLeaves.find((leave) =>
+          leave.title === newFeature.title &&
+          new Date(leave.start).getTime() === new Date(newFeature.start).getTime()
+        );
+
+        if (isDuplicate) {
+          toast.error("This leave already exists for the selected date");
           return;
         }
+
         const { error: updateError } = await supabase
           .from("HRMS")
           .update({ leave: [...existingLeaves, newFeature] })
@@ -178,24 +186,24 @@ export default function HRMSDashboard() {
   };
 
   return (
-    <div className="w-full p-4 md:p-6">
-      <div className="mx-auto">
-        <div className="flex justify-between items-center mb-8">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 md:py-6">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 text-center md:text-left">
           {/* Title */}
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(37,200,160,0.3)]">
-            Calender
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(37,200,160,0.3)]">
+            Calendar
           </h1>
 
           {/* Add Leave Button aligned right */}
           {type === "admin" && (
             <Sheet onOpenChange={setOpen} open={open}>
               <SheetTrigger asChild>
-                <Button className="bg-gradient-to-r from-[#25C2A0] to-[#387e9d] text-white font-semibold px-5 py-2 cursor-pointer rounded-md shadow hover:scale-[1.03] hover:opacity-90 transition-all">
+                <Button className="w-full sm:w-auto bg-gradient-to-r from-[#25C2A0] to-[#387e9d] text-white font-semibold px-6 py-2 cursor-pointer rounded-xl shadow-lg hover:scale-[1.03] hover:opacity-90 transition-all h-12">
                   Add Leave
                 </Button>
               </SheetTrigger>
 
-              <SheetContent className="w-max bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 shadow-lg rounded-xl p-5">
+              <SheetContent className="w-[95vw] sm:max-w-md bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 shadow-2xl p-6 overflow-y-auto rounded-l-[2rem]">
                 <SheetHeader>
                   <SheetTitle className="text-lg font-semibold bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent">
                     Apply for Leave

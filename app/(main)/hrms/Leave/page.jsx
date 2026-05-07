@@ -159,23 +159,23 @@ const LeaveApproval = () => {
   };
 
   return (
-    <div className="w-full p-4 md:p-6">
-      <div className="mx-auto space-y-10">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 md:py-6">
+      <div className="mx-auto max-w-7xl space-y-10">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2d7b6e] to-[#2c6279] bg-clip-text text-transparent flex items-center gap-2">
-              <Coffee className="w-8 h-8 text-[#2b6781]" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+          <div className="flex flex-col items-center md:items-start">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2d7b6e] to-[#2c6279] bg-clip-text text-transparent flex items-center gap-3">
+              <Coffee className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b6781]" />
               Leave Approval
             </h1>
-            <p className="text-gray-600 font-medium">
+            <p className="text-gray-600 font-medium text-sm sm:text-base mt-1">
               Manage leave requests and approvals efficiently
             </p>
           </div>
         </div>
 
         {/* Pending Leave Requests */}
-        <div className="bg-white/50 backdrop-blur-xl border border-[#25C2A0]/30 shadow-lg rounded-2xl p-8">
+        <div className="bg-white/50 backdrop-blur-xl border border-[#25C2A0]/30 shadow-lg rounded-[2rem] p-4 sm:p-6 md:p-8">
           <h2 className="text-2xl font-semibold mb-6 text-[#2b6781]">
             Pending Leave Requests
           </h2>
@@ -210,7 +210,7 @@ const LeaveApproval = () => {
                     </p>
                   </div>
 
-                  <div className="mt-5 flex gap-3">
+                  <div className="mt-5 flex flex-col sm:flex-row gap-3">
                     <button
                       className="flex-1 py-2.5 rounded-lg bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] text-white font-semibold shadow hover:scale-[1.03] hover:opacity-90 transition-all"
                       onClick={() => HandleApproveLeave(leave)}
