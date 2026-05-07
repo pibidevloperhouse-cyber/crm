@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
@@ -22,11 +22,9 @@ const ErrorMessage = ({ error }) => {
   );
 };
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   ICP result display â€” handles BOTH shapes:
-   â€¢ Supabase shape: { icp, high, medium, low }
-   â€¢ Render /icp/chat shape: { ICP, high_prospect_group, â€¦ }
-â”€â”  // Helper to safely parse JSON strings
+const ICPDetails = ({ icpData }) => {
+  if (!icpData) return null;
+  // Helper to safely parse JSON strings
   const safeParse = (val) => {
     if (!val) return null;
     if (typeof val === "object") return val;
@@ -143,9 +141,9 @@ const ErrorMessage = ({ error }) => {
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
    Main component
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
 export default function UpdateCompanyDetails({ onGenerateICP }) {
   const [loading, setLoading] = useState(false);
   const [companyData, setCompanyData] = useState({});
@@ -156,7 +154,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
   const [errors, setErrors] = useState({ newProduct: {} });
   const [userEmail, setUserEmail] = useState(null);
 
-  /* â”€â”€ Session â”€â”€ */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Session Ã¢â€â‚¬Ã¢â€â‚¬ */
   useEffect(() => {
     try {
       const raw = localStorage.getItem("session");
@@ -164,7 +162,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     } catch (e) { console.error(e); }
   }, []);
 
-  /* â”€â”€ Fetch company + ICP â”€â”€ */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Fetch company + ICP Ã¢â€â‚¬Ã¢â€â‚¬ */
   useEffect(() => {
     if (!userEmail) return;
 
@@ -207,7 +205,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     load();
   }, [userEmail]);
 
-  /* â”€â”€ Field handlers â”€â”€ */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Field handlers Ã¢â€â‚¬Ã¢â€â‚¬ */
   const handleCompanyChange = (field, value) =>
     setCompanyData((prev) => ({ ...prev, [field]: value }));
 
@@ -237,7 +235,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
   const removeProduct = (id) =>
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
-  /* â”€â”€ Save locally â”€â”€ */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Save locally Ã¢â€â‚¬Ã¢â€â‚¬ */
   const handleSaveChanges = () => {
     setLoading(true);
     localStorage.setItem("companyDataCache", JSON.stringify({ ...companyData, products }));
@@ -245,7 +243,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     setLoading(false);
   };
 
-  /* â”€â”€ Update DB + trigger ICP â”€â”€ */
+  /* Ã¢â€â‚¬Ã¢â€â‚¬ Update DB + trigger ICP Ã¢â€â‚¬Ã¢â€â‚¬ */
   const handleUpdateDB = async () => {
     setLoading(true);
 
@@ -288,9 +286,9 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
       await supabase.from("ICP").delete().eq("user_email", userEmail);
 
       localStorage.removeItem("companyDataCache");
-      toast.success("Database updated! Running ICP analysisâ€¦", { position: "top-right" });
+      toast.success("Database updated! Running ICP analysisÃ¢â‚¬Â¦", { position: "top-right" });
 
-      // 3. Call render backend /icp/chat â€” pass the exact saved payload
+      // 3. Call render backend /icp/chat Ã¢â‚¬â€ pass the exact saved payload
       const icpPayload = { ...dataToUpdate, email: userEmail };
 
       if (onGenerateICP) {
@@ -317,7 +315,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     }
   };
 
-  /* â•â•â•â•â•â•â•â•â•â• RENDER â•â•â•â•â•â•â•â•â•â• */
+  /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â RENDER Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
   return (
     <div className="py-4 md:py-6 w-full mx-auto space-y-6">
       <ToastContainer position="top-right" autoClose={5000} />
@@ -525,10 +523,10 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
           Generate ICP Analysis
         </Button>
       </div>
-      {/* ICP from Supabase (persisted) â€” shown until fresh result arrives */}
+      {/* ICP from Supabase (persisted) Ã¢â‚¬â€ shown until fresh result arrives */}
       {icpData && !freshIcp && <IcpCard icpData={icpData} />}
 
-      {/* Fresh ICP from /icp/chat â€” shown after Update Database */}
+      {/* Fresh ICP from /icp/chat Ã¢â‚¬â€ shown after Update Database */}
       {freshIcp && <IcpCard icpData={freshIcp} />}
     </div>
   );
@@ -1174,4 +1172,6 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
 //     </div>
 //   );
 // }
+
+
 
