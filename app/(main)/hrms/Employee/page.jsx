@@ -22,6 +22,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState([]);
@@ -187,20 +188,20 @@ export default function EmployeesPage() {
   };
 
   return (
-    <div className="w-full p-4 md:p-6">
-      <div className="mx-auto">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 md:py-6">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 text-center md:text-left">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent">
             Employee Management
           </h1>
           <Dialog>
             <DialogTrigger asChild>
-              <Button className=" cursor-pointer bg-gradient-to-r from-[#25C2A0] to-[#387e9d] text-white font-semibold px-5 py-2 rounded-md shadow hover:scale-[1.03] hover:opacity-90 transition-all">
+              <Button className="w-full sm:w-auto cursor-pointer bg-gradient-to-r from-[#25C2A0] to-[#387e9d] text-white font-semibold px-5 py-2 rounded-xl shadow hover:scale-[1.03] hover:opacity-90 transition-all h-12">
                 Add Employee
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 shadow-xl rounded-2xl">
+            <DialogContent className="w-[95vw] sm:max-w-xl bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 shadow-xl rounded-[2rem] p-6 sm:p-8">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent">
                   Add New Employee
@@ -304,104 +305,82 @@ export default function EmployeesPage() {
                       Edit
                     </Button>
                   </SheetTrigger>
-                  <SheetContent className="p-6 space-y-6 overflow-y-auto min-h-[80vh] md:min-w-[85vw] bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 rounded-2xl">
+                  <SheetContent className="p-6 space-y-6 overflow-y-auto w-full md:min-w-[85vw] bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 rounded-2xl">
                     <SheetHeader>
                       <SheetTitle className="bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent text-lg font-semibold cursor-pointer">
                         Edit Employee
                       </SheetTitle>
                     </SheetHeader>
-                    <div className="grid grid-cols-3 gap-6 mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
                       <Input
                         placeholder="Full Name"
                         value={editedEmployee.name}
-                        onChange={(e) =>
-                          setEditedEmployee({
-                            ...editedEmployee,
-                            name: e.target.value,
-                          })
-                        }
+                        className="rounded-xl border-slate-200"
+                        onChange={(e) => setEditedEmployee({ ...editedEmployee, name: e.target.value })}
                       />
                       <Input
                         placeholder="Email"
                         value={editedEmployee.email}
-                        onChange={(e) =>
-                          setEditedEmployee({
-                            ...editedEmployee,
-                            email: e.target.value,
-                          })
-                        }
+                        className="rounded-xl border-slate-200"
+                        onChange={(e) => setEditedEmployee({ ...editedEmployee, email: e.target.value })}
                       />
                       <Input
                         placeholder="Phone"
                         value={editedEmployee.phone}
-                        onChange={(e) =>
-                          setEditedEmployee({
-                            ...editedEmployee,
-                            phone: e.target.value,
-                          })
-                        }
+                        className="rounded-xl border-slate-200"
+                        onChange={(e) => setEditedEmployee({ ...editedEmployee, phone: e.target.value })}
                       />
                       <Input
                         placeholder="Role"
                         value={editedEmployee.role}
-                        onChange={(e) =>
-                          setEditedEmployee({
-                            ...editedEmployee,
-                            role: e.target.value,
-                          })
-                        }
+                        className="rounded-xl border-slate-200"
+                        onChange={(e) => setEditedEmployee({ ...editedEmployee, role: e.target.value })}
                       />
                       <Input
                         placeholder="Department"
                         value={editedEmployee.department}
-                        onChange={(e) =>
-                          setEditedEmployee({
-                            ...editedEmployee,
-                            department: e.target.value,
-                          })
-                        }
+                        className="rounded-xl border-slate-200"
+                        onChange={(e) => setEditedEmployee({ ...editedEmployee, department: e.target.value })}
                       />
                       <Input
                         placeholder="Manager"
                         value={editedEmployee.manager}
-                        onChange={(e) =>
-                          setEditedEmployee({
-                            ...editedEmployee,
-                            manager: e.target.value,
-                          })
-                        }
+                        className="rounded-xl border-slate-200"
+                        onChange={(e) => setEditedEmployee({ ...editedEmployee, manager: e.target.value })}
                       />
-                      <Textarea
-                        placeholder="Skills (comma separated)"
-                        value={editedEmployee.skills?.join(", ")}
-                        onChange={(e) =>
-                          setEditedEmployee({
-                            ...editedEmployee,
-                            skills: e.target.value
-                              .split(",")
-                              .map((s) => s.trim()),
-                          })
-                        }
-                      />
-                      <Textarea
-                        className="col-span-2"
-                        placeholder="Training (comma separated)"
-                        value={editedEmployee.training?.join(", ")}
-                        onChange={(e) =>
-                          setEditedEmployee({
-                            ...editedEmployee,
-                            training: e.target.value
-                              .split(",")
-                              .map((s) => s.trim()),
-                          })
-                        }
-                      />
+                      
+                      <div className="lg:col-span-1">
+                        <Textarea
+                          placeholder="Skills (comma separated)"
+                          value={editedEmployee.skills?.join(", ")}
+                          className="rounded-xl border-[#25C2A0]/40 focus:border-[#25C2A0] focus:ring-1 focus:ring-[#25C2A0]/20 min-h-[120px] bg-white/50"
+                          onChange={(e) =>
+                            setEditedEmployee({
+                              ...editedEmployee,
+                              skills: e.target.value.split(",").map((s) => s.trim()),
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="lg:col-span-2">
+                        <Textarea
+                          placeholder="Training (comma separated)"
+                          value={editedEmployee.training?.join(", ")}
+                          className="rounded-xl border-[#25C2A0]/40 focus:border-[#25C2A0] focus:ring-1 focus:ring-[#25C2A0]/20 min-h-[120px] bg-white/50"
+                          onChange={(e) =>
+                            setEditedEmployee({
+                              ...editedEmployee,
+                              training: e.target.value.split(",").map((s) => s.trim()),
+                            })
+                          }
+                        />
+                      </div>
                     </div>
                     <Button
                       onClick={saveEditedEmployee}
-                      className="w-full bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] text-white font-semibold rounded-md hover:scale-[1.02] hover:opacity-90 transition-all"
+                      className="w-full bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] text-white font-bold h-14 rounded-xl shadow-xl shadow-teal-500/20 hover:scale-[1.01] transition-all"
                     >
-                      Save Changes
+                      Save Employee Changes
                     </Button>
                   </SheetContent>
                 </Sheet>

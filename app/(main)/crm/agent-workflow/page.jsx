@@ -69,8 +69,12 @@ export default function AgentWorkflowPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [statusChecked, setStatusChecked] = useState(false);
   const [wakeMsg, setWakeMsg] = useState("");
+  // Mobile: show lead list or timeline detail
+  const [mobileView, setMobileView] = useState("list"); // "list" | "detail"
 
   const { toasts, success, error: toastError, info } = useToast();
+
+  // ── All logic unchanged ──
 
   useEffect(() => {
     const fetchData = async () => {
@@ -163,247 +167,304 @@ export default function AgentWorkflowPage() {
   const currentStatus = selectedLeadFirst?.status_after || "New";
   const stageIndex = STAGES.findIndex((s) => s.toLowerCase() === currentStatus.toLowerCase());
 
-  return (
-    <div className="flex h-screen overflow-hidden relative bg-[#e6f2f1] dark:bg-[#0d1117]">
+  // Newest first — reverse a copy without mutating
+  const sortedLeadData = selectedLeadData ? [...selectedLeadData].reverse() : [];
 
-      {/* Toast stack */}
-      <div className="fixed top-4 right-4 z-[9999] space-y-2 pointer-events-none">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            className="px-4 py-3 rounded-xl text-sm font-medium shadow-lg pointer-events-auto"
-            style={{
-              background: t.type === "success" ? "#d1fae5" : t.type === "error" ? "#fee2e2" : "#dbeafe",
-              border: `1px solid ${t.type === "success" ? "#6ee7b7" : t.type === "error" ? "#fca5a5" : "#93c5fd"}`,
-              color: t.type === "success" ? "#065f46" : t.type === "error" ? "#991b1b" : "#1e40af",
-              maxWidth: 360,
-            }}
-          >
-            {t.msg}
-          </div>
-        ))}
-      </div>
+  // Handle lead selection on mobile
+  const handleSelectLead = (leadId) => {
+    setSelectedLead(leadId);
+    setMobileView("detail");
+  };
 
-      {/* ════ LEFT PANEL ════ */}
-      <div
-        className="flex flex-col bg-white dark:bg-[#161b22] transition-all duration-300"
-        style={{
-          width: selectedLead ? "320px" : "380px",
-          minWidth: "280px",
-          borderRight: "1px solid",
-          borderColor: "inherit",
-          flexShrink: 0,
-        }}
-      >
-        {/* border color via className for dark support */}
-        <div className="flex flex-col h-full border-r border-[#d1e8e7] dark:border-[#30363d]">
+  // ── Left panel (lead list) ──
+  const LeadListPanel = () => (
+    <div className="flex flex-col h-full border-r border-[#d1e8e7] dark:border-[#30363d]">
 
-          {/* Top controls */}
-          <div className="flex items-center justify-between px-4 pt-4 pb-3 gap-2 flex-wrap border-b border-[#e5f0ef] dark:border-[#30363d]">
-            <div
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-sm font-semibold"
-              style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-              </svg>
-              EMAIL 
-            </div>
+      {/* Top controls */}
+      <div className="flex items-center gap-2 px-3 pt-3 pb-2.5 flex-wrap border-b border-[#e5f0ef] dark:border-[#30363d]">
+        {/* Badge */}
+        <div
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold shrink-0"
+          // style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
+        >
+          {/* <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+          </svg> */}
+          
+        </div>
 
-            <button
-              onClick={handleEmailToggle}
-              disabled={emailLoading || !statusChecked}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-sm font-semibold transition-all duration-200 disabled:opacity-60"
-              style={{
-                background: emailLoading
-                  ? "#9ca3af"
-                  : isRunning
-                    ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                    : "linear-gradient(135deg, #22c55e, #16a34a)",
-                minWidth: 72,
-              }}
-            >
-              {emailLoading ? (
-                <>
-                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                  Wait…
-                </>
-              ) : isRunning ? "■ STOP" : "▶ START"}
-            </button>
-
-            {statusChecked && (
-              <div className="flex items-center gap-1.5">
-                <div className={`w-2 h-2 rounded-full ${isRunning ? "bg-green-500 animate-pulse" : "bg-gray-500"}`} />
-                <span className="text-xs text-gray-500 dark:text-gray-400">{isRunning ? "Live" : "Idle"}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Wake-up message */}
-          {wakeMsg && (
-            <div className="mx-4 mb-2 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-yellow-900/30 border border-yellow-600/40 text-yellow-300">
-              <svg className="w-3.5 h-3.5 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+        {/* Start/Stop */}
+        <button
+          onClick={handleEmailToggle}
+          disabled={emailLoading || !statusChecked}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold transition-all duration-200 disabled:opacity-60 shrink-0"
+          style={{
+            background: emailLoading
+              ? "#9ca3af"
+              : isRunning
+                ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                : "linear-gradient(135deg, #22c55e, #16a34a)",
+            minWidth: 68,
+          }}
+        >
+          {emailLoading ? (
+            <>
+              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
-              {wakeMsg}
-            </div>
-          )}
+              Wait…
+            </>
+          ) : isRunning ? "■ STOP" : "▶ START"}
+        </button>
 
-          {/* Search */}
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-2 rounded-xl px-3 py-2 bg-[#f0f9f8] dark:bg-[#21262d] border border-[#c8e6e5] dark:border-[#30363d]">
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
-              </svg>
-              <input
-                className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none"
-                placeholder="Search leads..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+        {/* Live dot */}
+        {statusChecked && (
+          <div className="flex items-center gap-1 ml-auto">
+            <div className={`w-2 h-2 rounded-full ${isRunning ? "bg-green-500 animate-pulse" : "bg-gray-400 dark:bg-gray-500"}`} />
+            <span className="text-xs text-gray-500 dark:text-gray-400">{isRunning ? "Live" : "Idle"}</span>
           </div>
+        )}
+      </div>
 
-          {/* Lead list */}
-          <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
-            {filteredLeadIds.length === 0 && (
-              <p className="text-center text-sm text-gray-400 py-8">No leads found</p>
-            )}
-            {filteredLeadIds.map((leadId) => {
-              const lead = grouped[leadId][0];
-              const name = getLeadName(lead);
-              const status = lead.status_after || "New";
-              const isSelected = selectedLead === leadId;
-              return (
-                <div
-                  key={leadId}
-                  onClick={() => setSelectedLead(leadId)}
-                  className={`flex items-center justify-between rounded-xl px-4 py-3 cursor-pointer transition-all
-                    ${isSelected
-                      ? "bg-[#e6f9f8] dark:bg-[#0ea5a420] border-[1.5px] border-[#0ea5a4]"
-                      : "bg-white dark:bg-[#21262d] border border-[#e5f0ef] dark:border-[#30363d] hover:border-[#0ea5a4]/50"
-                    }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
-                      style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
-                    >
-                      {name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{name}</p>
-                      <p className={`text-xs font-semibold mt-0.5 ${getStatusTextClass(status)}`}>{status}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{lead.email}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(lead.created_at)}</p>
-                    </div>
-                  </div>
-                  <svg className="w-4 h-4 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              );
-            })}
-          </div>
+      {/* Wake msg */}
+      {wakeMsg && (
+        <div className="mx-3 my-1.5 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-yellow-900/30 border border-yellow-600/40 text-yellow-300">
+          <svg className="w-3.5 h-3.5 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          </svg>
+          {wakeMsg}
+        </div>
+      )}
+
+      {/* Search */}
+      <div className="px-3 py-2.5">
+        <div className="flex items-center gap-2 rounded-xl px-3 py-2 bg-[#f0f9f8] dark:bg-[#21262d] border border-[#c8e6e5] dark:border-[#30363d]">
+          <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
+          </svg>
+          <input
+            className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none"
+            placeholder="Search leads..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
       </div>
 
-      {/* ════ RIGHT PANEL ════ */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-[#0d1117] overflow-hidden">
+      {/* Lead count */}
+      <div className="px-4 pb-1.5">
+        <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          {filteredLeadIds.length} Lead{filteredLeadIds.length !== 1 ? "s" : ""}
+        </span>
+      </div>
 
-        {selectedLead && selectedLeadFirst && (
-          <>
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5f0ef] dark:border-[#30363d]">
-              <div className="flex items-center gap-3">
+      {/* Lead list */}
+      <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
+        {filteredLeadIds.length === 0 && (
+          <p className="text-center text-sm text-gray-400 py-8">No leads found</p>
+        )}
+        {filteredLeadIds.map((leadId) => {
+          const lead = grouped[leadId][0];
+          const name = getLeadName(lead);
+          const status = lead.status_after || "New";
+          const isSelected = selectedLead === leadId;
+          const msgCount = grouped[leadId].length;
+          return (
+            <div
+              key={leadId}
+              onClick={() => handleSelectLead(leadId)}
+              className={`flex items-center justify-between rounded-xl px-3 py-3 cursor-pointer transition-all active:scale-[0.98]
+                ${isSelected
+                  ? "bg-[#e6f9f8] dark:bg-[#0ea5a420] border-[1.5px] border-[#0ea5a4]"
+                  : "bg-white dark:bg-[#21262d] border border-[#e5f0ef] dark:border-[#30363d] hover:border-[#0ea5a4]/50"
+                }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
                 <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
                   style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
                 >
-                  {getLeadName(selectedLeadFirst).charAt(0).toUpperCase()}
+                  {name.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <h2 className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-tight">
-                    {getLeadName(selectedLeadFirst)}
-                  </h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Client ID: <span className="font-medium text-gray-700 dark:text-gray-300">{selectedLead}</span>
-                    &nbsp;·&nbsp;{selectedLeadFirst.email}
-                  </p>
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{name}</p>
+                  <p className={`text-xs font-semibold mt-0.5 ${getStatusTextClass(status)}`}>{status}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{lead.email}</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{formatDate(lead.created_at)}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-                  </svg>
-                  Email
-                </button>
-                <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3l2 4-2.5 1.5A11 11 0 0014.5 15L16 12.5l4 2v3a2 2 0 01-2 2A16 16 0 013 5z" />
-                  </svg>
-                  Call
-                </button>
+              <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#0ea5a4]/10 text-[#0ea5a4]">
+                  {msgCount}
+                </span>
+                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
             </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
-            {/* Stage bar */}
-            <div className="px-6 py-3 overflow-x-auto border-b border-[#e5f0ef] dark:border-[#30363d]">
-              <div className="flex items-center min-w-max gap-1">
-                {STAGES.map((stage, i) => {
-                  const isActive = i === stageIndex;
-                  const isPast = i < stageIndex;
-                  const isNotQual = stage === "NotQualified";
-                  return (
-                    <div key={stage} className="flex items-center">
-                      <div
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap"
-                        style={{
-                          border: isActive
-                            ? isNotQual ? "1.5px solid #fca5a5" : "1.5px solid #0ea5a4"
-                            : "1px solid #30363d",
-                          background: isActive
-                            ? isNotQual ? "rgba(239,68,68,0.15)" : "rgba(14,165,164,0.15)"
-                            : isPast ? "rgba(255,255,255,0.04)" : "transparent",
-                          color: isActive
-                            ? isNotQual ? "#ef4444" : "#0ea5a4"
-                            : isPast ? "#6b7280" : "#6b7280",
-                        }}
-                      >
-                        {(isActive || isPast) && (
-                          <div
-                            className="w-1.5 h-1.5 rounded-full shrink-0"
-                            style={{ background: isActive ? (isNotQual ? "#ef4444" : "#0ea5a4") : "#6b7280" }}
-                          />
-                        )}
-                        {stage}
-                      </div>
-                      {i < STAGES.length - 1 && (
-                        <div className="w-4 h-px mx-0.5" style={{ background: i < stageIndex ? "#6b7280" : "#30363d" }} />
+  // ── Right panel (timeline detail) ──
+  const TimelinePanel = () => (
+    <>
+      {selectedLead && selectedLeadFirst ? (
+        <>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-[#e5f0ef] dark:border-[#30363d] gap-3 flex-wrap">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Mobile back button */}
+              <button
+                onClick={() => setMobileView("list")}
+                className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-[#f0f9f8] dark:bg-[#21262d] border border-[#c8e6e5] dark:border-[#30363d] shrink-0"
+              >
+                <svg className="w-4 h-4 text-[#0ea5a4]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div
+                className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
+                style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
+              >
+                {getLeadName(selectedLeadFirst).charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <h2 className="font-bold text-gray-900 dark:text-gray-100 text-sm md:text-lg leading-tight truncate">
+                  {getLeadName(selectedLeadFirst)}
+                </h2>
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 truncate">
+                  Client ID: <span className="font-medium text-gray-700 dark:text-gray-300">{selectedLead}</span>
+                  <span className="hidden sm:inline">&nbsp;·&nbsp;{selectedLeadFirst.email}</span>
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
+                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                </svg>
+                Email
+              </button>
+              {/* <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
+                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3l2 4-2.5 1.5A11 11 0 0014.5 15L16 12.5l4 2v3a2 2 0 01-2 2A16 16 0 013 5z" />
+                </svg>
+                Call
+              </button> */}
+            </div>
+          </div>
+
+          {/* Stage bar — horizontally scrollable */}
+          <div className="px-4 md:px-6 py-2.5 overflow-x-auto border-b border-[#e5f0ef] dark:border-[#30363d] scrollbar-none">
+            <div className="flex items-center min-w-max gap-1">
+              {STAGES.map((stage, i) => {
+                const isActive = i === stageIndex;
+                const isPast = i < stageIndex;
+                const isNotQual = stage === "NotQualified";
+                return (
+                  <div key={stage} className="flex items-center">
+                    <div
+                      className="flex items-center gap-1 px-2.5 py-1 text-[10px] md:text-xs font-medium rounded-full whitespace-nowrap"
+                      style={{
+                        border: isActive
+                          ? isNotQual ? "1.5px solid #fca5a5" : "1.5px solid #0ea5a4"
+                          : "1px solid #30363d",
+                        background: isActive
+                          ? isNotQual ? "rgba(239,68,68,0.15)" : "rgba(14,165,164,0.15)"
+                          : isPast ? "rgba(255,255,255,0.04)" : "transparent",
+                        color: isActive
+                          ? isNotQual ? "#ef4444" : "#0ea5a4"
+                          : "#6b7280",
+                      }}
+                    >
+                      {(isActive || isPast) && (
+                        <div
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ background: isActive ? (isNotQual ? "#ef4444" : "#0ea5a4") : "#6b7280" }}
+                        />
                       )}
+                      {stage}
                     </div>
-                  );
-                })}
-              </div>
+                    {i < STAGES.length - 1 && (
+                      <div className="w-3 h-px mx-0.5" style={{ background: i < stageIndex ? "#6b7280" : "#30363d" }} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
+          </div>
 
-            {/* Timeline */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 bg-[#f8fffe] dark:bg-[#0d1117]">
-              <div className="relative max-w-4xl mx-auto">
-                <div
-                  className="absolute top-0 bottom-0 w-px"
-                  style={{ left: "50%", transform: "translateX(-50%)", background: "#30363d" }}
-                />
-                {selectedLeadData.map((item, index) => (
-                  <div key={index} className="flex flex-col gap-4">
-                    {/* Inbound */}
+          {/* Message count badge */}
+          <div className="px-4 md:px-6 pt-3 pb-1 flex items-center gap-2">
+            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+              {sortedLeadData.length} message{sortedLeadData.length !== 1 ? "s" : ""}
+            </span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">· newest first</span>
+          </div>
+
+          {/* ── Timeline — newest first, responsive ── */}
+          <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4 bg-[#f8fffe] dark:bg-[#0d1117]">
+            <div className="relative max-w-4xl mx-auto space-y-4 md:space-y-0">
+
+              {/* Desktop center line */}
+              <div
+                className="hidden md:block absolute top-0 bottom-0 w-px"
+                style={{ left: "50%", transform: "translateX(-50%)", background: "#30363d" }}
+              />
+
+              {sortedLeadData.map((item, index) => (
+                <div key={index}>
+
+                  {/* ── Mobile layout: chat bubbles ── */}
+                  <div className="md:hidden space-y-3 mb-3">
                     {item.inbound_summary && (
-                      <div className="relative flex w-full mb-4">
+                      <div className="flex justify-start gap-2">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                          style={{ background: "rgba(37,99,235,0.2)", border: "1px solid rgba(59,130,246,0.3)" }}>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="#60a5fa" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                          </svg>
+                        </div>
+                        <div className="max-w-[80%] rounded-2xl rounded-tl-sm px-3.5 py-2.5"
+                          style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(59,130,246,0.2)" }}>
+                          <p className="text-[9px] font-bold tracking-wider mb-1 text-blue-400">AGENT · INBOUND</p>
+                          <p className="text-xs text-gray-300 leading-relaxed">{item.inbound_summary}</p>
+                          <p className="text-[10px] text-gray-500 mt-1.5">{formatDate(item.created_at)}</p>
+                        </div>
+                      </div>
+                    )}
+                    {item.outbound_summary && (
+                      <div className="flex justify-end gap-2">
+                        <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-3.5 py-2.5"
+                          style={{ background: "rgba(5,150,105,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                          <p className="text-[9px] font-bold tracking-wider mb-1 text-emerald-400">HUMAN · OUTBOUND</p>
+                          <p className="text-xs text-gray-300 leading-relaxed">{item.outbound_summary}</p>
+                          <div className="flex items-center justify-between mt-1.5 gap-2">
+                            <p className="text-[10px] text-gray-500">{formatDate(item.created_at)}</p>
+                            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                          style={{ background: "rgba(5,150,105,0.2)", border: "1px solid rgba(16,185,129,0.3)" }}>
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="#34d399" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── Desktop layout: centered timeline ── */}
+                  <div className="hidden md:flex flex-col gap-4 mb-4">
+                    {item.inbound_summary && (
+                      <div className="relative flex w-full">
                         <div className="w-1/2 flex justify-end pr-10">
                           <div
                             className="p-4 rounded-2xl max-w-sm w-full"
@@ -435,9 +496,8 @@ export default function AgentWorkflowPage() {
                       </div>
                     )}
 
-                    {/* Outbound */}
                     {item.outbound_summary && (
-                      <div className="relative flex w-full mb-10">
+                      <div className="relative flex w-full mb-6">
                         <div className="w-1/2" />
                         <div
                           className="absolute z-10 flex items-center justify-center"
@@ -474,30 +534,87 @@ export default function AgentWorkflowPage() {
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
 
-        {/* Empty state */}
-        {!selectedLead && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <svg className="w-16 h-16 mx-auto mb-3 opacity-20" fill="none" stroke="#0ea5a4" strokeWidth={1} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z" />
-              </svg>
-              <p className="text-sm text-gray-400 dark:text-gray-500">Select a lead to view the email timeline</p>
-              <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">or use ICP Analyser on the left</p>
+                </div>
+              ))}
             </div>
+          </div>
+        </>
+      ) : (
+        /* Empty state */
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center px-6">
+            <svg className="w-14 h-14 mx-auto mb-3 opacity-20" fill="none" stroke="#0ea5a4" strokeWidth={1} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z" />
+            </svg>
+            <p className="text-sm text-gray-400 dark:text-gray-500">Select a lead to view the email timeline</p>
+            <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">or use ICP Analyser on the left</p>
+            {/* Mobile hint */}
+            <button
+              onClick={() => setMobileView("list")}
+              className="md:hidden mt-3 text-xs px-4 py-2 rounded-lg font-semibold text-white"
+              style={{ background: "linear-gradient(135deg,#0ea5a4,#0284c7)" }}
+            >
+              ← Browse Leads
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <div className="flex h-screen overflow-hidden relative bg-[#e6f2f1] dark:bg-[#0d1117]">
+
+      {/* Toast stack */}
+      <div className="fixed top-4 right-4 z-[9999] space-y-2 pointer-events-none">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className="px-4 py-3 rounded-xl text-sm font-medium shadow-lg pointer-events-auto"
+            style={{
+              background: t.type === "success" ? "#d1fae5" : t.type === "error" ? "#fee2e2" : "#dbeafe",
+              border: `1px solid ${t.type === "success" ? "#6ee7b7" : t.type === "error" ? "#fca5a5" : "#93c5fd"}`,
+              color: t.type === "success" ? "#065f46" : t.type === "error" ? "#991b1b" : "#1e40af",
+              maxWidth: 320,
+            }}
+          >
+            {t.msg}
+          </div>
+        ))}
+      </div>
+
+      {/* ── Desktop: side-by-side ── */}
+      <div className="hidden md:flex w-full h-full">
+        {/* Left panel */}
+        <div
+          className="flex-shrink-0 bg-white dark:bg-[#161b22] transition-all duration-300"
+          style={{ width: selectedLead ? "300px" : "360px", minWidth: "260px" }}
+        >
+          <LeadListPanel />
+        </div>
+        {/* Right panel */}
+        <div className="flex-1 flex flex-col bg-white dark:bg-[#0d1117] overflow-hidden min-w-0">
+          <TimelinePanel />
+        </div>
+      </div>
+
+      {/* ── Mobile: tab-based ── */}
+      <div className="md:hidden w-full h-full flex flex-col">
+        {mobileView === "list" ? (
+          <div className="flex-1 bg-white dark:bg-[#161b22] overflow-hidden flex flex-col">
+            <LeadListPanel />
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col bg-white dark:bg-[#0d1117] overflow-hidden">
+            <TimelinePanel />
           </div>
         )}
       </div>
+
     </div>
   );
 }
-
-
 
 
 // "use client";

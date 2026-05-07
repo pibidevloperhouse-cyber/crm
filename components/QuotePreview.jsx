@@ -335,7 +335,7 @@ function QuotePreview({ dealId, children }) {
                   className="bg-white w-[900px] p-8 shadow-md text-gray-900 border"
                 >
                   {/* Header */}
-                  {template?.header_image_url ? (
+                  {/* {template?.header_image_url ? (
                     <div className="w-full mb-6 h-[150px] overflow-hidden">
                       <img
                         src={template.header_image_url}
@@ -368,7 +368,40 @@ function QuotePreview({ dealId, children }) {
                             {deal.salesperson || "[salesperson name]"}
                           </p>
                         </div>
-                      </div>
+                      </div> */}
+                      {template?.header_image_url ? (
+                        <div className="w-full mb-6 h-[150px] overflow-hidden">
+                          <img
+                            src={template.header_image_url}
+                            alt="Company Header"
+                            className="w-full h-full object-cover"
+                            crossOrigin="anonymous"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex justify-between">
+                          <div>
+                            <div className="flex items-center gap-3">
+                              <div className="bg-blue-300 w-10 h-10 flex items-center justify-center text-xs font-bold text-black">
+                                LOGO
+                              </div>
+                              <h1 className="text-2xl font-bold text-blue-900">
+                                {template?.template_data?.headerTitle || deal.title || "Company Name"}
+                              </h1>
+                            </div>
+                            <div>
+                              <p className="text-l font-bold text-blue-900">
+                                {template?.template_data?.headerSubtitle || deal.subtitle || "Company Tagline"}
+                              </p>
+                            </div>
+
+                            <div className="text-sm mt-3 leading-6 font-medium">
+                              <p>{template?.template_data?.headerAddress || deal.address || "[Street Address]"}</p>
+                              <p>{template?.template_data?.headerPhone || deal.number || "[000-000-0000]"}</p>
+                              <p>{template?.template_data?.headerEmail || deal.email || "[email]"}</p>
+                            </div>
+                          </div>
+
 
                       {/* Quote Box */}
                       <div className="text-right">
@@ -612,14 +645,9 @@ function QuotePreview({ dealId, children }) {
                     </div>
                   ) : (
                     <div className="text-center text-sm mt-8 font-medium">
-                      <p>
-                        If you have any questions about this price quote, please
-                        contact
-                      </p>
-                      <p>[Name, Phone #, E-mail]</p>
-                      <p className="italic font-semibold mt-2">
-                        Thank You For Your Business!
-                      </p>
+                      <p>{template?.template_data?.footerNote || "If you have any questions about this price quote, please contact"}</p>
+                      <p>{template?.template_data?.footerDisclaimer || ""}</p>
+                      <p className="italic font-semibold mt-2">Thank You For Your Business!</p>
                     </div>
                   )}
                 </div>
