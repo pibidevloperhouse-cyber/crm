@@ -27,18 +27,18 @@ export default function PayrollPage() {
     deductions: { Tax: 0 },
   });
   useEffect(() => {
-  try {
-    const sessionJSON = JSON.parse(localStorage.getItem("session"));
-    if (sessionJSON?.user?.email) {
-      setUserEmail(sessionJSON.user.email);
-    } else {
+    try {
+      const sessionJSON = JSON.parse(localStorage.getItem("session"));
+      if (sessionJSON?.user?.email) {
+        setUserEmail(sessionJSON.user.email);
+      } else {
+        redirect("/");
+      }
+    } catch (e) {
+      console.error("Session error:", e);
       redirect("/");
     }
-  } catch (e) {
-    console.error("Session error:", e);
-    redirect("/");
-  }
-}, []);
+  }, []);
   const fetchEmployees = async () => {
     if (!userEmail) return;
     
@@ -71,7 +71,7 @@ export default function PayrollPage() {
         allowances: [payroll.allowances],
         deductions: [payroll.deductions],
       })
-      .eq("id", editing.id);
+      .eq("id", editing.id).select();
 
     if (error) {
       toast.error("Error saving payroll");
