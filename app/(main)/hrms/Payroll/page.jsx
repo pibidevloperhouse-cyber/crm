@@ -111,11 +111,12 @@ export default function PayrollPage() {
     const { error } = await supabase
       .from("Employees")
       .update({
-        salary: payroll.salary,
-        allowances: payroll.allowances,
-        deductions: payroll.deductions,
+        salary: Number(payroll.salary),
+        allowances: [payroll.allowances],
+        deductions: [payroll.deductions],
       })
-      .eq("id", editing.id);
+      .eq("id", editing.id)
+      .select();
 
     if (error) {
       toast.error("Error saving payroll");
