@@ -337,53 +337,53 @@ export default function ProductsPage() {
 
   // ── Add Product Dialog Content (reusable) ───────────────────────────────────
   const AddProductDialogContent = () => (
-    <DialogContent className="bg-white border border-slate-200 shadow-xl rounded-2xl max-w-lg">
-      <DialogTitle className="text-lg font-semibold text-slate-800">Add New Product</DialogTitle>
-      <DialogDescription className="text-sm text-slate-500">
+    <DialogContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl rounded-2xl max-w-lg">
+      <DialogTitle className="text-lg font-semibold text-slate-800 dark:text-slate-100">Add New Product</DialogTitle>
+      <DialogDescription className="text-sm text-slate-500 dark:text-slate-400">
         Fill in the details below to add a new product.
       </DialogDescription>
       <div className="flex flex-col gap-4 py-2">
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Product Name</Label>
+            <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Product Name</Label>
             <Input className="h-9 text-sm" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} />
             {errors.newProduct?.name && <p className="text-red-500 text-xs">{errors.newProduct.name}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Category</Label>
+            <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Category</Label>
             <Input className="h-9 text-sm" value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} />
             {errors.newProduct?.category && <p className="text-red-500 text-xs">{errors.newProduct.category}</p>}
           </div>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Description</Label>
+          <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Description</Label>
           <Input className="h-9 text-sm" value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} />
           {errors.newProduct?.description && <p className="text-red-500 text-xs">{errors.newProduct.description}</p>}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Stock</Label>
+            <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Stock</Label>
             <Input className="h-9 text-sm" type="number" value={newProduct.stock} onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Base Price</Label>
+            <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Base Price</Label>
             <Input className="h-9 text-sm" placeholder="0.00" type="number" value={newProduct.basePrice} onChange={(e) => setNewProduct({ ...newProduct, basePrice: e.target.value })} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Currency</Label>
+            <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Currency</Label>
             <CurrencyDropDown value={newProduct.currency} onValueChange={(value) => setNewProduct((prev) => ({ ...prev, currency: value }))} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Billing Cycle</Label>
+            <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Billing Cycle</Label>
             <BillingCycleSelect value={newProduct.billingCycle} onValueChange={(value) => setNewProduct((prev) => ({ ...prev, billingCycle: value }))} />
           </div>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 py-3">
           <div>
-            <p className="text-sm font-medium text-slate-700">Enable Configuration</p>
-            <p className="text-xs text-slate-500">Allow custom configuration options for this product</p>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Enable Configuration</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Allow custom configuration options for this product</p>
           </div>
           <Switch checked={newProduct.isConfigurable} onCheckedChange={(value) => setNewProduct({ ...newProduct, isConfigurable: value })} />
         </div>
@@ -405,7 +405,7 @@ export default function ProductsPage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold text-teal-600">Products</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
             Manage your inventory and product configurations in one place.
           </p>
         </div>
@@ -417,7 +417,7 @@ export default function ProductsPage() {
               + Add New Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 bg-white/70 mb-6">
+          <DialogContent className="backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 bg-white/70 dark:bg-slate-900/70 mb-6">
             <DialogTitle>Add New Product</DialogTitle>
             <DialogDescription>
               Please fill in the details of the new product you want to add.
@@ -467,13 +467,13 @@ export default function ProductsPage() {
               <div>
                 <div className="flex flex-col gap-2">
                   <div className="flex mt-2 gap-2">
-                    <Label className="mb-2 text-slate-700 dark:text-slate-300 w-1/5">Currency</Label>
+                    <Label className="mb-2 text-slate-700 dark:text-slate-200 dark:text-slate-300 w-1/5">Currency</Label>
                     <CurrencyDropDown
                       value={newProduct.currency}
                       onValueChange={(value) => setNewProduct((prev) => ({ ...prev, currency: value }))}
                     />
                   </div>
-                  <Label className="mb-2 text-slate-700 dark:text-slate-300">Base Price</Label>
+                  <Label className="mb-2 text-slate-700 dark:text-slate-200 dark:text-slate-300">Base Price</Label>
                   <Input
                     placeholder="Price"
                     type="number"
@@ -508,13 +508,13 @@ export default function ProductsPage() {
       </div>
 
       {/* ── Tab Switcher ── */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit border border-slate-200">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit border border-slate-200 dark:border-slate-700">
         <button
           onClick={() => setActiveTab("inventory")}
           className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
             activeTab === "inventory"
-              ? "bg-white shadow-sm text-teal-700 border border-slate-200"
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-white dark:bg-slate-900 shadow-sm text-teal-700 border border-slate-200 dark:border-slate-700"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
           }`}
         >
           <LayoutList className="size-4" />
@@ -524,8 +524,8 @@ export default function ProductsPage() {
           onClick={() => setActiveTab("configure")}
           className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
             activeTab === "configure"
-              ? "bg-white shadow-sm text-teal-700 border border-slate-200"
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-white dark:bg-slate-900 shadow-sm text-teal-700 border border-slate-200 dark:border-slate-700"
+              : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
           }`}
         >
           <Settings2 className="size-4" />
@@ -541,17 +541,17 @@ export default function ProductsPage() {
           {/* Search & Filters */}
           <div className="flex items-center gap-3 flex-wrap">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <PackageSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+              <PackageSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-slate-500" />
               <Input
                 placeholder="Search by name or category…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-10 text-sm bg-white border-slate-200 rounded-lg"
+                className="pl-9 h-10 text-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg"
               />
             </div>
 
             <Select onValueChange={setCategory} defaultValue="all">
-              <SelectTrigger className="w-44 h-10 text-sm bg-white border-slate-200 rounded-lg">
+              <SelectTrigger className="w-44 h-10 text-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
@@ -563,7 +563,7 @@ export default function ProductsPage() {
             </Select>
 
             <Select onValueChange={setSort} defaultValue="name-asc">
-              <SelectTrigger className="w-44 h-10 text-sm bg-white border-slate-200 rounded-lg">
+              <SelectTrigger className="w-44 h-10 text-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -576,21 +576,21 @@ export default function ProductsPage() {
               </SelectContent>
             </Select>
 
-            <span className="ml-auto text-xs text-slate-400 font-medium">
+            <span className="ml-auto text-xs text-slate-400 dark:text-slate-500 font-medium">
               {filtered.length} product{filtered.length !== 1 ? "s" : ""}
             </span>
           </div>
 
           {/* Table */}
-          <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50 border-b border-slate-200 hover:bg-slate-50">
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wide py-3 pl-6">Product</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wide py-3">Category</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wide py-3">Price</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wide py-3">Stock</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wide py-3">Status</TableHead>
+                <TableRow className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                  <TableHead className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide py-3 pl-6">Product</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide py-3">Category</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide py-3">Price</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide py-3">Stock</TableHead>
+                  <TableHead className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide py-3">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -598,29 +598,29 @@ export default function ProductsPage() {
                   <TableRow>
                     <TableCell colSpan="5" className="py-16 text-center">
                       <Loader2 className="size-6 animate-spin mx-auto text-teal-500" />
-                      <p className="text-sm text-slate-400 mt-2">Loading products…</p>
+                      <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">Loading products…</p>
                     </TableCell>
                   </TableRow>
                 ) : filtered.length > 0 ? (
                   filtered.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0">
+                    <TableRow key={item.id} className="transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0">
                       <TableCell className="py-4 pl-6">
                         <div className="flex items-center gap-3">
                           <div className="size-8 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center flex-shrink-0">
                             <Box className="size-4 text-teal-600" />
                           </div>
-                          <span className="font-medium text-slate-800 text-sm">{item.name}</span>
+                          <span className="font-medium text-slate-800 dark:text-slate-100 text-sm">{item.name}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
+                        <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full">
                           {item.category}
                         </span>
                       </TableCell>
-                      <TableCell className="font-semibold text-slate-800 text-sm">
+                      <TableCell className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
                         ₹{Number(item.base_price).toLocaleString("en-IN")}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-600 font-medium">{item.stock}</TableCell>
+                      <TableCell className="text-sm text-slate-600 dark:text-slate-300 font-medium">{item.stock}</TableCell>
                       <TableCell>
                         {item.stock == 0 ? (
                           <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 rounded-full">
@@ -628,7 +628,7 @@ export default function ProductsPage() {
                             Out of Stock
                           </span>
                         ) : item.stock < 10 ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-orange-50 text-orange-600 border border-orange-200 px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-400 bg-red-400/10 hover:bg-red-400/20 border border-orange-200 px-2.5 py-1 rounded-full">
                             <span className="size-1.5 rounded-full bg-orange-500 inline-block" />
                             Low Stock
                           </span>
@@ -645,11 +645,11 @@ export default function ProductsPage() {
                   <TableRow>
                     <TableCell colSpan="5" className="py-16 text-center">
                       <div className="flex flex-col items-center gap-2">
-                        <div className="size-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-                          <PackageSearch className="size-6 text-slate-400" />
+                        <div className="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                          <PackageSearch className="size-6 text-slate-400 dark:text-slate-500" />
                         </div>
-                        <p className="text-sm font-medium text-slate-600">No products found</p>
-                        <p className="text-xs text-slate-400">Try adjusting your search or filters</p>
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300">No products found</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500">Try adjusting your search or filters</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -668,18 +668,18 @@ export default function ProductsPage() {
           {products.length === 0 ? (
             <div className="py-20 text-center">
               <div className="flex flex-col items-center gap-3">
-                <div className="size-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-                  <PackageSearch className="size-7 text-slate-400" />
+                <div className="size-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                  <PackageSearch className="size-7 text-slate-400 dark:text-slate-500" />
                 </div>
-                <p className="text-sm font-medium text-slate-600">No products configured yet</p>
-                <p className="text-xs text-slate-400">Click "Add New Product" to get started</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">No products configured yet</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Click "Add New Product" to get started</p>
               </div>
             </div>
           ) : (
             products.map((product, index) => (
               <div
                 key={index}
-                className={`rounded-2xl border bg-white shadow-sm overflow-hidden transition-all hover:shadow-md ${
+                className={`rounded-2xl border bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition-all hover:shadow-md ${
                   product.isActive === false ? "opacity-70" : ""
                 }`}
               >
@@ -694,14 +694,14 @@ export default function ProductsPage() {
                         <Package className="size-5 text-teal-600" />
                       </div>
                       <div>
-                        <h2 className="text-base font-semibold text-slate-800 leading-tight">{product.name}</h2>
-                        <p className="text-xs text-slate-400 mt-0.5">{product.description || "No description"}</p>
+                        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100 leading-tight">{product.name}</h2>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{product.description || "No description"}</p>
                       </div>
                     </div>
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${
                       product.isActive === false
-                        ? "bg-red-50 text-red-600 border border-red-200"
-                        : "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                        ? "text-red-400 bg-red-400/10 hover:bg-red-400/20"
+                        : "text-teal-400 bg-teal-400/10 hover:bg-teal-400/20"
                     }`}>
                       {product.isActive === false ? "Inactive" : "Active"}
                     </span>
@@ -709,16 +709,16 @@ export default function ProductsPage() {
 
                   {/* Info chips */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">
+                    <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full font-medium">
                       📦 {product.category || "Uncategorised"}
                     </span>
-                    <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">
+                    <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full font-medium">
                       ₹ {product.basePrice || product.base_price || 0}
                     </span>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                       product.stock === 0 || product.stock === undefined
-                        ? "bg-red-50 text-red-500"
-                        : "bg-slate-100 text-slate-600"
+                        ? "text-red-400 bg-red-400/10 hover:bg-red-400/20"
+                        : "text-red-400 bg-red-400/10 hover:bg-red-400/20"
                     }`}>
                       {product.stock === 0 || product.stock === undefined
                         ? "⚠ Out of stock — update needed"
@@ -726,15 +726,15 @@ export default function ProductsPage() {
                     </span>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                       product.isConfigurable
-                        ? "bg-teal-50 text-teal-600 border border-teal-200"
-                        : "bg-slate-100 text-slate-500"
+                        ? "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
+                        : "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
                     }`}>
                       {product.isConfigurable ? "⚙ Configurable" : "⚙ Not configurable"}
                     </span>
                   </div>
 
                   {/* Divider */}
-                  <div className="border-t border-slate-100 mb-4" />
+                  <div className="border-t border-slate-100 dark:border-slate-800 mb-4" />
 
                   {/* Action buttons — active */}
                   <div className={`flex flex-wrap gap-2 ${product.isActive === false ? "hidden" : "flex"}`}>
@@ -745,40 +745,40 @@ export default function ProductsPage() {
                       <DialogTrigger asChild>
                         <Button
                           size="sm"
-                          className="h-8 px-3 text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 shadow-none rounded-lg cursor-pointer"
+                          className="h-8 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-none rounded-lg cursor-pointer"
                           onClick={() => { setEdit(true); setEditProductIndex(index); setDialogOpen(true); }}
                         >
                           <Edit className="mr-1.5 size-3.5" />
                           Edit
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="bg-white border border-slate-200 shadow-xl rounded-2xl max-w-md">
-                        <DialogTitle className="text-lg font-semibold text-slate-800">Edit Product</DialogTitle>
-                        <DialogDescription className="text-sm text-slate-500">Update the product details below.</DialogDescription>
+                      <DialogContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl rounded-2xl max-w-md">
+                        <DialogTitle className="text-lg font-semibold text-slate-800 dark:text-slate-100">Edit Product</DialogTitle>
+                        <DialogDescription className="text-sm text-slate-500 dark:text-slate-400">Update the product details below.</DialogDescription>
                         {editProductIndex !== null && products[editProductIndex] && (
                           <div className="flex flex-col gap-4 py-2">
                             <div className="grid grid-cols-2 gap-4">
                               <div className="flex flex-col gap-1.5">
-                                <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Name</Label>
+                                <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Name</Label>
                                 <Input className="h-9 text-sm" value={products[editProductIndex].name || ""} onChange={(e) => handleProductEditor(editProductIndex, "name", e.target.value)} />
                               </div>
                               <div className="flex flex-col gap-1.5">
-                                <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Category</Label>
+                                <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Category</Label>
                                 <Input className="h-9 text-sm" value={products[editProductIndex].category || ""} onChange={(e) => handleProductEditor(editProductIndex, "category", e.target.value)} />
                               </div>
                             </div>
                             <div className="flex flex-col gap-1.5">
-                              <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Description</Label>
+                              <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Description</Label>
                               <Input className="h-9 text-sm" value={products[editProductIndex].description || ""} onChange={(e) => handleProductEditor(editProductIndex, "description", e.target.value)} />
                             </div>
                             <div className="flex flex-col gap-1.5">
-                              <Label className="text-xs font-medium text-slate-600 uppercase tracking-wide">Stock</Label>
+                              <Label className="text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">Stock</Label>
                               <Input className="h-9 text-sm" type="number" value={products[editProductIndex].stock || ""} onChange={(e) => handleProductEditor(editProductIndex, "stock", e.target.value)} />
                             </div>
-                            <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                            <div className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 py-3">
                               <div>
-                                <p className="text-sm font-medium text-slate-700">Enable Configuration</p>
-                                <p className="text-xs text-slate-500">Allow custom options for this product</p>
+                                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Enable Configuration</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Allow custom options for this product</p>
                               </div>
                               <Switch
                                 checked={products[editProductIndex].isConfigurable !== undefined ? products[editProductIndex].isConfigurable : configurable}
@@ -800,7 +800,7 @@ export default function ProductsPage() {
                         <SheetTrigger asChild>
                           <Button
                             size="sm"
-                            className="h-8 px-3 text-xs bg-white border border-teal-200 hover:bg-teal-50 text-teal-700 shadow-none rounded-lg cursor-pointer"
+                            className="h-8 px-3 text-xs bg-white dark:bg-slate-900 border border-teal-200 hover:bg-teal-50 text-teal-700 shadow-none rounded-lg cursor-pointer"
                             onClick={() => { setConfig(true); setConfig(false); }}
                           >
                             {config && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
@@ -808,9 +808,9 @@ export default function ProductsPage() {
                             Configure
                           </Button>
                         </SheetTrigger>
-                        <SheetContent className="space-y-6 overflow-y-auto min-h-[80vh] md:min-w-[85vw] min-w-screen bg-white border border-slate-200">
+                        <SheetContent className="space-y-6 overflow-y-auto min-h-[80vh] md:min-w-[85vw] min-w-screen bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                           <SheetHeader>
-                            <SheetTitle className="text-slate-800">Customise Product Configuration</SheetTitle>
+                            <SheetTitle className="text-slate-800 dark:text-slate-100">Customise Product Configuration</SheetTitle>
                             <SheetDescription>Configure the settings as per your product's design.</SheetDescription>
                           </SheetHeader>
                           <ConfigureProduct product={product} config={product.config} userEmail={userEmail} />
@@ -820,7 +820,7 @@ export default function ProductsPage() {
 
                     <Button
                       size="sm"
-                      className="h-8 px-3 text-xs bg-white border border-red-200 hover:bg-red-50 text-red-500 shadow-none rounded-lg cursor-pointer ml-auto"
+                      className="h-8 px-3 text-xs bg-white dark:bg-slate-900 border border-red-200 hover:bg-red-50 text-red-500 shadow-none rounded-lg cursor-pointer ml-auto"
                       onClick={() => { setDiscontinue(true); handleProductChange(index, "isActive", false); setDiscontinue(false); }}
                     >
                       {discontinue && <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />}
@@ -833,7 +833,7 @@ export default function ProductsPage() {
                   <div className={`flex justify-end ${product.isActive === false ? "flex" : "hidden"}`}>
                     <Button
                       size="sm"
-                      className="h-8 px-3 text-xs bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-600 shadow-none rounded-lg cursor-pointer"
+                      className="h-8 px-3 text-xs bg-white dark:bg-slate-900 border border-emerald-300 hover:bg-emerald-50 text-emerald-600 shadow-none rounded-lg cursor-pointer"
                       onClick={() => {
                         setReinstate(true);
                         const { id: _dropped, ...productWithoutId } = product;
