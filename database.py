@@ -507,3 +507,25 @@ def get_customers(user_email=None):
 #     except Exception as e:
 #         print("Error fetching Leads:", e)
 #         return []
+
+
+
+
+
+#def update_entity_status(
+#     entity_type: str, contact_email: str, user_email: str, new_status: str
+# ):
+#     """Update the status of an entity."""
+#     table = ENTITY_TABLES.get(entity_type)
+#     if not table:
+#         print(f"Unknown entity type: {entity_type}")
+#         return
+#     try:
+#         data = {"status": new_status}
+#         if table != "Deals":
+#             data["updated_at"] = datetime.now().isoformat()
+            
+#         supabase.table(table).update(data).eq("email", contact_email).eq("user_email", user_email).execute()
+#         print(f"✅ [{entity_type}] {contact_email} status updated to {new_status}")
+#     except Exception as e:
+#         print(f"❌ Error updating {entity_type} status: {e}")

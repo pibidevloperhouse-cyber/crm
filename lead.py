@@ -426,3 +426,16 @@ def format_conversation_history(memories: list) -> str:
 #     except Exception as e:
 #         print(f"Error analyzing email: {e}")
 #         return None
+
+
+
+# Return STRICTLY as a JSON object with these TOP-LEVEL fields:
+# - is_lead (bool): True if genuine interest
+# - confidence (float): 0.0 to 1.0
+# - extracted_content (object): {{ "name": "...", "company": "...", "number": "...", etc. }}
+# - initial_status (string): "New" or "Meeting Booked" (for Nova)
+# - reply_text (string): Your context-aware response
+# - summary (string): Max 2 lines summary
+# - reasoning (string): Rationale for lead classification
+
+# Do NOT nest is_lead, confidence, initial_status, reply_text, summary, or reasoning INSIDE extracted_content.
