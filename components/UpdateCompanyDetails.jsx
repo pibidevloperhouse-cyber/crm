@@ -22,11 +22,11 @@ const ErrorMessage = ({ error }) => {
   );
 };
 
-/* ─────────────────────────────────────────────────────────
-   ICP result display — handles BOTH shapes:
-   • Supabase shape: { icp, high, medium, low }
-   • Render /icp/chat shape: { ICP, high_prospect_group, … }
-─�  // Helper to safely parse JSON strings
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   ICP result display â€” handles BOTH shapes:
+   â€¢ Supabase shape: { icp, high, medium, low }
+   â€¢ Render /icp/chat shape: { ICP, high_prospect_group, â€¦ }
+â”€â”  // Helper to safely parse JSON strings
   const safeParse = (val) => {
     if (!val) return null;
     if (typeof val === "object") return val;
@@ -39,16 +39,23 @@ const ErrorMessage = ({ error }) => {
 
   // Normalise to a single shape
   const icp = icpData.ICP || icpData.icp || null;
-  const high = safeParse(icpData.high_prospect_group || icpData.high);
-  const medium = safeParse(icpData.medium_prospect_group || icpData.medium);
-  const low = safeParse(icpData.low_prospect_group || icpData.low);
+  
+  const normalizeSegment = (val) => {
+    const parsed = safeParse(val);
+    if (!parsed) return null;
+    if (typeof parsed === "string") return { profile: parsed, conversion_chance: "N/A" };
+    if (Array.isArray(parsed)) return { profile: parsed.join(", "), conversion_chance: "N/A" };
+    return parsed;
+  };
+
+  const high = normalizeSegment(icpData.high_prospect_group || icpData.high);
+  const medium = normalizeSegment(icpData.medium_prospect_group || icpData.medium);
+  const low = normalizeSegment(icpData.low_prospect_group || icpData.low);
 
   const groups = [
     { label: "High Conversion", data: high, bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-200 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-300", accent: "bg-emerald-200 text-emerald-800" },
     { label: "Medium Conversion", data: medium, bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-200 dark:border-amber-800", text: "text-amber-700 dark:text-amber-300", accent: "bg-amber-200 text-amber-800" },
     { label: "Low Conversion", data: low, bg: "bg-red-50/50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-300", accent: "bg-red-200 text-red-800" },
-  ];yellow-800", text: "text-yellow-700 dark:text-yellow-300" },
-    { label: "Low Conversion", data: low, bg: "bg-red-50/50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-300" },
   ];
 
   // Helper to safely parse and normalize icp data
@@ -101,19 +108,28 @@ const ErrorMessage = ({ error }) => {
               {groups.map(({ label, data, bg, border, text }) =>
                 data ? (
                   <div key={label} className={`p-4 rounded-lg border ${border} ${bg}`}>
-                    <h5 className={`font-semibold ${text}`}>
-                      {label}
-                      {data.conversion_chance ? ` (${data.conversion_chance})` : ""}
-                    </h5>
+                    <div className="flex items-center justify-between mb-1">
+                      <h5 className={`font-bold ${text}`}>
+                        {label}
+                      </h5>
+                      {data.conversion_chance && data.conversion_chance !== "N/A" && (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${accent} bg-opacity-20`}>
+                          {data.conversion_chance}
+                        </span>
+                      )}
+                    </div>
                     {data.profile && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{data.profile}</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                        {data.profile}
+                      </p>
                     )}
-                    {/* Render any extra keys */}
-                    {Object.entries(data)
+                    {/* Render any extra keys only if it's a real object */}
+                    {typeof data === 'object' && !Array.isArray(data) && Object.entries(data)
                       .filter(([k]) => k !== "conversion_chance" && k !== "profile")
                       .map(([k, v]) => (
-                        <p key={k} className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
-                          <span className="font-medium capitalize">{k.replace(/_/g, " ")}:</span> {String(v)}
+                        <p key={k} className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          <span className="font-semibold uppercase text-[10px] mr-1">{k.replace(/_/g, " ")}:</span> 
+                          {String(v)}
                         </p>
                       ))}
                   </div>
@@ -127,9 +143,9 @@ const ErrorMessage = ({ error }) => {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    Main component
-═══════════════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 export default function UpdateCompanyDetails({ onGenerateICP }) {
   const [loading, setLoading] = useState(false);
   const [companyData, setCompanyData] = useState({});
@@ -140,7 +156,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
   const [errors, setErrors] = useState({ newProduct: {} });
   const [userEmail, setUserEmail] = useState(null);
 
-  /* ── Session ── */
+  /* â”€â”€ Session â”€â”€ */
   useEffect(() => {
     try {
       const raw = localStorage.getItem("session");
@@ -148,7 +164,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     } catch (e) { console.error(e); }
   }, []);
 
-  /* ── Fetch company + ICP ── */
+  /* â”€â”€ Fetch company + ICP â”€â”€ */
   useEffect(() => {
     if (!userEmail) return;
 
@@ -191,7 +207,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     load();
   }, [userEmail]);
 
-  /* ── Field handlers ── */
+  /* â”€â”€ Field handlers â”€â”€ */
   const handleCompanyChange = (field, value) =>
     setCompanyData((prev) => ({ ...prev, [field]: value }));
 
@@ -221,7 +237,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
   const removeProduct = (id) =>
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
-  /* ── Save locally ── */
+  /* â”€â”€ Save locally â”€â”€ */
   const handleSaveChanges = () => {
     setLoading(true);
     localStorage.setItem("companyDataCache", JSON.stringify({ ...companyData, products }));
@@ -229,7 +245,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     setLoading(false);
   };
 
-  /* ── Update DB + trigger ICP ── */
+  /* â”€â”€ Update DB + trigger ICP â”€â”€ */
   const handleUpdateDB = async () => {
     setLoading(true);
 
@@ -272,9 +288,9 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
       await supabase.from("ICP").delete().eq("user_email", userEmail);
 
       localStorage.removeItem("companyDataCache");
-      toast.success("Database updated! Running ICP analysis…", { position: "top-right" });
+      toast.success("Database updated! Running ICP analysisâ€¦", { position: "top-right" });
 
-      // 3. Call render backend /icp/chat — pass the exact saved payload
+      // 3. Call render backend /icp/chat â€” pass the exact saved payload
       const icpPayload = { ...dataToUpdate, email: userEmail };
 
       if (onGenerateICP) {
@@ -301,7 +317,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     }
   };
 
-  /* ══════════ RENDER ══════════ */
+  /* â•â•â•â•â•â•â•â•â•â• RENDER â•â•â•â•â•â•â•â•â•â• */
   return (
     <div className="py-4 md:py-6 w-full mx-auto space-y-6">
       <ToastContainer position="top-right" autoClose={5000} />
@@ -509,10 +525,10 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
           Generate ICP Analysis
         </Button>
       </div>
-      {/* ICP from Supabase (persisted) — shown until fresh result arrives */}
+      {/* ICP from Supabase (persisted) â€” shown until fresh result arrives */}
       {icpData && !freshIcp && <IcpCard icpData={icpData} />}
 
-      {/* Fresh ICP from /icp/chat — shown after Update Database */}
+      {/* Fresh ICP from /icp/chat â€” shown after Update Database */}
       {freshIcp && <IcpCard icpData={freshIcp} />}
     </div>
   );
@@ -1158,3 +1174,4 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
 //     </div>
 //   );
 // }
+
