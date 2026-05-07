@@ -304,8 +304,8 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            <span className="bg-teal-500/10 text-teal-700 p-2 rounded-lg">Level 1</span>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <span className="bg-teal-500/10 text-teal-700 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-black">Level 1</span>
             Configure Products
           </h2>
           <p className="text-slate-500 text-sm mt-1">Select a deal and customize its product offerings.</p>
@@ -390,7 +390,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                   + Add New Product
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-xl backdrop-blur-md bg-white/90 border border-teal-100 shadow-2xl rounded-3xl p-8 overflow-y-auto max-h-[90vh]">
+                              <DialogContent className="w-[95vw] sm:max-w-xl backdrop-blur-md bg-white/90 border border-teal-100 shadow-2xl rounded-3xl p-4 sm:p-8 overflow-y-auto max-h-[90vh]">
                                 <DialogHeader>
                                   <DialogTitle className="text-2xl font-bold text-slate-800">Add New Product</DialogTitle>
                                   <DialogDescription className="text-slate-500">
@@ -516,7 +516,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                         <Settings className="h-4 w-4" />
                                       </Button>
                                     </SheetTrigger>
-                                    <SheetContent className="md:min-w-[50vw] overflow-y-auto">
+                                    <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-4 sm:p-6">
                                       <SheetHeader>
                                         <SheetTitle>Configure {productName}</SheetTitle>
                                       </SheetHeader>

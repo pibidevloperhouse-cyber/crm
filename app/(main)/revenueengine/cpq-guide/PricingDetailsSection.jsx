@@ -489,10 +489,8 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <span className="bg-teal-500/10 text-teal-700 p-2 rounded-lg">
-            Level 2
-          </span>
+        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <span className="bg-teal-500/10 text-teal-700 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-black">Level 2</span>
           Pricing & Discounts
         </h2>
         <p className="text-slate-500 text-sm mt-1">
@@ -540,51 +538,46 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
           {!deal.products || deal.products.length === 0 ? (
             <p>This deal has no products assigned.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Pricing Strategy</TableHead>
-                  <TableHead className="text-right">Unit Price</TableHead>
-                  <TableHead className="text-center">Discount (%)</TableHead>
-                  <TableHead className="text-right">Net Price</TableHead>
-                  <TableHead className="text-center">Qty</TableHead>
-                  {deal.tax_scope === "Line" && <TableHead className="text-center">Tax (%)</TableHead>}
-                  <TableHead className="text-right">Line Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {deal.products.map((productName, index) => {
-                  const originalPrice = calculateOriginalPrice(productName);
-                  const { lineBeforeTax } = calculateLineMetrics(productName, index);
+          <div className="space-y-4">
+            {/* Mobile View: Product Cards */}
+            <div className="md:hidden space-y-4 mb-6">
+              {deal.products.map((productName, index) => {
+                const originalPrice = calculateOriginalPrice(productName);
+                const { lineBeforeTax } = calculateLineMetrics(productName, index);
 
-                  const aiInfo = getCalculatedAIDiscount(index);
-                  const statusObj = deal.auto_discount_status || [];
-                  let status = statusObj.length > index ? statusObj[index] : "pending";
-                  const userValStr = String(deal.user_discount?.[index] || "");
-                  const userValNum = parseFloat(userValStr.replace("%", ""));
-                  let isAutoApplied = false;
+                const aiInfo = getCalculatedAIDiscount(index);
+                const statusObj = deal.auto_discount_status || [];
+                let status = statusObj.length > index ? statusObj[index] : "pending";
+                const userValStr = String(deal.user_discount?.[index] || "");
+                const userValNum = parseFloat(userValStr.replace("%", ""));
+                let isAutoApplied = false;
 
-                  if (
-                    status !== "accepted" &&
-                    status !== "rejected" &&
-                    (isNaN(userValNum) || userValStr === "0" || userValStr === "")
-                  ) {
-                    isAutoApplied = true;
-                  }
+                if (
+                  status !== "accepted" &&
+                  status !== "rejected" &&
+                  (isNaN(userValNum) || userValStr === "0" || userValStr === "")
+                ) {
+                  isAutoApplied = true;
+                }
 
-                  const displayedValue = isAutoApplied ? aiInfo.combinedTargetDiscount : isNaN(userValNum) ? "0" : userValNum;
-                  const netPrice = originalPrice * (1 - Number(displayedValue) / 100);
+                const displayedValue = isAutoApplied ? aiInfo.combinedTargetDiscount : isNaN(userValNum) ? "0" : userValNum;
+                const netPrice = originalPrice * (1 - Number(displayedValue) / 100);
 
-                  return (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">{productName}</TableCell>
-                      <TableCell>
+                return (
+                  <div key={index} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/20 space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200">{productName}</h4>
+                      <Badge variant="outline" className="text-[10px] font-bold bg-white dark:bg-slate-950">Line #{index + 1}</Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Strategy</span>
                         <Select
                           value={deal.pricing_strategy?.[index] || "AI Auto"}
                           onValueChange={(val) => handleStrategyChange(index, val)}
                         >
-                          <SelectTrigger className="w-[140px] h-8 text-[11px] font-bold tracking-tight bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800">
+                          <SelectTrigger className="w-full h-8 text-[11px] font-bold tracking-tight bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800">
                             <SelectValue placeholder="Strategy" />
                           </SelectTrigger>
                           <SelectContent>
@@ -614,14 +607,21 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                             </SelectItem>
                           </SelectContent>
                         </Select>
-                      </TableCell>
-                      <TableCell className="text-right">${originalPrice.toFixed(2)}</TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex flex-col items-center gap-1">
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Unit Price</span>
+                        <div className="text-sm font-semibold tabular-nums">${originalPrice.toFixed(2)}</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Discount</span>
+                        <div className="flex flex-col gap-1">
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${isAutoApplied ? "bg-teal-50/50 dark:bg-teal-500/[0.03] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]" : "bg-slate-50 dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
+                                <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-full ${isAutoApplied ? "bg-teal-50/50 dark:bg-teal-500/[0.03] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]" : "bg-white dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
                                   }`}>
                                   <div className="flex-1 flex items-center border-r border-slate-200/60 dark:border-slate-800 h-full">
                                     <Input
@@ -633,7 +633,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                                         handleChange("auto_discount_status", index, "accepted");
                                       }}
                                     />
-                                    <span className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${isAutoApplied ? "text-teal-600/50 dark:text-teal-400/40" : "text-slate-400 dark:text-slate-500"
+                                    <span className={`text-[11px] pl-0.5 pr-1.5 font-bold mt-0.5 ${isAutoApplied ? "text-teal-600/50 dark:text-teal-400/40" : "text-slate-400 dark:text-slate-500"
                                       }`}>%</span>
                                   </div>
                                   <div className="flex px-1 gap-0.5 shrink-0 items-center h-full">
@@ -642,175 +642,243 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                                       handleChange("auto_discount_status", index, "accepted");
                                     }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "accepted" ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/30" : "text-slate-400 hover:text-teal-500 hover:bg-teal-500/10"
                                       }`}>✓</button>
-                                    <button onClick={() => {
-                                      handleChange("user_discount", index, 0);
-                                      handleChange("auto_discount_status", index, "rejected");
-                                    }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "rejected" ? "bg-red-500/10 text-red-600 ring-1 ring-red-500/30" : "text-slate-400 hover:text-red-500 hover:bg-red-500/10"
-                                      }`}>✕</button>
                                   </div>
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent className="bg-slate-950 text-white w-64 p-4 rounded-xl shadow-xl border border-slate-800">
                                 <p className="font-bold border-b border-white/20 pb-2 mb-3 text-[10px] uppercase">Discount Anatomy</p>
                                 <div className="space-y-2 text-sm font-medium">
-                                  <div className="flex justify-between items-center"><span>Base AI Discount</span><span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
-                                  <div className="flex justify-between items-center"><span>Loyalty Bonus</span><span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
-                                  {aiInfo.bundleDiscount > 0 && <div className="flex justify-between items-center"><span>Bundle Discount</span><span className="text-teal-400 font-mono">+{aiInfo.bundleDiscount}%</span></div>}
-                                  {aiInfo.competitiveDiscount > 0 && <div className="flex justify-between items-center"><span>Competitive Adjustment</span><span className="text-teal-400 font-mono">+{aiInfo.competitiveDiscount}%</span></div>}
+                                  <div className="flex justify-between items-center"><span>Base AI</span><span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
+                                  <div className="flex justify-between items-center"><span>Loyalty</span><span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
                                 </div>
                                 <div className="flex justify-between mt-3 pt-2 border-t border-white/20 font-black text-sm">
-                                  <span className="text-teal-400">Final Discount</span>
+                                  <span className="text-teal-400">Total</span>
                                   <span className="text-teal-400">{aiInfo.combinedTargetDiscount}%</span>
                                 </div>
-                                {isAutoApplied ? (
-                                  <p className="mt-3 text-teal-300 italic text-[10px] bg-teal-500/10 p-2 rounded text-center">
-                                    Pending Your Approval
-                                  </p>
-                                ) : (
-                                  <div className="mt-3 flex gap-2 justify-center">
-                                    <button
-                                      onClick={() => {
-                                        handleChange("user_discount", index, "");
-                                        handleChange("auto_discount_status", index, "pending");
-                                      }}
-                                      className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-1 px-3 rounded w-full border border-slate-700 text-[10px]"
-                                    >
-                                      Reset to Auto
-                                    </button>
-                                  </div>
-                                )}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="cursor-help text-[8px] font-bold text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors flex items-center gap-1 group/audit mt-1">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="10"
-                                    height="10"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="3"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="opacity-50 group-hover/audit:opacity-100 transition-opacity"
-                                  >
-                                    <path d="m21 16-4 4-4-4" />
-                                    <path d="M17 20V4" />
-                                    <path d="m3 8 4-4 4 4" />
-                                    <path d="M7 4v16" />
-                                  </svg>
-                                  AI Logic Audit
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent
-                                side="bottom"
-                                className="w-[320px] p-6 bg-slate-950/90 backdrop-blur-2xl border border-slate-800/60 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.7)] rounded-2xl ring-1 ring-white/5 text-white"
-                               >
-                                <div className="space-y-5">
-                                  <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-teal-400">
-                                      AI Logic Audit
-                                    </h4>
-                                    <div className="flex items-center gap-2 bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(20,184,166,0.8)] animate-pulse"></div>
-                                      <span className="text-[8px] font-black uppercase tracking-wider text-teal-400">
-                                        Active
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-4">
-                                    <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                                      {isAutoApplied
-                                        ? "The AI engine calculated this discount based on current market data, customer history, and purchase intent."
-                                        : "This discount has been manually set and overrides the AI-suggested pricing logic."}
-                                    </p>
-
-                                    <div className="space-y-2 pt-1">
-                                      <div className="flex justify-between items-center text-[11px] font-medium text-slate-400">
-                                        <span>Base AI Discount</span>
-                                        <span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span>
-                                      </div>
-                                      <div className="flex justify-between items-center text-[11px] font-medium text-slate-400">
-                                        <span>Loyalty Bonus</span>
-                                        <span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span>
-                                      </div>
-                                      {aiInfo.bundleDiscount > 0 && (
-                                        <div className="flex justify-between items-center text-[11px] font-medium text-slate-400">
-                                          <span>Bundle Discount</span>
-                                          <span className="text-teal-400 font-mono">+{aiInfo.bundleDiscount}%</span>
-                                        </div>
-                                      )}
-                                      {aiInfo.competitiveDiscount > 0 && (
-                                        <div className="flex justify-between items-center text-[11px] font-medium text-slate-400">
-                                          <span>Competitive Adjustment</span>
-                                          <span className="text-teal-400 font-mono">+{aiInfo.competitiveDiscount}%</span>
-                                        </div>
-                                      )}
-                                      <div className="flex justify-between items-center mt-4 pt-3 border-t border-white/10 font-bold text-sm text-white">
-                                        <span>Final Discount</span>
-                                        <span className="text-teal-400 font-mono bg-teal-400/10 px-2 py-0.5 rounded">
-                                          {displayedValue}%
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                               </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right font-medium tabular-nums text-slate-700 dark:text-slate-300">
-                        ${netPrice.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-center">
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Net Price</span>
+                        <div className="text-sm font-bold text-slate-700 dark:text-slate-300 tabular-nums">${netPrice.toFixed(2)}</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Qty</span>
                         <Input
                           value={deal.quantity?.[index] || 1}
                           type="number"
                           min="1"
                           onChange={(e) => handleChange("quantity", index, e.target.value)}
-                          className="w-20 mx-auto text-center"
+                          className="w-full h-8 text-center bg-white dark:bg-slate-900"
                         />
-                      </TableCell>
+                      </div>
                       {deal.tax_scope === "Line" && (
-                        <TableCell className="text-center">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Tax (%)</span>
                           <Input
                             value={deal.line_taxes?.[index] ?? 0}
                             type="number"
                             min="0"
                             onChange={(e) => handleChange("line_taxes", index, e.target.value)}
+                            className="w-full h-8 text-center bg-white dark:bg-slate-900"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Line Total</span>
+                      <motion.div key={lineBeforeTax} initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }} className="text-lg font-black text-teal-600 dark:text-teal-400 tabular-nums">
+                        ${lineBeforeTax.toFixed(2)}
+                      </motion.div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="hidden md:block overflow-x-auto -mx-6 px-6">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Pricing Strategy</TableHead>
+                    <TableHead className="text-right">Unit Price</TableHead>
+                    <TableHead className="text-center">Discount (%)</TableHead>
+                    <TableHead className="text-right">Net Price</TableHead>
+                    <TableHead className="text-center">Qty</TableHead>
+                    {deal.tax_scope === "Line" && <TableHead className="text-center">Tax (%)</TableHead>}
+                    <TableHead className="text-right">Line Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {deal.products.map((productName, index) => {
+                    const originalPrice = calculateOriginalPrice(productName);
+                    const { lineBeforeTax } = calculateLineMetrics(productName, index);
+
+                    const aiInfo = getCalculatedAIDiscount(index);
+                    const statusObj = deal.auto_discount_status || [];
+                    let status = statusObj.length > index ? statusObj[index] : "pending";
+                    const userValStr = String(deal.user_discount?.[index] || "");
+                    const userValNum = parseFloat(userValStr.replace("%", ""));
+                    let isAutoApplied = false;
+
+                    if (
+                      status !== "accepted" &&
+                      status !== "rejected" &&
+                      (isNaN(userValNum) || userValStr === "0" || userValStr === "")
+                    ) {
+                      isAutoApplied = true;
+                    }
+
+                    const displayedValue = isAutoApplied ? aiInfo.combinedTargetDiscount : isNaN(userValNum) ? "0" : userValNum;
+                    const netPrice = originalPrice * (1 - Number(displayedValue) / 100);
+
+                    return (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{productName}</TableCell>
+                        <TableCell>
+                          <Select
+                            value={deal.pricing_strategy?.[index] || "AI Auto"}
+                            onValueChange={(val) => handleStrategyChange(index, val)}
+                          >
+                            <SelectTrigger className="w-[140px] h-8 text-[11px] font-bold tracking-tight bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800">
+                              <SelectValue placeholder="Strategy" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AI Auto">
+                                <div className="flex items-center gap-2">
+                                  <Bot className="h-4 w-4 shrink-0 text-teal-500" />
+                                  <span className="font-medium text-slate-700 dark:text-slate-200">AI Auto</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="Bundled Pricing">
+                                <div className="flex items-center gap-2">
+                                  <Layers className="h-4 w-4 shrink-0 text-teal-500" />
+                                  <span className="font-medium text-slate-700 dark:text-slate-200">Bundled Pricing</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="Competitive Pricing">
+                                <div className="flex items-center gap-2">
+                                  <TrendingUp className="h-4 w-4 shrink-0 text-teal-500" />
+                                  <span className="font-medium text-slate-700 dark:text-slate-200">Competitive Pricing</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="Anchor Pricing">
+                                <div className="flex items-center gap-2">
+                                  <Anchor className="h-4 w-4 shrink-0 text-teal-500" />
+                                  <span className="font-medium text-slate-700 dark:text-slate-200">Anchor Pricing</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">${originalPrice.toFixed(2)}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${isAutoApplied ? "bg-teal-50/50 dark:bg-teal-500/[0.03] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]" : "bg-slate-50 dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
+                                    }`}>
+                                    <div className="flex-1 flex items-center border-r border-slate-200/60 dark:border-slate-800 h-full">
+                                      <Input
+                                        className={`w-full h-full p-0 bg-transparent border-none shadow-none focus-visible:ring-0 text-right font-mono text-[13px] font-black tracking-tight ${isAutoApplied ? "text-teal-700 dark:text-teal-400" : "text-slate-800 dark:text-white"
+                                          }`}
+                                        value={displayedValue}
+                                        onChange={(e) => {
+                                          handleChange("user_discount", index, e.target.value);
+                                          handleChange("auto_discount_status", index, "accepted");
+                                        }}
+                                      />
+                                      <span className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${isAutoApplied ? "text-teal-600/50 dark:text-teal-400/40" : "text-slate-400 dark:text-slate-500"
+                                        }`}>%</span>
+                                    </div>
+                                    <div className="flex px-1 gap-0.5 shrink-0 items-center h-full">
+                                      <button onClick={() => {
+                                        handleChange("user_discount", index, aiInfo.combinedTargetDiscount);
+                                        handleChange("auto_discount_status", index, "accepted");
+                                      }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "accepted" ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/30" : "text-slate-400 hover:text-teal-500 hover:bg-teal-500/10"
+                                        }`}>✓</button>
+                                      <button onClick={() => {
+                                        handleChange("user_discount", index, 0);
+                                        handleChange("auto_discount_status", index, "rejected");
+                                      }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "rejected" ? "bg-red-500/10 text-red-600 ring-1 ring-red-500/30" : "text-slate-400 hover:text-red-500 hover:bg-red-500/10"
+                                        }`}>✕</button>
+                                    </div>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-slate-950 text-white w-64 p-4 rounded-xl shadow-xl border border-slate-800">
+                                  <p className="font-bold border-b border-white/20 pb-2 mb-3 text-[10px] uppercase">Discount Anatomy</p>
+                                  <div className="space-y-2 text-sm font-medium">
+                                    <div className="flex justify-between items-center"><span>Base AI Discount</span><span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
+                                    <div className="flex justify-between items-center"><span>Loyalty Bonus</span><span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
+                                    {aiInfo.bundleDiscount > 0 && <div className="flex justify-between items-center"><span>Bundle Discount</span><span className="text-teal-400 font-mono">+{aiInfo.bundleDiscount}%</span></div>}
+                                    {aiInfo.competitiveDiscount > 0 && <div className="flex justify-between items-center"><span>Competitive Adjustment</span><span className="text-teal-400 font-mono">+{aiInfo.competitiveDiscount}%</span></div>}
+                                  </div>
+                                  <div className="flex justify-between mt-3 pt-2 border-t border-white/20 font-black text-sm">
+                                    <span className="text-teal-400">Final Discount</span>
+                                    <span className="text-teal-400">{aiInfo.combinedTargetDiscount}%</span>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium tabular-nums text-slate-700 dark:text-slate-300">
+                          ${netPrice.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Input
+                            value={deal.quantity?.[index] || 1}
+                            type="number"
+                            min="1"
+                            onChange={(e) => handleChange("quantity", index, e.target.value)}
                             className="w-20 mx-auto text-center"
                           />
                         </TableCell>
-                      )}
-                      <TableCell className="text-right font-bold align-middle">
-                        <motion.div key={lineBeforeTax} initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }} className="inline-block px-2 py-1 tabular-nums">
-                          ${lineBeforeTax.toFixed(2)}
-                        </motion.div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        {deal.tax_scope === "Line" && (
+                          <TableCell className="text-center">
+                            <Input
+                              value={deal.line_taxes?.[index] ?? 0}
+                              type="number"
+                              min="0"
+                              onChange={(e) => handleChange("line_taxes", index, e.target.value)}
+                              className="w-20 mx-auto text-center"
+                            />
+                          </TableCell>
+                        )}
+                        <TableCell className="text-right font-bold align-middle">
+                          <motion.div key={lineBeforeTax} initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }} className="inline-block px-2 py-1 tabular-nums">
+                            ${lineBeforeTax.toFixed(2)}
+                          </motion.div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
           )}
 
           {/* Ultra-Compact Tax Configuration */}
-          <div className="mt-4 mb-2 p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 border-r border-slate-200 dark:border-slate-800 pr-4">
-              <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Tax</span>
+          {/* Ultra-Compact Tax Configuration */}
+          <div className="mt-4 mb-2 p-3 sm:p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4">
+            <div className="flex items-center gap-2 border-b sm:border-b-0 sm:border-r border-slate-200 dark:border-slate-800 pb-2 sm:pb-0 sm:pr-4 w-full sm:w-auto">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Tax Logic</span>
             </div>
-            <div className="flex flex-wrap items-center gap-4 grow">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Region:</span>
+            <div className="flex flex-wrap items-center gap-4 grow w-full sm:w-auto">
+              <div className="flex flex-col gap-1 grow sm:grow-0 min-w-[120px]">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight ml-1">Region</span>
                 <Select value={deal.tax_region_type || "None"} onValueChange={(val) => handleChange("tax_region_type", null, val)}>
-                  <SelectTrigger className="h-8 text-sm min-w-[120px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-[11px] font-bold"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="None">No Tax</SelectItem>
                     <SelectItem value="Sales Tax">Sales Tax (US)</SelectItem>
@@ -819,20 +887,20 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Scope:</span>
+              <div className="flex flex-col gap-1 grow sm:grow-0 min-w-[130px]">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight ml-1">Scope</span>
                 <Select value={deal.tax_scope || "Transaction"} onValueChange={(val) => handleChange("tax_scope", null, val)}>
-                  <SelectTrigger className="h-8 text-sm min-w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-[11px] font-bold"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Transaction">Transaction-Level</SelectItem>
                     <SelectItem value="Line">Line-Level (Per SKU)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Inclusion:</span>
+              <div className="flex flex-col gap-1 grow sm:grow-0 min-w-[130px]">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight ml-1">Inclusion</span>
                 <Select value={deal.tax_inclusion || "Exclusive"} onValueChange={(val) => handleChange("tax_inclusion", null, val)}>
-                  <SelectTrigger className="h-8 text-sm min-w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-[11px] font-bold"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Exclusive">Exclusive (+ Top)</SelectItem>
                     <SelectItem value="Inclusive">Inclusive (Built-in)</SelectItem>
@@ -840,27 +908,29 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                 </Select>
               </div>
               {(!deal.tax_scope || deal.tax_scope === "Transaction") && deal.tax_region_type !== "None" && (
-                <div className="flex items-center gap-3 min-w-[160px] grow max-w-[240px]">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Rate:</span>
-                  <Slider.Root className="relative flex items-center select-none touch-none w-full h-4" value={[parseFloat(deal.tax_rate ?? 0)]} max={30} step={0.5} onValueChange={([val]) => handleChange("tax_rate", null, val)}>
-                    <Slider.Track className="bg-slate-200 dark:bg-slate-800 relative grow rounded-full h-[4px]">
-                      <Slider.Range className="absolute bg-slate-500 dark:bg-slate-400 rounded-full h-full" />
-                    </Slider.Track>
-                    <Slider.Thumb className="block w-3 h-3 bg-white border border-slate-500 rounded-full cursor-pointer shadow-sm" />
-                  </Slider.Root>
-                  <span className="text-sm font-mono font-bold">{deal.tax_rate ?? 0}%</span>
+                <div className="flex flex-col gap-1 grow min-w-[160px] max-w-[240px]">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight ml-1">Global Rate</span>
+                  <div className="flex items-center gap-3">
+                    <Slider.Root className="relative flex items-center select-none touch-none w-full h-4" value={[parseFloat(deal.tax_rate ?? 0)]} max={30} step={0.5} onValueChange={([val]) => handleChange("tax_rate", null, val)}>
+                      <Slider.Track className="bg-slate-200 dark:bg-slate-800 relative grow rounded-full h-[4px]">
+                        <Slider.Range className="absolute bg-slate-500 dark:bg-slate-400 rounded-full h-full" />
+                      </Slider.Track>
+                      <Slider.Thumb className="block w-3 h-3 bg-white border border-slate-500 rounded-full cursor-pointer shadow-sm" />
+                    </Slider.Root>
+                    <span className="text-xs font-mono font-bold whitespace-nowrap">{deal.tax_rate ?? 0}%</span>
+                  </div>
                 </div>
               )}
             </div>
-            <div className="ml-auto pl-4 border-l border-slate-200 dark:border-slate-800 flex flex-col items-end">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Tax Impact</span>
-              <span className="text-sm font-black tabular-nums">${totals.totalTax.toFixed(2)}</span>
+            <div className="sm:ml-auto w-full sm:w-auto pl-0 sm:pl-4 border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-800 flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center pt-2 sm:pt-0">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-tight">Tax Impact</span>
+              <span className="text-sm font-black tabular-nums text-slate-800 dark:text-white">${totals.totalTax.toFixed(2)}</span>
             </div>
           </div>
 
           <div className="mt-3 px-5 py-4 bg-slate-50 dark:bg-slate-900/30 flex flex-col sm:flex-row justify-between items-center gap-4 border border-slate-100 dark:border-slate-800 rounded-xl">
             <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Pricing Summary</div>
-            <div className="flex gap-6 items-end">
+            <div className="flex flex-wrap gap-4 sm:gap-6 items-end justify-between sm:justify-end w-full sm:w-auto">
               <div className="text-right">
                 <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tight mb-0.5">Subtotal</p>
                 <p className="text-base font-bold tabular-nums">${totals.subtotalBeforeTax.toFixed(2)}</p>
@@ -872,9 +942,9 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                 <p className="text-base font-bold tabular-nums">${totals.totalTax.toFixed(2)}</p>
               </div>
               <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 self-end mb-1" />
-              <div className="text-right bg-teal-600 dark:bg-teal-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-teal-500/20 border border-teal-400/30 transition-all hover:scale-[1.02] cursor-default min-w-[160px]">
-                <p className="text-[10px] text-teal-100 uppercase font-black tracking-widest mb-1.5 opacity-80">Grand Total</p>
-                <p className="text-2xl font-black tabular-nums leading-none">${totals.grandTotal.toFixed(2)}</p>
+              <div className="text-right bg-teal-600 dark:bg-teal-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl shadow-teal-500/20 border border-teal-400/30 transition-all hover:scale-[1.02] cursor-default min-w-full sm:min-w-[160px]">
+                <p className="text-[9px] sm:text-[10px] text-teal-100 uppercase font-black tracking-widest mb-1 opacity-80">Grand Total</p>
+                <p className="text-xl sm:text-2xl font-black tabular-nums leading-none">${totals.grandTotal.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -882,16 +952,16 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center pt-6 border-t border-slate-100 dark:border-slate-800">
-        <Button variant="outline" onClick={onBack} className="rounded-xl px-6 border-slate-200 dark:border-slate-800 font-bold hover:bg-slate-50">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+        <Button variant="outline" onClick={onBack} className="w-full sm:w-auto rounded-xl px-6 border-slate-200 dark:border-slate-800 font-bold hover:bg-slate-50 h-11">
           Back to Configure
         </Button>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={handleSave}
             disabled={deal.approved}
-            className="rounded-xl px-6 border-teal-600 text-teal-600 font-bold hover:bg-teal-50 gap-2"
+            className="w-full sm:w-auto rounded-xl px-6 border-teal-600 text-teal-600 font-bold hover:bg-teal-50 gap-2 h-11"
           >
             <Save className="h-4 w-4" />
             Save Changes
@@ -901,14 +971,14 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
             <DialogTrigger asChild>
               <Button
                 disabled={deal.approved}
-                className="rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-lg gap-2 transition-all"
+                className="w-full sm:w-auto rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-lg gap-2 transition-all h-11"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Approve Deal
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <div className="p-4">
+            <DialogContent className="sm:max-w-[425px] w-[95%] rounded-2xl">
+              <div className="p-2 sm:p-4">
                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-teal-600" />
                   Confirm Approval
@@ -923,11 +993,11 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                   </div>
                 </div>
               </div>
-              <DialogFooter className="mt-4 gap-2 sm:gap-0">
-                <Button variant="outline" className="rounded-xl border-slate-200" onClick={handleSave}>
+              <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" className="w-full sm:w-auto rounded-xl border-slate-200 h-11" onClick={handleSave}>
                   Save as Draft
                 </Button>
-                <Button onClick={handleApprove} className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white">
+                <Button onClick={handleApprove} className="w-full sm:w-auto rounded-xl bg-teal-600 hover:bg-teal-700 text-white h-11">
                   Confirm & Approve
                 </Button>
               </DialogFooter>
