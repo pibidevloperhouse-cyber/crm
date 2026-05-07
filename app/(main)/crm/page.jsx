@@ -459,7 +459,8 @@ export default function CRM() {
               <Button
                 size="sm"
                 variant="outline"
-                className="h-10 px-3 whitespace-nowrap"
+                className="h-10 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+
               >
                 <Upload className="w-4 h-4 mr-1.5" />
                 CSV
@@ -467,7 +468,7 @@ export default function CRM() {
             </SheetTrigger>
             <SheetContent>
               <SheetHeader>
-                <SheetTitle>Upload {activeTab} CSV</SheetTitle>
+                <SheetTitle >Upload {activeTab} CSV</SheetTitle>
                 <SheetDescription asChild>
                   <div>
                     <CsvSheetContent />
