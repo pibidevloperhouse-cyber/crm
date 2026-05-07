@@ -299,14 +299,14 @@ export default function PayrollPage() {
                     </Button>
                   </SheetTrigger>
 
-                  <SheetContent className="p-6 space-y-6 max-w-md bg-white/95 backdrop-blur-md border border-[#25C2A0]/30 shadow-lg rounded-lg">
+                  <SheetContent className="p-6 space-y-3 max-w-md bg-white/95 backdrop-blur-md border border-[#25C2A0]/30 shadow-lg rounded-lg">
                     <SheetHeader className="-mx-6 -mt-6 bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-3 rounded-t-lg shadow-sm">
                       <SheetTitle className="text-white font-semibold">
                         Edit Payroll – {emp.name}
                       </SheetTitle>
                     </SheetHeader>
 
-                    <Separator />
+                    {/* <Separator /> */}
 
                     {/* Salary & Allowances */}
                     <div className="space-y-4">
