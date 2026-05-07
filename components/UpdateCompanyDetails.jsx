@@ -26,25 +26,28 @@ const ErrorMessage = ({ error }) => {
    ICP result display — handles BOTH shapes:
    • Supabase shape: { icp, high, medium, low }
    • Render /icp/chat shape: { ICP, high_prospect_group, … }
-───────────────────────────────────────────────────────── */
-function IcpCard({ icpData }) {
-  if (!icpData) return null;
+─�  // Helper to safely parse JSON strings
+  const safeParse = (val) => {
+    if (!val) return null;
+    if (typeof val === "object") return val;
+    try {
+      return JSON.parse(val);
+    } catch (e) {
+      return { profile: val, conversion_chance: "N/A" };
+    }
+  };
 
   // Normalise to a single shape
   const icp = icpData.ICP || icpData.icp || null;
-  const high =
-    icpData.high_prospect_group ||
-    (icpData.high ? { conversion_chance: icpData.high.conversion_chance, profile: icpData.high.profile } : null);
-  const medium =
-    icpData.medium_prospect_group ||
-    (icpData.medium ? { conversion_chance: icpData.medium.conversion_chance, profile: icpData.medium.profile } : null);
-  const low =
-    icpData.low_prospect_group ||
-    (icpData.low ? { conversion_chance: icpData.low.conversion_chance, profile: icpData.low.profile } : null);
+  const high = safeParse(icpData.high_prospect_group || icpData.high);
+  const medium = safeParse(icpData.medium_prospect_group || icpData.medium);
+  const low = safeParse(icpData.low_prospect_group || icpData.low);
 
   const groups = [
-    { label: "High Conversion", data: high, bg: "bg-green-50/50 dark:bg-green-900/20", border: "border-green-200 dark:border-green-800", text: "text-green-700 dark:text-green-300" },
-    { label: "Medium Conversion", data: medium, bg: "bg-yellow-50/50 dark:bg-yellow-900/20", border: "border-yellow-200 dark:border-yellow-800", text: "text-yellow-700 dark:text-yellow-300" },
+    { label: "High Conversion", data: high, bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-200 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-300", accent: "bg-emerald-200 text-emerald-800" },
+    { label: "Medium Conversion", data: medium, bg: "bg-amber-50 dark:bg-amber-900/20", border: "border-amber-200 dark:border-amber-800", text: "text-amber-700 dark:text-amber-300", accent: "bg-amber-200 text-amber-800" },
+    { label: "Low Conversion", data: low, bg: "bg-red-50/50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-300", accent: "bg-red-200 text-red-800" },
+  ];yellow-800", text: "text-yellow-700 dark:text-yellow-300" },
     { label: "Low Conversion", data: low, bg: "bg-red-50/50 dark:bg-red-900/20", border: "border-red-200 dark:border-red-800", text: "text-red-700 dark:text-red-300" },
   ];
 
