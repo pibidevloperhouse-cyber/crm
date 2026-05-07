@@ -37,7 +37,7 @@ const ICPDetails = ({ icpData }) => {
 
   // Normalise to a single shape
   const icp = icpData.ICP || icpData.icp || null;
-  
+
   const normalizeSegment = (val) => {
     const parsed = safeParse(val);
     if (!parsed) return null;
@@ -103,7 +103,7 @@ const ICPDetails = ({ icpData }) => {
           <div>
             <h4 className="font-medium text-slate-900 dark:text-white mb-4">Customer Segments</h4>
             <div className="space-y-3">
-              {groups.map(({ label, data, bg, border, text }) =>
+              {groups.map(({ label, data, bg, border, text, accent }) =>
                 data ? (
                   <div key={label} className={`p-4 rounded-lg border ${border} ${bg}`}>
                     <div className="flex items-center justify-between mb-1">
@@ -126,7 +126,7 @@ const ICPDetails = ({ icpData }) => {
                       .filter(([k]) => k !== "conversion_chance" && k !== "profile")
                       .map(([k, v]) => (
                         <p key={k} className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          <span className="font-semibold uppercase text-[10px] mr-1">{k.replace(/_/g, " ")}:</span> 
+                          <span className="font-semibold uppercase text-[10px] mr-1">{k.replace(/_/g, " ")}:</span>
                           {String(v)}
                         </p>
                       ))}
@@ -477,7 +477,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
           <Save className="mr-2 w-4 h-4" />
           Save Locally
         </Button>
-        
+
         <Button
           onClick={handleUpdateDB}
           disabled={loading}
@@ -523,11 +523,11 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
           Generate ICP Analysis
         </Button>
       </div>
-      {/* ICP from Supabase (persisted) Ã¢â‚¬â€ shown until fresh result arrives */}
-      {icpData && !freshIcp && <IcpCard icpData={icpData} />}
 
-      {/* Fresh ICP from /icp/chat Ã¢â‚¬â€ shown after Update Database */}
-      {freshIcp && <IcpCard icpData={freshIcp} />}
+
+      {/* Fix */}
+      {icpData && !freshIcp && <ICPDetails icpData={icpData} />}
+      {freshIcp && <ICPDetails icpData={freshIcp} />}
     </div>
   );
 }
