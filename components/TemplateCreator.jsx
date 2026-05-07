@@ -287,7 +287,6 @@ export default function TemplateCreator() {
         console.warn("Failed to add header image:", err);
       }
     } else {
-      y = 10;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(20);
       doc.text(String(data.headerTitle || ""), 10, y + 5);
@@ -301,88 +300,7 @@ export default function TemplateCreator() {
       y = 55;
     }
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("QUOTATION", 10, y);
-    y += 12;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(String(data.title || ""), 10, y);
-    y += 6;
-    doc.text(String(data.address || ""), 10, y);
-    y += 6;
-    doc.text(String(data.city || ""), 10, y);
-    y += 6;
-    doc.text(`Phone: ${String(data.phone || "")}`, 10, y);
-    y += 6;
-    doc.text(`Email: ${String(data.email || "")}`, 10, y);
-    y += 10;
-
-    const quoteDetailsX = pageWidth - 70;
-    let quoteY = y - 25;
-    doc.setDrawColor(0);
-    doc.setLineWidth(0.2);
-    doc.rect(quoteDetailsX - 5, quoteY - 5, 65, 25);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("QUOTE #", quoteDetailsX, quoteY);
-    doc.text("DATE", quoteDetailsX, quoteY + 6);
-    doc.text("VALID UNTIL", quoteDetailsX, quoteY + 12);
-    doc.setFont("helvetica", "normal");
-    doc.text(String(data.quoteNumber || "70"), quoteDetailsX + 25, quoteY);
-    doc.text(String(data.quoteDate || ""), quoteDetailsX + 25, quoteY + 6);
-    doc.text(String(data.validUntil || ""), quoteDetailsX + 25, quoteY + 12);
-
-    y += 15;
-    doc.setFont("helvetica", "bold");
-    doc.text("CUSTOMER INFO", 10, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Name: ${String(data.customerName || "")}`, 10, y);
-    y += 6;
-    doc.text(`Address: ${String(data.customerAddress || "")}`, 10, y);
-    y += 6;
-    doc.text(`Email: ${String(data.customerEmail || "")}`, 10, y);
-    y += 12;
-
-    doc.setFont("helvetica", "bold");
-    doc.text("DESCRIPTION OF WORK:", 10, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    const descriptionLines = doc.splitTextToSize(
-      String(data.description || ""),
-      pageWidth - 20,
-    );
-    doc.text(descriptionLines, 10, y);
-    y += descriptionLines.length * 6 + 6;
-
-    doc.setFont("helvetica", "bold");
-    doc.text("ITEMIZED COSTS:", 10, y);
-    y += 8;
-    doc.setFont("helvetica", "normal");
-
-    (data.products || []).forEach((item, i) => {
-      const qty = Number((data.quantity && data.quantity[i]) || 0);
-      const val = Number((data.value && data.value[i]) || 0);
-      const line = `${String(item)} | Qty: ${qty} | Price: $${val} | Total: $${(
-        qty * val
-      ).toFixed(2)}`;
-      const wrapped = doc.splitTextToSize(line, pageWidth - 20);
-      doc.text(wrapped, 10, y);
-      y += wrapped.length * 6;
-      if (y > pageHeight - 60) {
-        doc.addPage();
-        y = 10;
-      }
-    });
-
-    const total = calculateTotal();
-    y += 12;
-    doc.setFont("helvetica", "bold");
-    doc.text(`TOTAL: $${total.toFixed(2)}`, 10, y);
-    y += 16;
-
+    // FOOTER
     if (data.footerImage) {
       try {
         const format = getImageFormat(data.footerImage);
@@ -390,8 +308,6 @@ export default function TemplateCreator() {
         let footerHeight = (info.height * pageWidth) / info.width;
         const maxFooter = pageHeight * 0.2;
         if (footerHeight > maxFooter) footerHeight = maxFooter;
-        const finalPage = doc.getNumberOfPages();
-        doc.setPage(finalPage);
         doc.addImage(
           data.footerImage,
           format,
@@ -404,21 +320,16 @@ export default function TemplateCreator() {
         console.warn("Failed to add footer image:", err);
       }
     } else {
-      if (y > pageHeight - 40) {
-        doc.addPage();
-        y = 10;
-      }
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text(String(data.footerNote || ""), 10, y + 2);
-      y += 8;
+      doc.text(String(data.footerNote || ""), 10, pageHeight - 20);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       const disclaimerLines = doc.splitTextToSize(
         String(data.footerDisclaimer || ""),
         pageWidth - 20,
       );
-      doc.text(disclaimerLines, 10, y + 4);
+      doc.text(disclaimerLines, 10, pageHeight - 14);
     }
 
     return doc;
@@ -577,12 +488,12 @@ export default function TemplateCreator() {
               </DialogContent>
             </Dialog>
 
-            {/* <Button
+            <Button
               className="bg-green-200 text-black px-6"
               onClick={handleNewTemplate}
             >
               New Template
-            </Button> */}
+            </Button>
           </div>
 
           <div className="flex gap-2 items-center">
