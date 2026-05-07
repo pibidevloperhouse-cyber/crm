@@ -203,7 +203,7 @@ export default function HRMSDashboard() {
                 </Button>
               </SheetTrigger>
 
-              <SheetContent className="w-[95vw] sm:max-w-md bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 shadow-2xl p-6 overflow-y-auto rounded-l-[2rem]">
+              <SheetContent className="w-[95vw] sm:max-w-md bg-card/90 backdrop-blur-xl border border-primary/30 shadow-2xl p-6 overflow-y-auto rounded-l-[2rem]">
                 <SheetHeader>
                   <SheetTitle className="text-lg font-semibold bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent">
                     Apply for Leave
@@ -212,7 +212,7 @@ export default function HRMSDashboard() {
 
                 <div className="grid flex-1 auto-rows-min gap-6 px-2 mt-4">
                   <div className="grid gap-3">
-                    <Label htmlFor="sheet-date" className="text-gray-700">
+                    <Label htmlFor="sheet-date" className="text-foreground">
                       Date
                     </Label>
                     <Calendar
@@ -220,11 +220,11 @@ export default function HRMSDashboard() {
                       mode="range"
                       selected={date}
                       onSelect={setDate}
-                      className="rounded-md border border-[#2AD4B7]/40 p-2 bg-white/60"
+                      className="rounded-md border border-primary/40 p-2 bg-muted/20"
                     />
                   </div>
                   <div className="grid gap-3">
-                    <Label htmlFor="sheet-reason" className="text-gray-700">
+                    <Label htmlFor="sheet-reason" className="text-foreground">
                       Reason
                     </Label>
                     <Textarea
@@ -233,7 +233,7 @@ export default function HRMSDashboard() {
                       value={reason}
                       required
                       onChange={(e) => setReason(e.target.value)}
-                      className="border border-[#25C2A0]/40 focus:ring-2 focus:ring-[#25C2A0]/40 transition-all"
+                      className="border border-primary/40 focus:ring-2 focus:ring-primary/40 transition-all bg-muted/10 placeholder:text-muted-foreground/50"
                     />
                   </div>
                 </div>

@@ -157,14 +157,14 @@ export default function PayrollPage() {
               Payroll Dashboard
             </h1>
 
-            <p className="text-gray-500 text-sm sm:text-base mt-1">
+            <p className="text-muted-foreground text-sm sm:text-base mt-1">
               Manage salaries, deductions, PF & ESI automatically
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Badge
               variant="outline"
-              className="border-[#25C2A0] text-[#25C2A0] font-semibold py-2 px-4 rounded-b-lg text-sm bg-white backdrop-blur-sm h-full"
+              className="border-primary text-primary font-semibold py-2 px-4 rounded-b-lg text-sm bg-card backdrop-blur-sm h-full"
             >
               Total Employees: {employees.length}
             </Badge>
@@ -187,21 +187,21 @@ export default function PayrollPage() {
                 <div className="p-8 space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-700 ml-1">Enter Role</label>
+                      <label className="text-sm font-bold text-foreground ml-1">Enter Role</label>
                       <Input
                         placeholder="e.g. Software Engineer"
                         value={newRole.role}
-                        className="rounded-xl border-gray-200 focus:border-[#25C2A0] focus:ring-[#25C2A0]"
+                        className="rounded-xl border-border focus:border-primary focus:ring-primary bg-background"
                         onChange={(e) => setNewRole({ ...newRole, role: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-700 ml-1">Enter Base Pay</label>
+                      <label className="text-sm font-bold text-foreground ml-1">Enter Base Pay</label>
                       <Input
                         type="number"
                         placeholder="e.g. 75000"
                         value={newRole.basePay}
-                        className="rounded-xl border-gray-200 focus:border-[#25C2A0] focus:ring-[#25C2A0]"
+                        className="rounded-xl border-border focus:border-primary focus:ring-primary bg-background"
                         onChange={(e) => setNewRole({ ...newRole, basePay: e.target.value })}
                       />
                     </div>
@@ -216,7 +216,7 @@ export default function PayrollPage() {
 
                   {payrollRoles.length > 0 && (
                     <div className="mt-8">
-                      <h3 className="text-xs font-black text-gray-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <h3 className="text-xs font-black text-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
                         <Separator className="flex-1" />
                         Existing Roles
                         <Separator className="flex-1" />
@@ -225,17 +225,17 @@ export default function PayrollPage() {
                         {payrollRoles.map((role) => (
                           <div
                             key={role.id}
-                            className="group flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:border-[#25C2A0]/30 hover:bg-white transition-all"
+                            className="group flex items-center justify-between p-4 bg-muted/50 rounded-2xl border border-border hover:border-primary/30 hover:bg-card transition-all"
                           >
                             <div>
-                              <p className="font-bold text-gray-900">{role.role}</p>
+                               <p className="font-bold text-foreground">{role.role}</p>
                               <p className="text-xs text-teal-600 font-semibold">Base: ₹{role.basePay}</p>
                             </div>
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => deleteRole(role.id)}
-                              className="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                               className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -255,26 +255,26 @@ export default function PayrollPage() {
           {employees.map((emp) => (
             <Card
               key={emp.id}
-              className="shadow-lg border border-[#25C2A0]/20 bg-white/40 backdrop-blur-md hover:shadow-xl hover:scale-[1.02] transition-all"
+              className="shadow-lg border border-primary/20 bg-card/40 backdrop-blur-md hover:shadow-xl hover:scale-[1.02] transition-all"
             >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span className="font-semibold text-[#1e7e68]">
+                  <span className="font-semibold text-primary">
                     {emp.name}
                   </span>
-                  <Users className="w-5 h-5 text-[#25C2A0]" />
+                  <Users className="w-5 h-5 text-primary" />
                 </CardTitle>
               </CardHeader>
 
               <CardContent className="space-y-3 pt-2">
-                <p className="text-gray-700">
+                <p className="text-foreground">
                   <span className="font-medium">Base Salary:</span> ₹
                   {emp.salary || 0}
                 </p>
-                <p className="text-gray-700">
+                <p className="text-foreground">
                   <span className="font-medium">Last Paid:</span>{" "}
                   {emp.last_paid || (
-                    <span className="italic text-gray-500">Not Paid Yet</span>
+                    <span className="italic text-muted-foreground">Not Paid Yet</span>
                   )}
                 </p>
 
@@ -298,7 +298,7 @@ export default function PayrollPage() {
                     </Button>
                   </SheetTrigger>
 
-                  <SheetContent className="p-6 space-y-6 max-w-md bg-white/95 backdrop-blur-md border border-[#25C2A0]/30 shadow-lg rounded-lg">
+                  <SheetContent className="p-6 space-y-6 max-w-md bg-card/95 backdrop-blur-md border border-primary/30 shadow-lg rounded-lg">
                     <SheetHeader className="-mx-6 -mt-6 bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-3 rounded-t-lg shadow-sm">
                       <SheetTitle className="text-white font-semibold">
                         Edit Payroll – {emp.name}
@@ -310,9 +310,9 @@ export default function PayrollPage() {
                     {/* Salary & Allowances */}
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-700">
-                          Select Payroll Role
-                        </label>
+                         <label className="text-sm font-medium text-foreground">
+                           Select Payroll Role
+                         </label>
                         <Select
                           onValueChange={(value) => {
                             const selectedRole = payrollRoles.find((r) => r.role === value);
@@ -324,10 +324,10 @@ export default function PayrollPage() {
                             }
                           }}
                         >
-                          <SelectTrigger className="w-full mt-1 border-[#25C2A0]/30 rounded-lg">
+                           <SelectTrigger className="w-full mt-1 border-primary/30 rounded-lg">
                             <SelectValue placeholder={payroll.salary ? `Current: ₹${payroll.salary}` : "Choose a Role"} />
                           </SelectTrigger>
-                          <SelectContent className="bg-white/95 backdrop-blur-md border-[#25C2A0]/30">
+                           <SelectContent className="bg-card/95 backdrop-blur-md border-primary/30">
                             {payrollRoles.length > 0 ? (
                               payrollRoles.map((role) => (
                                 <SelectItem key={role.id} value={role.role}>
@@ -335,18 +335,18 @@ export default function PayrollPage() {
                                 </SelectItem>
                               ))
                             ) : (
-                              <div className="p-2 text-sm text-gray-500 italic">
-                                No roles created yet.
-                              </div>
+                               <div className="p-2 text-sm text-muted-foreground italic">
+                                 No roles created yet.
+                               </div>
                             )}
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">
-                          Allowances
-                        </h3>
+                         <h3 className="font-semibold text-foreground mb-2">
+                           Allowances
+                         </h3>
                         {Object.keys(payroll.allowances || {}).map((key) => (
                           <div
                             key={key}
@@ -371,9 +371,9 @@ export default function PayrollPage() {
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">
-                          Deductions
-                        </h3>
+                         <h3 className="font-semibold text-foreground mb-2">
+                           Deductions
+                         </h3>
                         {Object.keys(payroll.deductions || {}).map((key) => (
                           <div
                             key={key}
@@ -401,14 +401,14 @@ export default function PayrollPage() {
                     <Separator />
 
                     {/* Calculated Summary */}
-                    <div className="space-y-2 text-sm text-gray-700 bg-[#A3E3DB]/20 p-3 rounded-md">
-                      <p>Gross Salary: ₹{gross.toFixed(2)}</p>
-                      <p>PF (12%): ₹{pf.toFixed(2)}</p>
-                      <p>ESI (0.75%): ₹{esi.toFixed(2)}</p>
-                      <p className="font-semibold text-gray-900">
-                        Net Pay: ₹{net.toFixed(2)}
-                      </p>
-                    </div>
+                     <div className="space-y-2 text-sm text-foreground bg-primary/10 p-3 rounded-md">
+                       <p>Gross Salary: ₹{gross.toFixed(2)}</p>
+                       <p>PF (12%): ₹{pf.toFixed(2)}</p>
+                       <p>ESI (0.75%): ₹{esi.toFixed(2)}</p>
+                       <p className="font-semibold text-foreground">
+                         Net Pay: ₹{net.toFixed(2)}
+                       </p>
+                     </div>
 
                     <Button
                       onClick={handleUpdate}

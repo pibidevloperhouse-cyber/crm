@@ -32,7 +32,7 @@ function Calendar({
     weekday: "size-9 p-0 text-xs font-medium text-muted-foreground/80",
     day_button:
       "relative flex size-9 items-center justify-center whitespace-nowrap rounded-md p-0 text-foreground cursor-pointer transition-all duration-200 \
-  !bg-[#F3FAFA] hover:!bg-[#E4F6F6] \
+  bg-muted/20 hover:bg-muted/50 \
   group-[[data-selected]:not(.range-middle)]:[transition-property:color,background-color,border-radius,box-shadow] \
   group-[[data-selected]:not(.range-middle)]:duration-150 \
   group-data-disabled:pointer-events-none focus-visible:z-10 \

@@ -201,7 +201,7 @@ export default function EmployeesPage() {
                 Add Employee
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95vw] sm:max-w-xl bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 shadow-xl rounded-[2rem] p-6 sm:p-8">
+            <DialogContent className="w-[95vw] sm:max-w-xl bg-card/90 backdrop-blur-xl border border-primary/30 shadow-xl rounded-[2rem] p-6 sm:p-8">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent">
                   Add New Employee
@@ -279,14 +279,14 @@ export default function EmployeesPage() {
           {employees.map((emp, index) => (
             <Card
               key={index}
-              className="bg-white/30 backdrop-blur-lg border border-[#25C2A0]/20 shadow-lg rounded-2xl p-5 hover:shadow-xl hover:scale-[1.02] transition-all"
+              className="bg-card/30 backdrop-blur-lg border border-primary/20 shadow-lg rounded-2xl p-5 hover:shadow-xl hover:scale-[1.02] transition-all"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-[#1f3f44]">
+                  <h3 className="text-lg font-semibold text-foreground">
                     {emp.name}
                   </h3>
-                  <p className="text-sm font-medium text-[#527a80]">
+                  <p className="text-sm font-medium text-muted-foreground">
                     {emp.role} | {emp.department}
                   </p>
                 </div>
@@ -300,12 +300,12 @@ export default function EmployeesPage() {
                         setEditingEmployee(emp);
                         setEditedEmployee({ ...emp });
                       }}
-                      className="cursor-pointer border-[#25C2A0] text-[#25C2A0] hover:bg-[#25C2A0]/10"
+                      className="cursor-pointer border-primary text-primary hover:bg-primary/10"
                     >
                       Edit
                     </Button>
                   </SheetTrigger>
-                  <SheetContent className="p-6 space-y-6 overflow-y-auto w-full md:min-w-[85vw] bg-white/90 backdrop-blur-xl border border-[#25C2A0]/30 rounded-2xl">
+                  <SheetContent className="p-6 space-y-6 overflow-y-auto w-full md:min-w-[85vw] bg-card/90 backdrop-blur-xl border border-primary/30 rounded-2xl">
                     <SheetHeader>
                       <SheetTitle className="bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent text-lg font-semibold cursor-pointer">
                         Edit Employee
@@ -353,7 +353,7 @@ export default function EmployeesPage() {
                         <Textarea
                           placeholder="Skills (comma separated)"
                           value={editedEmployee.skills?.join(", ")}
-                          className="rounded-xl border-[#25C2A0]/40 focus:border-[#25C2A0] focus:ring-1 focus:ring-[#25C2A0]/20 min-h-[120px] bg-white/50"
+                          className="rounded-xl border-primary/40 focus:border-primary focus:ring-1 focus:ring-primary/20 min-h-[120px] bg-background/50"
                           onChange={(e) =>
                             setEditedEmployee({
                               ...editedEmployee,
@@ -366,7 +366,7 @@ export default function EmployeesPage() {
                         <Textarea
                           placeholder="Training (comma separated)"
                           value={editedEmployee.training?.join(", ")}
-                          className="rounded-xl border-[#25C2A0]/40 focus:border-[#25C2A0] focus:ring-1 focus:ring-[#25C2A0]/20 min-h-[120px] bg-white/50"
+                          className="rounded-xl border-primary/40 focus:border-primary focus:ring-1 focus:ring-primary/20 min-h-[120px] bg-background/50"
                           onChange={(e) =>
                             setEditedEmployee({
                               ...editedEmployee,
@@ -387,9 +387,9 @@ export default function EmployeesPage() {
               </div>
 
               {/* Details */}
-              <div className="text-sm text-[#3c6d74] space-y-1 mb-2">
+              <div className="text-sm text-muted-foreground space-y-1 mb-2">
                 <p>
-                  <strong className="font-medium text-[#265e65]">
+                  <strong className="font-medium text-foreground">
                     Manager:
                   </strong>{" "}
                   {emp.manager || "-"}
@@ -397,8 +397,8 @@ export default function EmployeesPage() {
                 <p>Email: {emp.email}</p>
                 <p>Phone: {emp.phone}</p>
                 <p>
-                  <span className="font-medium text-[#265e65]">Password:</span>{" "}
-                  <span className="text-[#2b6781]">{emp.password}</span>
+                  <span className="font-medium text-foreground">Password:</span>{" "}
+                  <span className="text-primary">{emp.password}</span>
                 </p>
               </div>
 
@@ -407,7 +407,7 @@ export default function EmployeesPage() {
                   {emp.skills.map((skill, i) => (
                     <span
                       key={i}
-                      className="px-2 py-1 bg-[#E6F7F3] text-[#2b6781] text-xs font-medium rounded-md"
+                      className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-md"
                     >
                       {skill}
                     </span>
@@ -416,7 +416,7 @@ export default function EmployeesPage() {
               )}
 
               {emp.training?.length > 0 && (
-                <div className="text-sm text-[#517f88]">
+                <div className="text-sm text-muted-foreground">
                   Trainings: {emp.training.join(", ")}
                 </div>
               )}

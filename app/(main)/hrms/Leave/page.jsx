@@ -168,14 +168,14 @@ const LeaveApproval = () => {
               <Coffee className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b6781]" />
               Leave Approval
             </h1>
-            <p className="text-gray-600 font-medium text-sm sm:text-base mt-1">
+            <p className="text-muted-foreground font-medium text-sm sm:text-base mt-1">
               Manage leave requests and approvals efficiently
             </p>
           </div>
         </div>
 
         {/* Pending Leave Requests */}
-        <div className="bg-white/50 backdrop-blur-xl border border-[#25C2A0]/30 shadow-lg rounded-[2rem] p-4 sm:p-6 md:p-8">
+        <div className="bg-card/50 backdrop-blur-xl border border-primary/30 shadow-lg rounded-[2rem] p-4 sm:p-6 md:p-8">
           <h2 className="text-2xl font-semibold mb-6 text-[#2b6781]">
             Pending Leave Requests
           </h2>
@@ -185,9 +185,9 @@ const LeaveApproval = () => {
               {leavePending.map((leave, index) => (
                 <li
                   key={index}
-                  className="border border-[#25C2A0]/20 bg-white/70 rounded-xl p-6 shadow hover:shadow-lg hover:scale-[1.01] transition-all"
+                  className="border border-primary/20 bg-card/70 rounded-xl p-6 shadow hover:shadow-lg hover:scale-[1.01] transition-all"
                 >
-                  <div className="space-y-2 text-gray-700 font-medium">
+                  <div className="space-y-2 text-foreground font-medium">
                     <p>
                       <strong className="text-[#2b6781]">Employee:</strong>{" "}
                       {leave.name}
@@ -228,7 +228,7 @@ const LeaveApproval = () => {
               ))}
             </ul>
           ) : (
-            <p className="text-gray-600 text-center font-medium">
+            <p className="text-muted-foreground text-center font-medium">
               No pending leave requests.
             </p>
           )}
