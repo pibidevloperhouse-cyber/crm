@@ -37,6 +37,12 @@ import { supabase } from "@/utils/supabase/client";
 import { customerStatus, dealStatus, leadStatus } from "@/constants/constant";
 import { redirect } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import DealCardMobile from "@/components/cards/DealCardMobile";
+import CustomerCardMobile from "@/components/cards/CustomerCardMobile";
+
+
+import LeadCardMobile from "@/components/cards/LeadCardMobile";
+
 
 // ─── Status dot color map ────────────────────────────────────────────────────
 const STATUS_DOT = {
@@ -89,6 +95,14 @@ export default function CRM() {
   const fileInputRef = useRef();
   // Mobile overflow menu state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  const check = () => setIsMobile(window.innerWidth < 768);
+  check();
+  window.addEventListener("resize", check);
+  return () => window.removeEventListener("resize", check);
+}, []);
 
   const toggleCollapse = (colTitle) =>
     setCollapsedCols((prev) => ({ ...prev, [colTitle]: !prev[colTitle] }));
@@ -566,28 +580,37 @@ export default function CRM() {
           </TabsList>
         </div>
 
-        {/* ── LEADS board ── */}
+
         <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
-          <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
-            {getLeadStatuses().map((status) => {
-              const items = leadsData.filter((l) => l.status === status);
-              return (
-                <KanbanColumn key={status} title={status} count={items.length}>
-                  {items.map((lead) => (
-                    <AnimatedCard key={lead.id} id={lead.id}>
-                      <LeadCard
-                        lead={lead}
-                        onChange={fetchLeads}
-                        fetchLeads={fetchLeads}
-                        fetchDeals={fetchDeals}
-                      />
-                    </AnimatedCard>
-                  ))}
-                </KanbanColumn>
-              );
-            })}
-          </div>
-        </TabsContent>
+  <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
+    {getLeadStatuses().map((status) => {
+      const items = leadsData.filter((l) => l.status === status);
+      return (
+        <KanbanColumn key={status} title={status} count={items.length}>
+          {items.map((lead) => (
+            <AnimatedCard key={lead.id} id={lead.id}>
+              {isMobile ? (
+                <LeadCardMobile
+                  lead={lead}
+                  onChange={fetchLeads}
+                  fetchLeads={fetchLeads}
+                  fetchDeals={fetchDeals}
+                />
+              ) : (
+                <LeadCard
+                  lead={lead}
+                  onChange={fetchLeads}
+                  fetchLeads={fetchLeads}
+                  fetchDeals={fetchDeals}
+                />
+              )}
+            </AnimatedCard>
+          ))}
+        </KanbanColumn>
+      );
+    })}
+  </div>
+</TabsContent>
 
         {/* ── DEALS board ── */}
         <TabsContent value="Deals" className="flex-1 min-h-0 m-0">
@@ -597,6 +620,15 @@ export default function CRM() {
               return (
                 <KanbanColumn key={status} title={status} count={items.length}>
                   {items.map((deal) => (
+  <AnimatedCard key={deal.id} id={deal.id}>
+    {isMobile ? (
+      <DealCardMobile deal={deal} onChange={fetchDeals} fetchDeals={fetchDeals} fetchCustomers={fetchCustomers} session={session} />
+    ) : (
+      <DealCard deal={deal} onChange={fetchDeals} fetchDeals={fetchDeals} fetchCustomers={fetchCustomers} session={session} />
+    )}
+  </AnimatedCard>
+))}
+                  {/* {items.map((deal) => (
                     <AnimatedCard key={deal.id} id={deal.id}>
                       <DealCard
                         deal={deal}
@@ -606,7 +638,7 @@ export default function CRM() {
                         session={session}
                       />
                     </AnimatedCard>
-                  ))}
+                  ))} */}
                 </KanbanColumn>
               );
             })}
@@ -621,10 +653,19 @@ export default function CRM() {
               return (
                 <KanbanColumn key={status} title={status} count={items.length}>
                   {items.map((customer) => (
+  <AnimatedCard key={customer.id} id={customer.id}>
+    {isMobile ? (
+      <CustomerCardMobile customer={customer} onChange={fetchCustomers} />
+    ) : (
+      <CustomerCard customer={customer} onChange={fetchCustomers} />
+    )}
+  </AnimatedCard>
+))}
+                  {/* {items.map((customer) => (
                     <AnimatedCard key={customer.id} id={customer.id}>
                       <CustomerCard customer={customer} onChange={fetchCustomers} />
                     </AnimatedCard>
-                  ))}
+                  ))} */}
                 </KanbanColumn>
               );
             })}
