@@ -431,7 +431,7 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
       </Card>
 
       {/* Action buttons */}
-      <div className="flex gap-4">
+      <div className="flex flex-wrap gap-4">
         <Button
           onClick={handleSaveChanges}
           disabled={loading}
@@ -441,29 +441,52 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
           <Save className="mr-2 w-4 h-4" />
           Save Locally
         </Button>
-
+        
         <Button
           onClick={handleUpdateDB}
           disabled={loading}
-          className="cursor-pointer bg-gradient-to-r from-sky-700 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-white"
+          className="cursor-pointer bg-[#25C2A0] hover:bg-[#1a8a72] text-white"
         >
           {loading ? (
-            <>
-              <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-              </svg>
-              Saving…
-            </>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
           ) : (
-            <>
-              <Upload className="mr-2 w-4 h-4" />
-              Update Database
-            </>
+            <Upload className="mr-2 w-4 h-4" />
           )}
+          Update Database
+        </Button>
+
+        <Button
+          onClick={async () => {
+            setLoading(true);
+            try {
+              const res = await fetch("/api/ICP", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  user_email: userEmail,
+                  description: companyData,
+                }),
+              });
+              if (res.ok) {
+                const json = await res.json();
+                setFreshIcp(json.response || json);
+                toast.success("ICP Analysis Generated!");
+              } else {
+                throw new Error(`Error ${res.status}`);
+              }
+            } catch (err) {
+              toast.error("ICP Generation failed: " + err.message);
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}
+          className="cursor-pointer bg-gradient-to-r from-[#235d76] to-[#154b5f] hover:from-[#1a4456] hover:to-[#0f3442] text-white shadow-md hover:shadow-lg transition-all"
+        >
+          <Bot className="mr-2 w-4 h-4" />
+          Generate ICP Analysis
         </Button>
       </div>
-
       {/* ICP from Supabase (persisted) — shown until fresh result arrives */}
       {icpData && !freshIcp && <IcpCard icpData={icpData} />}
 
@@ -472,6 +495,8 @@ export default function UpdateCompanyDetails({ onGenerateICP }) {
     </div>
   );
 }
+
+
 
 
 
