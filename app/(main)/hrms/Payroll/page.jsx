@@ -148,17 +148,16 @@ export default function PayrollPage() {
   const { gross, pf, esi, net } = calcTotals();
 
   return (
-    <div className="w-full p-4 md:p-6">
-      <div className="mx-auto space-y-10">
+    <div className="w-full px-2 sm:px-4 md:px-6 py-4 md:py-6">
+      <div className="mx-auto max-w-7xl space-y-10">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-2">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
-              {/* <Wallet className="w-8 h-8 text-transparent bg-gradient-to-r from-[#25C2A0] via-[#2AD4B7] to-[#38BDF8] bg-clip-text" /> */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+          <div className="flex flex-col items-center md:items-start">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold flex items-start bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
               Payroll Dashboard
             </h1>
 
-            <p className="text-gray-500">
+            <p className="text-gray-500 text-sm sm:text-base mt-1">
               Manage salaries, deductions, PF & ESI automatically
             </p>
           </div>
