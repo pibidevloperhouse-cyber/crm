@@ -185,12 +185,12 @@ export default function AgentWorkflowPage() {
         {/* Badge */}
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold shrink-0"
-          style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
+          // style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          {/* <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-          </svg>
-          EMAIL
+          </svg> */}
+          
         </div>
 
         {/* Start/Stop */}
@@ -350,12 +350,12 @@ export default function AgentWorkflowPage() {
                 </svg>
                 Email
               </button>
-              <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
+              {/* <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3l2 4-2.5 1.5A11 11 0 0014.5 15L16 12.5l4 2v3a2 2 0 01-2 2A16 16 0 013 5z" />
                 </svg>
                 Call
-              </button>
+              </button> */}
             </div>
           </div>
 
