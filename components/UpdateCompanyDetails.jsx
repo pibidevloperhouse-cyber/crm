@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Save, Upload, Plus, Trash2, Package, AlertCircle } from "lucide-react";
+import { Save, Upload, Plus, Trash2, Package, AlertCircle, Bot } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
