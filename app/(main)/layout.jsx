@@ -69,6 +69,15 @@ export default function Layout({ children }) {
     document.documentElement.classList.toggle("dark");
   };
 
+  const [expandedItems, setExpandedItems] = useState({});
+
+  const toggleExpanded = (name) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
+  };
+
   return (
     <div
       className={cn(
@@ -87,7 +96,7 @@ export default function Layout({ children }) {
                 className="flex items-center gap-2.5 group"
               >
                 {/* <div className="h-9 w-9 rounded-xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-600/20 group-hover:scale-105 transition-transform">
-                  <span className="text-white font-bold text-lg">S</span>
+                   <span className="text-white font-bold text-lg">S</span>
                 </div> */}
                 <div className="relative h-10 w-10 flex items-center justify-center overflow-hidden">
                   <img
@@ -248,19 +257,83 @@ export default function Layout({ children }) {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2 animate-in slide-in-from-top-4 duration-300">
-            {navigationItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="block px-4 py-3 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
+          <div className="lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2 animate-in slide-in-from-top-4 duration-300 max-h-[80vh] overflow-y-auto">
+            {navigationItems.map((item) => {
+              const hasSub = item.subpages?.length > 0;
+              const isExpanded = expandedItems[item.name];
+
+              return (
+                <div key={item.name} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={hasSub ? "#" : item.href}
+                      className={cn(
+                        "flex-1 px-4 py-3 text-sm font-medium rounded-xl transition-colors",
+                        location === item.href
+                          ? "bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400"
+                          : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800",
+                      )}
+                      onClick={(e) => {
+                        if (hasSub) {
+                          e.preventDefault();
+                          toggleExpanded(item.name);
+                        } else {
+                          setMobileMenuOpen(false);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="opacity-70">
+                          {item.icon || <div className="h-4 w-4" />}
+                        </span>
+                        {item.name}
+                      </div>
+                    </Link>
+                    {hasSub && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-slate-400"
+                        onClick={() => toggleExpanded(item.name)}
+                      >
+                        <ChevronDown
+                          className={cn(
+                            "h-4 w-4 transition-transform duration-200",
+                            isExpanded && "rotate-180",
+                          )}
+                        />
+                      </Button>
+                    )}
+                  </div>
+
+                  {hasSub && isExpanded && (
+                    <div className="pl-10 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                      {item.subpages.map((sub) => (
+                        <Link
+                          key={sub.name}
+                          href={sub.href}
+                          className={cn(
+                            "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors",
+                            location === sub.href
+                              ? "bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400"
+                              : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800",
+                          )}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <span className="opacity-70">
+                            {sub.icon || <div className="h-4 w-4" />}
+                          </span>
+                          {sub.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
+
       </header>
 
       {/* --- MAIN CONTENT --- */}

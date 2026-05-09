@@ -99,7 +99,7 @@ export default function ChatPage({ onClose }) {
             <p
               key={i}
               className={cn(
-                isHeading ? "font-semibold text-slate-900 mt-2" : "text-slate-800",
+                isHeading ? "font-semibold text-slate-900 dark:text-white mt-2" : "text-slate-800 dark:text-slate-300",
                 "text-sm leading-relaxed"
               )}
             >
@@ -112,7 +112,7 @@ export default function ChatPage({ onClose }) {
   }
 
   return (
-    <div className="fixed bottom-24 top-10  right-6 z-50 w-[400px] h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border">
+    <div className="fixed bottom-20 sm:bottom-24 top-10 right-4 sm:right-6 z-50 w-[calc(100%-32px)] sm:w-[400px] h-[500px] max-h-[calc(100vh-120px)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 transition-all duration-300">
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-teal-600 to-sky-600 text-white sticky top-0 z-10">
@@ -126,7 +126,7 @@ export default function ChatPage({ onClose }) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-950">
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -144,7 +144,7 @@ export default function ChatPage({ onClose }) {
                 "max-w-[75%] rounded-xl px-4 py-3 whitespace-pre-wrap",
                 msg.role === "user"
                   ? "bg-sky-600 text-white"
-                  : "bg-white text-slate-800 shadow"
+                  : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 shadow border border-slate-100 dark:border-slate-700"
               )}
             >
               {renderMessageContent(msg)}
@@ -157,9 +157,9 @@ export default function ChatPage({ onClose }) {
         ))}
 
         {loading && (
-          <div className="flex items-center gap-2 text-slate-500 text-sm">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
             <Bot className="h-5 w-5" />
-            Typing...
+            <span className="animate-pulse">Typing...</span>
           </div>
         )}
 
@@ -167,8 +167,9 @@ export default function ChatPage({ onClose }) {
       </div>
 
       {/* Input */}
-      <div className="border-t p-3 flex gap-2 bg-white">
+      <div className="border-t border-slate-200 dark:border-slate-800 p-3 flex gap-2 bg-white dark:bg-slate-900">
         <Input
+          className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-teal-500"
           value={input}
           placeholder="Ask about GTM, sales, campaigns..."
           onChange={(e) => setInput(e.target.value)}
