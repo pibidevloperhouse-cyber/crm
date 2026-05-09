@@ -69,12 +69,9 @@ export default function AgentWorkflowPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [statusChecked, setStatusChecked] = useState(false);
   const [wakeMsg, setWakeMsg] = useState("");
-  // Mobile: show lead list or timeline detail
-  const [mobileView, setMobileView] = useState("list"); // "list" | "detail"
+  const [mobileView, setMobileView] = useState("list");
 
   const { toasts, success, error: toastError, info } = useToast();
-
-  // ── All logic unchanged ──
 
   useEffect(() => {
     const fetchData = async () => {
@@ -166,34 +163,18 @@ export default function AgentWorkflowPage() {
   const selectedLeadFirst = selectedLeadData ? selectedLeadData[0] : null;
   const currentStatus = selectedLeadFirst?.status_after || "New";
   const stageIndex = STAGES.findIndex((s) => s.toLowerCase() === currentStatus.toLowerCase());
-
-  // Newest first — reverse a copy without mutating
   const sortedLeadData = selectedLeadData ? [...selectedLeadData].reverse() : [];
 
-  // Handle lead selection on mobile
   const handleSelectLead = (leadId) => {
     setSelectedLead(leadId);
     setMobileView("detail");
   };
 
-  // ── Left panel (lead list) ──
+  // ── Left panel ──
   const LeadListPanel = () => (
     <div className="flex flex-col h-full border-r border-[#d1e8e7] dark:border-[#30363d]">
 
-      {/* Top controls */}
       <div className="flex items-center gap-2 px-3 pt-3 pb-2.5 flex-wrap border-b border-[#e5f0ef] dark:border-[#30363d]">
-        {/* Badge */}
-        <div
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold shrink-0"
-          // style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
-        >
-          {/* <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
-          </svg> */}
-          
-        </div>
-
-        {/* Start/Stop */}
         <button
           onClick={handleEmailToggle}
           disabled={emailLoading || !statusChecked}
@@ -218,7 +199,6 @@ export default function AgentWorkflowPage() {
           ) : isRunning ? "■ STOP" : "▶ START"}
         </button>
 
-        {/* Live dot */}
         {statusChecked && (
           <div className="flex items-center gap-1 ml-auto">
             <div className={`w-2 h-2 rounded-full ${isRunning ? "bg-green-500 animate-pulse" : "bg-gray-400 dark:bg-gray-500"}`} />
@@ -227,9 +207,8 @@ export default function AgentWorkflowPage() {
         )}
       </div>
 
-      {/* Wake msg */}
       {wakeMsg && (
-        <div className="mx-3 my-1.5 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-yellow-900/30 border border-yellow-600/40 text-yellow-300">
+        <div className="mx-3 my-1.5 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400/40 dark:border-yellow-600/40 text-yellow-700 dark:text-yellow-300">
           <svg className="w-3.5 h-3.5 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -238,7 +217,6 @@ export default function AgentWorkflowPage() {
         </div>
       )}
 
-      {/* Search */}
       <div className="px-3 py-2.5">
         <div className="flex items-center gap-2 rounded-xl px-3 py-2 bg-[#f0f9f8] dark:bg-[#21262d] border border-[#c8e6e5] dark:border-[#30363d]">
           <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -253,14 +231,12 @@ export default function AgentWorkflowPage() {
         </div>
       </div>
 
-      {/* Lead count */}
       <div className="px-4 pb-1.5">
-        <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wider">
           {filteredLeadIds.length} Lead{filteredLeadIds.length !== 1 ? "s" : ""}
         </span>
       </div>
 
-      {/* Lead list */}
       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
         {filteredLeadIds.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-8">No leads found</p>
@@ -291,7 +267,7 @@ export default function AgentWorkflowPage() {
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{name}</p>
                   <p className={`text-xs font-semibold mt-0.5 ${getStatusTextClass(status)}`}>{status}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{lead.email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500 truncate">{lead.email}</p>
                   <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{formatDate(lead.created_at)}</p>
                 </div>
               </div>
@@ -310,15 +286,14 @@ export default function AgentWorkflowPage() {
     </div>
   );
 
-  // ── Right panel (timeline detail) ──
+  // ── Right panel ──
   const TimelinePanel = () => (
     <>
       {selectedLead && selectedLeadFirst ? (
         <>
           {/* Header */}
-          <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-[#e5f0ef] dark:border-[#30363d] gap-3 flex-wrap">
+          <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-[#e5f0ef] dark:border-[#30363d] gap-3 flex-wrap bg-white dark:bg-[#0d1117]">
             <div className="flex items-center gap-3 min-w-0">
-              {/* Mobile back button */}
               <button
                 onClick={() => setMobileView("list")}
                 className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-[#f0f9f8] dark:bg-[#21262d] border border-[#c8e6e5] dark:border-[#30363d] shrink-0"
@@ -344,23 +319,17 @@ export default function AgentWorkflowPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
+              {/* <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
                 </svg>
                 Email
-              </button>
-              {/* <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
-                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3l2 4-2.5 1.5A11 11 0 0014.5 15L16 12.5l4 2v3a2 2 0 01-2 2A16 16 0 013 5z" />
-                </svg>
-                Call
               </button> */}
             </div>
           </div>
 
-          {/* Stage bar — horizontally scrollable */}
-          <div className="px-4 md:px-6 py-2.5 overflow-x-auto border-b border-[#e5f0ef] dark:border-[#30363d] scrollbar-none">
+          {/* Stage bar */}
+          <div className="px-4 md:px-6 py-2.5 overflow-x-auto border-b border-[#e5f0ef] dark:border-[#30363d] scrollbar-none bg-white dark:bg-[#0d1117]">
             <div className="flex items-center min-w-max gap-1">
               {STAGES.map((stage, i) => {
                 const isActive = i === stageIndex;
@@ -369,29 +338,23 @@ export default function AgentWorkflowPage() {
                 return (
                   <div key={stage} className="flex items-center">
                     <div
-                      className="flex items-center gap-1 px-2.5 py-1 text-[10px] md:text-xs font-medium rounded-full whitespace-nowrap"
-                      style={{
-                        border: isActive
-                          ? isNotQual ? "1.5px solid #fca5a5" : "1.5px solid #0ea5a4"
-                          : "1px solid #30363d",
-                        background: isActive
-                          ? isNotQual ? "rgba(239,68,68,0.15)" : "rgba(14,165,164,0.15)"
-                          : isPast ? "rgba(255,255,255,0.04)" : "transparent",
-                        color: isActive
-                          ? isNotQual ? "#ef4444" : "#0ea5a4"
-                          : "#6b7280",
-                      }}
+                      className={`flex items-center gap-1 px-2.5 py-1 text-[10px] md:text-xs font-medium rounded-full whitespace-nowrap transition-all
+                        ${isActive
+                          ? isNotQual
+                            ? "bg-red-100 dark:bg-red-500/15 border border-red-400 dark:border-red-500/60 text-red-600 dark:text-red-400"
+                            : "bg-teal-100 dark:bg-teal-500/15 border border-teal-500 dark:border-teal-500/60 text-teal-700 dark:text-teal-400"
+                          : isPast
+                            ? "bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-[#30363d] text-gray-500 dark:text-gray-500"
+                            : "border border-gray-200 dark:border-[#30363d] text-gray-400 dark:text-gray-600"
+                        }`}
                     >
                       {(isActive || isPast) && (
-                        <div
-                          className="w-1.5 h-1.5 rounded-full shrink-0"
-                          style={{ background: isActive ? (isNotQual ? "#ef4444" : "#0ea5a4") : "#6b7280" }}
-                        />
+                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? (isNotQual ? "bg-red-500" : "bg-teal-500") : "bg-gray-400"}`} />
                       )}
                       {stage}
                     </div>
                     {i < STAGES.length - 1 && (
-                      <div className="w-3 h-px mx-0.5" style={{ background: i < stageIndex ? "#6b7280" : "#30363d" }} />
+                      <div className={`w-3 h-px mx-0.5 ${i < stageIndex ? "bg-gray-400 dark:bg-gray-600" : "bg-gray-200 dark:bg-[#30363d]"}`} />
                     )}
                   </div>
                 );
@@ -399,61 +362,56 @@ export default function AgentWorkflowPage() {
             </div>
           </div>
 
-          {/* Message count badge */}
-          <div className="px-4 md:px-6 pt-3 pb-1 flex items-center gap-2">
-            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          {/* Message count */}
+          <div className="px-4 md:px-6 pt-3 pb-1 flex items-center gap-2 bg-white dark:bg-[#0d1117]">
+            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-500 uppercase tracking-wider">
               {sortedLeadData.length} message{sortedLeadData.length !== 1 ? "s" : ""}
             </span>
-            <span className="text-[10px] text-gray-400 dark:text-gray-500">· newest first</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-600">· newest first</span>
           </div>
 
-          {/* ── Timeline — newest first, responsive ── */}
+          {/* ── Timeline ── */}
           <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4 bg-[#f8fffe] dark:bg-[#0d1117]">
             <div className="relative max-w-4xl mx-auto space-y-4 md:space-y-0">
 
               {/* Desktop center line */}
-              <div
-                className="hidden md:block absolute top-0 bottom-0 w-px"
-                style={{ left: "50%", transform: "translateX(-50%)", background: "#30363d" }}
+              <div className="hidden md:block absolute top-0 bottom-0 w-px bg-gray-200 dark:bg-[#30363d]"
+                style={{ left: "50%", transform: "translateX(-50%)" }}
               />
 
               {sortedLeadData.map((item, index) => (
                 <div key={index}>
 
-                  {/* ── Mobile layout: chat bubbles ── */}
+                  {/* ── Mobile: chat bubbles ── */}
                   <div className="md:hidden space-y-3 mb-3">
                     {item.inbound_summary && (
                       <div className="flex justify-start gap-2">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                          style={{ background: "rgba(37,99,235,0.2)", border: "1px solid rgba(59,130,246,0.3)" }}>
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="#60a5fa" strokeWidth={2} viewBox="0 0 24 24">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-500/30">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="#3b82f6" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
                           </svg>
                         </div>
-                        <div className="max-w-[80%] rounded-2xl rounded-tl-sm px-3.5 py-2.5"
-                          style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(59,130,246,0.2)" }}>
-                          <p className="text-[9px] font-bold tracking-wider mb-1 text-blue-400">AGENT · INBOUND</p>
-                          <p className="text-xs text-gray-300 leading-relaxed">{item.inbound_summary}</p>
-                          <p className="text-[10px] text-gray-500 mt-1.5">{formatDate(item.created_at)}</p>
+                        <div className="max-w-[80%] rounded-2xl rounded-tl-sm px-3.5 py-2.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/20">
+                          <p className="text-[9px] font-bold tracking-wider mb-1 text-blue-600 dark:text-blue-400">AGENT · INBOUND</p>
+                          <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{item.inbound_summary}</p>
+                          <p className="text-[10px] text-gray-400 mt-1.5">{formatDate(item.created_at)}</p>
                         </div>
                       </div>
                     )}
                     {item.outbound_summary && (
                       <div className="flex justify-end gap-2">
-                        <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-3.5 py-2.5"
-                          style={{ background: "rgba(5,150,105,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
-                          <p className="text-[9px] font-bold tracking-wider mb-1 text-emerald-400">HUMAN · OUTBOUND</p>
-                          <p className="text-xs text-gray-300 leading-relaxed">{item.outbound_summary}</p>
+                        <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-3.5 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/20">
+                          <p className="text-[9px] font-bold tracking-wider mb-1 text-emerald-600 dark:text-emerald-400">HUMAN · OUTBOUND</p>
+                          <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{item.outbound_summary}</p>
                           <div className="flex items-center justify-between mt-1.5 gap-2">
-                            <p className="text-[10px] text-gray-500">{formatDate(item.created_at)}</p>
+                            <p className="text-[10px] text-gray-400">{formatDate(item.created_at)}</p>
                             <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           </div>
                         </div>
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                          style={{ background: "rgba(5,150,105,0.2)", border: "1px solid rgba(16,185,129,0.3)" }}>
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="#34d399" strokeWidth={2} viewBox="0 0 24 24">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-500/30">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="#10b981" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                         </div>
@@ -461,32 +419,22 @@ export default function AgentWorkflowPage() {
                     )}
                   </div>
 
-                  {/* ── Desktop layout: centered timeline ── */}
+                  {/* ── Desktop: centered timeline ── */}
                   <div className="hidden md:flex flex-col gap-4 mb-4">
                     {item.inbound_summary && (
                       <div className="relative flex w-full">
+                        {/* Left card */}
                         <div className="w-1/2 flex justify-end pr-10">
-                          <div
-                            className="p-4 rounded-2xl max-w-sm w-full"
-                            style={{
-                              background: "rgba(37,99,235,0.15)",
-                              border: "1px solid rgba(59,130,246,0.25)",
-                              boxShadow: "0 1px 4px rgba(59,130,246,0.08)",
-                            }}
-                          >
-                            <p className="text-xs font-bold tracking-wide mb-1.5 text-blue-400">AGENT (INBOUND)</p>
-                            <p className="text-sm text-gray-300 leading-relaxed">{item.inbound_summary}</p>
-                            <p className="text-xs text-gray-500 mt-2">{formatDate(item.created_at)}</p>
+                          <div className="p-4 rounded-2xl max-w-sm w-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/25 shadow-sm">
+                            <p className="text-xs font-bold tracking-wide mb-1.5 text-blue-600 dark:text-blue-400">AGENT (INBOUND)</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{item.inbound_summary}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{formatDate(item.created_at)}</p>
                           </div>
                         </div>
+                        {/* Center node */}
                         <div
-                          className="absolute z-10 flex items-center justify-center"
-                          style={{
-                            left: "50%", top: "12px", transform: "translateX(-50%)",
-                            width: 32, height: 32, borderRadius: "50%",
-                            border: "2px solid #0ea5a4", background: "#161b22",
-                            boxShadow: "0 1px 4px rgba(14,165,164,0.25)",
-                          }}
+                          className="absolute z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-[#161b22] border-2 border-teal-400 shadow-md"
+                          style={{ left: "50%", top: "12px", transform: "translateX(-50%)" }}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
@@ -499,32 +447,22 @@ export default function AgentWorkflowPage() {
                     {item.outbound_summary && (
                       <div className="relative flex w-full mb-6">
                         <div className="w-1/2" />
+                        {/* Center node */}
                         <div
-                          className="absolute z-10 flex items-center justify-center"
-                          style={{
-                            left: "50%", top: "12px", transform: "translateX(-50%)",
-                            width: 32, height: 32, borderRadius: "50%",
-                            border: "2px solid #0ea5a4", background: "#161b22",
-                            boxShadow: "0 1px 4px rgba(14,165,164,0.25)",
-                          }}
+                          className="absolute z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-[#161b22] border-2 border-teal-400 shadow-md"
+                          style={{ left: "50%", top: "12px", transform: "translateX(-50%)" }}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                         </div>
+                        {/* Right card */}
                         <div className="w-1/2 flex justify-start pl-10">
-                          <div
-                            className="p-4 rounded-2xl max-w-sm w-full"
-                            style={{
-                              background: "rgba(5,150,105,0.15)",
-                              border: "1px solid rgba(16,185,129,0.25)",
-                              boxShadow: "0 1px 4px rgba(16,185,129,0.08)",
-                            }}
-                          >
-                            <p className="text-xs font-bold tracking-wide mb-1.5 text-emerald-400">HUMAN (OUTBOUND)</p>
-                            <p className="text-sm text-gray-300 leading-relaxed">{item.outbound_summary}</p>
+                          <div className="p-4 rounded-2xl max-w-sm w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/25 shadow-sm">
+                            <p className="text-xs font-bold tracking-wide mb-1.5 text-emerald-600 dark:text-emerald-400">HUMAN (OUTBOUND)</p>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{item.outbound_summary}</p>
                             <div className="flex items-center justify-between mt-2">
-                              <p className="text-xs text-gray-500">{formatDate(item.created_at)}</p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(item.created_at)}</p>
                               <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                               </svg>
@@ -542,14 +480,13 @@ export default function AgentWorkflowPage() {
         </>
       ) : (
         /* Empty state */
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center bg-white dark:bg-[#0d1117]">
           <div className="text-center px-6">
             <svg className="w-14 h-14 mx-auto mb-3 opacity-20" fill="none" stroke="#0ea5a4" strokeWidth={1} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z" />
             </svg>
-            <p className="text-sm text-gray-400 dark:text-gray-500">Select a lead to view the email timeline</p>
-            <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">or use ICP Analyser on the left</p>
-            {/* Mobile hint */}
+            <p className="text-sm text-gray-500 dark:text-gray-500">Select a lead to view the email timeline</p>
+            <p className="text-xs text-gray-400 dark:text-gray-600 mt-1">or use ICP Analyser on the left</p>
             <button
               onClick={() => setMobileView("list")}
               className="md:hidden mt-3 text-xs px-4 py-2 rounded-lg font-semibold text-white"
@@ -584,22 +521,20 @@ export default function AgentWorkflowPage() {
         ))}
       </div>
 
-      {/* ── Desktop: side-by-side ── */}
+      {/* ── Desktop ── */}
       <div className="hidden md:flex w-full h-full">
-        {/* Left panel */}
         <div
           className="flex-shrink-0 bg-white dark:bg-[#161b22] transition-all duration-300"
           style={{ width: selectedLead ? "300px" : "360px", minWidth: "260px" }}
         >
           <LeadListPanel />
         </div>
-        {/* Right panel */}
         <div className="flex-1 flex flex-col bg-white dark:bg-[#0d1117] overflow-hidden min-w-0">
           <TimelinePanel />
         </div>
       </div>
 
-      {/* ── Mobile: tab-based ── */}
+      {/* ── Mobile ── */}
       <div className="md:hidden w-full h-full flex flex-col">
         {mobileView === "list" ? (
           <div className="flex-1 bg-white dark:bg-[#161b22] overflow-hidden flex flex-col">
@@ -615,6 +550,640 @@ export default function AgentWorkflowPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// old one with light theme bug
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { createClient } from "@supabase/supabase-js";
+
+// const supabase = createClient(
+//   process.env.NEXT_PUBLIC_SUPABASE_URL,
+//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// );
+
+// const API = "https://crmemail.onrender.com";
+
+// const STAGES = [
+//   "New",
+//   "Contact Attempted",
+//   "Contacted",
+//   "Meeting Booked",
+//   "Qualified",
+//   "NotQualified",
+// ];
+
+// const STATUS_STYLES = {
+//   New: { text: "text-blue-600" },
+//   "Contact Attempted": { text: "text-yellow-600" },
+//   Contacted: { text: "text-teal-600" },
+//   "Meeting Booked": { text: "text-purple-600" },
+//   Qualified: { text: "text-green-600" },
+//   NotQualified: { text: "text-red-500" },
+//   "In progress": { text: "text-orange-500" },
+// };
+
+// function getStatusTextClass(status) {
+//   return (STATUS_STYLES[status] || { text: "text-gray-500" }).text;
+// }
+
+// function formatDate(dateStr) {
+//   if (!dateStr) return "";
+//   const d = new Date(dateStr);
+//   return d.toLocaleString("en-GB", {
+//     day: "2-digit", month: "short", year: "numeric",
+//     hour: "2-digit", minute: "2-digit", hour12: true,
+//   });
+// }
+
+// function getLeadName(lead) {
+//   if (lead.name) return lead.name;
+//   if (lead.email) {
+//     const part = lead.email.split("@")[0];
+//     return part.replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+//   }
+//   return `Client ${lead.client_id}`;
+// }
+
+// function useToast() {
+//   const [toasts, setToasts] = useState([]);
+//   const add = (msg, type = "info") => {
+//     const id = Date.now();
+//     setToasts((p) => [...p, { id, msg, type }]);
+//     setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3500);
+//   };
+//   return { toasts, success: (m) => add(m, "success"), error: (m) => add(m, "error"), info: (m) => add(m, "info") };
+// }
+
+// export default function AgentWorkflowPage() {
+//   const [grouped, setGrouped] = useState({});
+//   const [selectedLead, setSelectedLead] = useState(null);
+//   const [search, setSearch] = useState("");
+//   const [isRunning, setIsRunning] = useState(false);
+//   const [emailLoading, setEmailLoading] = useState(false);
+//   const [statusChecked, setStatusChecked] = useState(false);
+//   const [wakeMsg, setWakeMsg] = useState("");
+//   // Mobile: show lead list or timeline detail
+//   const [mobileView, setMobileView] = useState("list"); // "list" | "detail"
+
+//   const { toasts, success, error: toastError, info } = useToast();
+
+//   // ── All logic unchanged ──
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       const { data, error } = await supabase
+//         .from("email_memory")
+//         .select("*")
+//         .order("created_at", { ascending: true });
+//       if (!error && data) {
+//         const g = data.reduce((acc, item) => {
+//           const cid = item.client_id;
+//           if (!acc[cid]) acc[cid] = [];
+//           acc[cid].push(item);
+//           return acc;
+//         }, {});
+//         setGrouped(g);
+//       }
+//     };
+//     fetchData();
+//     const id = setInterval(fetchData, 30000);
+//     return () => clearInterval(id);
+//   }, []);
+
+//   useEffect(() => {
+//     const checkStatus = async () => {
+//       try {
+//         const res = await fetch(`${API}/status`, { signal: AbortSignal.timeout(8000) });
+//         if (res.ok) {
+//           const data = await res.json();
+//           setIsRunning(!!data.running);
+//         }
+//       } catch { } finally {
+//         setStatusChecked(true);
+//       }
+//     };
+//     checkStatus();
+//   }, []);
+
+//   const handleEmailToggle = async () => {
+//     if (emailLoading) return;
+//     setEmailLoading(true);
+//     setWakeMsg("");
+//     const endpoint = isRunning ? "stop" : "start";
+//     try {
+//       fetch(`${API}/`).catch(() => { });
+//       setWakeMsg("Waking up backend… (Render cold-start, up to 60s)");
+//       let alive = false;
+//       for (let i = 0; i < 20; i++) {
+//         await new Promise((r) => setTimeout(r, 3000));
+//         try {
+//           const ping = await fetch(`${API}/status`, { signal: AbortSignal.timeout(4000) });
+//           if (ping.ok) { alive = true; break; }
+//         } catch { }
+//       }
+//       if (!alive) throw new Error("Backend didn't respond after 60s. Check Render dashboard.");
+//       setWakeMsg(`Sending ${endpoint} command…`);
+//       const res = await fetch(`${API}/${endpoint}`, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         signal: AbortSignal.timeout(15000),
+//       });
+//       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+//       const data = await res.json();
+//       const nowRunning = data.status === "started";
+//       setIsRunning(nowRunning);
+//       setWakeMsg("");
+//       success(nowRunning ? "✅ Email automation started!" : "🛑 Email automation stopped.");
+//     } catch (err) {
+//       setWakeMsg("");
+//       toastError(`❌ ${err.message}`);
+//       try {
+//         const s = await fetch(`${API}/status`, { signal: AbortSignal.timeout(5000) });
+//         if (s.ok) { const d = await s.json(); setIsRunning(!!d.running); }
+//       } catch { }
+//     } finally {
+//       setEmailLoading(false);
+//     }
+//   };
+
+//   const leadIds = Object.keys(grouped);
+//   const filteredLeadIds = leadIds.filter((leadId) => {
+//     const lead = grouped[leadId][0];
+//     const name = getLeadName(lead).toLowerCase();
+//     const email = (lead.email || "").toLowerCase();
+//     const q = search.toLowerCase();
+//     return name.includes(q) || email.includes(q);
+//   });
+
+//   const selectedLeadData = selectedLead ? grouped[selectedLead] : null;
+//   const selectedLeadFirst = selectedLeadData ? selectedLeadData[0] : null;
+//   const currentStatus = selectedLeadFirst?.status_after || "New";
+//   const stageIndex = STAGES.findIndex((s) => s.toLowerCase() === currentStatus.toLowerCase());
+
+//   // Newest first — reverse a copy without mutating
+//   const sortedLeadData = selectedLeadData ? [...selectedLeadData].reverse() : [];
+
+//   // Handle lead selection on mobile
+//   const handleSelectLead = (leadId) => {
+//     setSelectedLead(leadId);
+//     setMobileView("detail");
+//   };
+
+//   // ── Left panel (lead list) ──
+//   const LeadListPanel = () => (
+//     <div className="flex flex-col h-full border-r border-[#d1e8e7] dark:border-[#30363d]">
+
+//       {/* Top controls */}
+//       <div className="flex items-center gap-2 px-3 pt-3 pb-2.5 flex-wrap border-b border-[#e5f0ef] dark:border-[#30363d]">
+//         {/* Badge */}
+//         <div
+//           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold shrink-0"
+//           // style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
+//         >
+//           {/* <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+//             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+//           </svg> */}
+          
+//         </div>
+
+//         {/* Start/Stop */}
+//         <button
+//           onClick={handleEmailToggle}
+//           disabled={emailLoading || !statusChecked}
+//           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold transition-all duration-200 disabled:opacity-60 shrink-0"
+//           style={{
+//             background: emailLoading
+//               ? "#9ca3af"
+//               : isRunning
+//                 ? "linear-gradient(135deg, #ef4444, #dc2626)"
+//                 : "linear-gradient(135deg, #22c55e, #16a34a)",
+//             minWidth: 68,
+//           }}
+//         >
+//           {emailLoading ? (
+//             <>
+//               <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+//                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+//                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+//               </svg>
+//               Wait…
+//             </>
+//           ) : isRunning ? "■ STOP" : "▶ START"}
+//         </button>
+
+//         {/* Live dot */}
+//         {statusChecked && (
+//           <div className="flex items-center gap-1 ml-auto">
+//             <div className={`w-2 h-2 rounded-full ${isRunning ? "bg-green-500 animate-pulse" : "bg-gray-400 dark:bg-gray-500"}`} />
+//             <span className="text-xs text-gray-500 dark:text-gray-400">{isRunning ? "Live" : "Idle"}</span>
+//           </div>
+//         )}
+//       </div>
+
+//       {/* Wake msg */}
+//       {wakeMsg && (
+//         <div className="mx-3 my-1.5 flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-yellow-900/30 border border-yellow-600/40 text-yellow-300">
+//           <svg className="w-3.5 h-3.5 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+//             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+//             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+//           </svg>
+//           {wakeMsg}
+//         </div>
+//       )}
+
+//       {/* Search */}
+//       <div className="px-3 py-2.5">
+//         <div className="flex items-center gap-2 rounded-xl px-3 py-2 bg-[#f0f9f8] dark:bg-[#21262d] border border-[#c8e6e5] dark:border-[#30363d]">
+//           <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+//             <circle cx="11" cy="11" r="8" /><path strokeLinecap="round" d="M21 21l-4.35-4.35" />
+//           </svg>
+//           <input
+//             className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none"
+//             placeholder="Search leads..."
+//             value={search}
+//             onChange={(e) => setSearch(e.target.value)}
+//           />
+//         </div>
+//       </div>
+
+//       {/* Lead count */}
+//       <div className="px-4 pb-1.5">
+//         <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+//           {filteredLeadIds.length} Lead{filteredLeadIds.length !== 1 ? "s" : ""}
+//         </span>
+//       </div>
+
+//       {/* Lead list */}
+//       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
+//         {filteredLeadIds.length === 0 && (
+//           <p className="text-center text-sm text-gray-400 py-8">No leads found</p>
+//         )}
+//         {filteredLeadIds.map((leadId) => {
+//           const lead = grouped[leadId][0];
+//           const name = getLeadName(lead);
+//           const status = lead.status_after || "New";
+//           const isSelected = selectedLead === leadId;
+//           const msgCount = grouped[leadId].length;
+//           return (
+//             <div
+//               key={leadId}
+//               onClick={() => handleSelectLead(leadId)}
+//               className={`flex items-center justify-between rounded-xl px-3 py-3 cursor-pointer transition-all active:scale-[0.98]
+//                 ${isSelected
+//                   ? "bg-[#e6f9f8] dark:bg-[#0ea5a420] border-[1.5px] border-[#0ea5a4]"
+//                   : "bg-white dark:bg-[#21262d] border border-[#e5f0ef] dark:border-[#30363d] hover:border-[#0ea5a4]/50"
+//                 }`}
+//             >
+//               <div className="flex items-center gap-2.5 min-w-0">
+//                 <div
+//                   className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+//                   style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
+//                 >
+//                   {name.charAt(0).toUpperCase()}
+//                 </div>
+//                 <div className="min-w-0">
+//                   <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{name}</p>
+//                   <p className={`text-xs font-semibold mt-0.5 ${getStatusTextClass(status)}`}>{status}</p>
+//                   <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{lead.email}</p>
+//                   <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">{formatDate(lead.created_at)}</p>
+//                 </div>
+//               </div>
+//               <div className="flex flex-col items-end gap-1.5 shrink-0 ml-2">
+//                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#0ea5a4]/10 text-[#0ea5a4]">
+//                   {msgCount}
+//                 </span>
+//                 <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+//                 </svg>
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+//     </div>
+//   );
+
+//   // ── Right panel (timeline detail) ──
+//   const TimelinePanel = () => (
+//     <>
+//       {selectedLead && selectedLeadFirst ? (
+//         <>
+//           {/* Header */}
+//           <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-[#e5f0ef] dark:border-[#30363d] gap-3 flex-wrap">
+//             <div className="flex items-center gap-3 min-w-0">
+//               {/* Mobile back button */}
+//               <button
+//                 onClick={() => setMobileView("list")}
+//                 className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-[#f0f9f8] dark:bg-[#21262d] border border-[#c8e6e5] dark:border-[#30363d] shrink-0"
+//               >
+//                 <svg className="w-4 h-4 text-[#0ea5a4]" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+//                 </svg>
+//               </button>
+//               <div
+//                 className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
+//                 style={{ background: "linear-gradient(135deg, #0ea5a4, #0284c7)" }}
+//               >
+//                 {getLeadName(selectedLeadFirst).charAt(0).toUpperCase()}
+//               </div>
+//               <div className="min-w-0">
+//                 <h2 className="font-bold text-gray-900 dark:text-gray-100 text-sm md:text-lg leading-tight truncate">
+//                   {getLeadName(selectedLeadFirst)}
+//                 </h2>
+//                 <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 truncate">
+//                   Client ID: <span className="font-medium text-gray-700 dark:text-gray-300">{selectedLead}</span>
+//                   <span className="hidden sm:inline">&nbsp;·&nbsp;{selectedLeadFirst.email}</span>
+//                 </p>
+//               </div>
+//             </div>
+//             <div className="flex items-center gap-2">
+//               <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
+//                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+//                 </svg>
+//                 Email
+//               </button>
+//               {/* <button className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#21262d] transition border border-[#d1d5db] dark:border-[#30363d]">
+//                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3l2 4-2.5 1.5A11 11 0 0014.5 15L16 12.5l4 2v3a2 2 0 01-2 2A16 16 0 013 5z" />
+//                 </svg>
+//                 Call
+//               </button> */}
+//             </div>
+//           </div>
+
+//           {/* Stage bar — horizontally scrollable */}
+//           <div className="px-4 md:px-6 py-2.5 overflow-x-auto border-b border-[#e5f0ef] dark:border-[#30363d] scrollbar-none">
+//             <div className="flex items-center min-w-max gap-1">
+//               {STAGES.map((stage, i) => {
+//                 const isActive = i === stageIndex;
+//                 const isPast = i < stageIndex;
+//                 const isNotQual = stage === "NotQualified";
+//                 return (
+//                   <div key={stage} className="flex items-center">
+//                     <div
+//                       className="flex items-center gap-1 px-2.5 py-1 text-[10px] md:text-xs font-medium rounded-full whitespace-nowrap"
+//                       style={{
+//                         border: isActive
+//                           ? isNotQual ? "1.5px solid #fca5a5" : "1.5px solid #0ea5a4"
+//                           : "1px solid #30363d",
+//                         background: isActive
+//                           ? isNotQual ? "rgba(239,68,68,0.15)" : "rgba(14,165,164,0.15)"
+//                           : isPast ? "rgba(255,255,255,0.04)" : "transparent",
+//                         color: isActive
+//                           ? isNotQual ? "#ef4444" : "#0ea5a4"
+//                           : "#6b7280",
+//                       }}
+//                     >
+//                       {(isActive || isPast) && (
+//                         <div
+//                           className="w-1.5 h-1.5 rounded-full shrink-0"
+//                           style={{ background: isActive ? (isNotQual ? "#ef4444" : "#0ea5a4") : "#6b7280" }}
+//                         />
+//                       )}
+//                       {stage}
+//                     </div>
+//                     {i < STAGES.length - 1 && (
+//                       <div className="w-3 h-px mx-0.5" style={{ background: i < stageIndex ? "#6b7280" : "#30363d" }} />
+//                     )}
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           </div>
+
+//           {/* Message count badge */}
+//           <div className="px-4 md:px-6 pt-3 pb-1 flex items-center gap-2">
+//             <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+//               {sortedLeadData.length} message{sortedLeadData.length !== 1 ? "s" : ""}
+//             </span>
+//             <span className="text-[10px] text-gray-400 dark:text-gray-500">· newest first</span>
+//           </div>
+
+//           {/* ── Timeline — newest first, responsive ── */}
+//           <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-4 bg-[#f8fffe] dark:bg-[#0d1117]">
+//             <div className="relative max-w-4xl mx-auto space-y-4 md:space-y-0">
+
+//               {/* Desktop center line */}
+//               <div
+//                 className="hidden md:block absolute top-0 bottom-0 w-px"
+//                 style={{ left: "50%", transform: "translateX(-50%)", background: "#30363d" }}
+//               />
+
+//               {sortedLeadData.map((item, index) => (
+//                 <div key={index}>
+
+//                   {/* ── Mobile layout: chat bubbles ── */}
+//                   <div className="md:hidden space-y-3 mb-3">
+//                     {item.inbound_summary && (
+//                       <div className="flex justify-start gap-2">
+//                         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+//                           style={{ background: "rgba(37,99,235,0.2)", border: "1px solid rgba(59,130,246,0.3)" }}>
+//                           <svg className="w-3.5 h-3.5" fill="none" stroke="#60a5fa" strokeWidth={2} viewBox="0 0 24 24">
+//                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+//                           </svg>
+//                         </div>
+//                         <div className="max-w-[80%] rounded-2xl rounded-tl-sm px-3.5 py-2.5"
+//                           style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(59,130,246,0.2)" }}>
+//                           <p className="text-[9px] font-bold tracking-wider mb-1 text-blue-400">AGENT · INBOUND</p>
+//                           <p className="text-xs text-gray-300 leading-relaxed">{item.inbound_summary}</p>
+//                           <p className="text-[10px] text-gray-500 mt-1.5">{formatDate(item.created_at)}</p>
+//                         </div>
+//                       </div>
+//                     )}
+//                     {item.outbound_summary && (
+//                       <div className="flex justify-end gap-2">
+//                         <div className="max-w-[80%] rounded-2xl rounded-tr-sm px-3.5 py-2.5"
+//                           style={{ background: "rgba(5,150,105,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
+//                           <p className="text-[9px] font-bold tracking-wider mb-1 text-emerald-400">HUMAN · OUTBOUND</p>
+//                           <p className="text-xs text-gray-300 leading-relaxed">{item.outbound_summary}</p>
+//                           <div className="flex items-center justify-between mt-1.5 gap-2">
+//                             <p className="text-[10px] text-gray-500">{formatDate(item.created_at)}</p>
+//                             <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
+//                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+//                             </svg>
+//                           </div>
+//                         </div>
+//                         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+//                           style={{ background: "rgba(5,150,105,0.2)", border: "1px solid rgba(16,185,129,0.3)" }}>
+//                           <svg className="w-3.5 h-3.5" fill="none" stroke="#34d399" strokeWidth={2} viewBox="0 0 24 24">
+//                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+//                           </svg>
+//                         </div>
+//                       </div>
+//                     )}
+//                   </div>
+
+//                   {/* ── Desktop layout: centered timeline ── */}
+//                   <div className="hidden md:flex flex-col gap-4 mb-4">
+//                     {item.inbound_summary && (
+//                       <div className="relative flex w-full">
+//                         <div className="w-1/2 flex justify-end pr-10">
+//                           <div
+//                             className="p-4 rounded-2xl max-w-sm w-full"
+//                             style={{
+//                               background: "rgba(37,99,235,0.15)",
+//                               border: "1px solid rgba(59,130,246,0.25)",
+//                               boxShadow: "0 1px 4px rgba(59,130,246,0.08)",
+//                             }}
+//                           >
+//                             <p className="text-xs font-bold tracking-wide mb-1.5 text-blue-400">AGENT (INBOUND)</p>
+//                             <p className="text-sm text-gray-300 leading-relaxed">{item.inbound_summary}</p>
+//                             <p className="text-xs text-gray-500 mt-2">{formatDate(item.created_at)}</p>
+//                           </div>
+//                         </div>
+//                         <div
+//                           className="absolute z-10 flex items-center justify-center"
+//                           style={{
+//                             left: "50%", top: "12px", transform: "translateX(-50%)",
+//                             width: 32, height: 32, borderRadius: "50%",
+//                             border: "2px solid #0ea5a4", background: "#161b22",
+//                             boxShadow: "0 1px 4px rgba(14,165,164,0.25)",
+//                           }}
+//                         >
+//                           <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
+//                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />
+//                           </svg>
+//                         </div>
+//                         <div className="w-1/2" />
+//                       </div>
+//                     )}
+
+//                     {item.outbound_summary && (
+//                       <div className="relative flex w-full mb-6">
+//                         <div className="w-1/2" />
+//                         <div
+//                           className="absolute z-10 flex items-center justify-center"
+//                           style={{
+//                             left: "50%", top: "12px", transform: "translateX(-50%)",
+//                             width: 32, height: 32, borderRadius: "50%",
+//                             border: "2px solid #0ea5a4", background: "#161b22",
+//                             boxShadow: "0 1px 4px rgba(14,165,164,0.25)",
+//                           }}
+//                         >
+//                           <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2} viewBox="0 0 24 24">
+//                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+//                           </svg>
+//                         </div>
+//                         <div className="w-1/2 flex justify-start pl-10">
+//                           <div
+//                             className="p-4 rounded-2xl max-w-sm w-full"
+//                             style={{
+//                               background: "rgba(5,150,105,0.15)",
+//                               border: "1px solid rgba(16,185,129,0.25)",
+//                               boxShadow: "0 1px 4px rgba(16,185,129,0.08)",
+//                             }}
+//                           >
+//                             <p className="text-xs font-bold tracking-wide mb-1.5 text-emerald-400">HUMAN (OUTBOUND)</p>
+//                             <p className="text-sm text-gray-300 leading-relaxed">{item.outbound_summary}</p>
+//                             <div className="flex items-center justify-between mt-2">
+//                               <p className="text-xs text-gray-500">{formatDate(item.created_at)}</p>
+//                               <svg className="w-4 h-4" fill="none" stroke="#0ea5a4" strokeWidth={2.5} viewBox="0 0 24 24">
+//                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+//                               </svg>
+//                             </div>
+//                           </div>
+//                         </div>
+//                       </div>
+//                     )}
+//                   </div>
+
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         </>
+//       ) : (
+//         /* Empty state */
+//         <div className="flex-1 flex items-center justify-center">
+//           <div className="text-center px-6">
+//             <svg className="w-14 h-14 mx-auto mb-3 opacity-20" fill="none" stroke="#0ea5a4" strokeWidth={1} viewBox="0 0 24 24">
+//               <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5M12 12a4 4 0 100-8 4 4 0 000 8z" />
+//             </svg>
+//             <p className="text-sm text-gray-400 dark:text-gray-500">Select a lead to view the email timeline</p>
+//             <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">or use ICP Analyser on the left</p>
+//             {/* Mobile hint */}
+//             <button
+//               onClick={() => setMobileView("list")}
+//               className="md:hidden mt-3 text-xs px-4 py-2 rounded-lg font-semibold text-white"
+//               style={{ background: "linear-gradient(135deg,#0ea5a4,#0284c7)" }}
+//             >
+//               ← Browse Leads
+//             </button>
+//           </div>
+//         </div>
+//       )}
+//     </>
+//   );
+
+//   return (
+//     <div className="flex h-screen overflow-hidden relative bg-[#e6f2f1] dark:bg-[#0d1117]">
+
+//       {/* Toast stack */}
+//       <div className="fixed top-4 right-4 z-[9999] space-y-2 pointer-events-none">
+//         {toasts.map((t) => (
+//           <div
+//             key={t.id}
+//             className="px-4 py-3 rounded-xl text-sm font-medium shadow-lg pointer-events-auto"
+//             style={{
+//               background: t.type === "success" ? "#d1fae5" : t.type === "error" ? "#fee2e2" : "#dbeafe",
+//               border: `1px solid ${t.type === "success" ? "#6ee7b7" : t.type === "error" ? "#fca5a5" : "#93c5fd"}`,
+//               color: t.type === "success" ? "#065f46" : t.type === "error" ? "#991b1b" : "#1e40af",
+//               maxWidth: 320,
+//             }}
+//           >
+//             {t.msg}
+//           </div>
+//         ))}
+//       </div>
+
+//       {/* ── Desktop: side-by-side ── */}
+//       <div className="hidden md:flex w-full h-full">
+//         {/* Left panel */}
+//         <div
+//           className="flex-shrink-0 bg-white dark:bg-[#161b22] transition-all duration-300"
+//           style={{ width: selectedLead ? "300px" : "360px", minWidth: "260px" }}
+//         >
+//           <LeadListPanel />
+//         </div>
+//         {/* Right panel */}
+//         <div className="flex-1 flex flex-col bg-white dark:bg-[#0d1117] overflow-hidden min-w-0">
+//           <TimelinePanel />
+//         </div>
+//       </div>
+
+//       {/* ── Mobile: tab-based ── */}
+//       <div className="md:hidden w-full h-full flex flex-col">
+//         {mobileView === "list" ? (
+//           <div className="flex-1 bg-white dark:bg-[#161b22] overflow-hidden flex flex-col">
+//             <LeadListPanel />
+//           </div>
+//         ) : (
+//           <div className="flex-1 flex flex-col bg-white dark:bg-[#0d1117] overflow-hidden">
+//             <TimelinePanel />
+//           </div>
+//         )}
+//       </div>
+
+//     </div>
+//   );
+// }
 
 
 // "use client";
