@@ -58,6 +58,7 @@ export default function CustomerCard({ customer, onChange }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const handleDeleteCustomer = async () => {
     const { error } = await supabase
@@ -73,15 +74,31 @@ export default function CustomerCard({ customer, onChange }) {
     }
   };
 
+  const handleStageClick = async (stage) => {
+    if (stage === customer.status || updatingStatus) return;
+    setUpdatingStatus(true);
+    const { error } = await supabase
+      .from("Customers")
+      .update({ status: stage })
+      .eq("id", customer.id);
+    if (error) {
+      toast.error("Error updating status");
+    } else {
+      toast.success(`Status updated to ${stage}`);
+      onChange();
+    }
+    setUpdatingStatus(false);
+  };
+
   const currentIdx = CUSTOMER_STAGES.indexOf(customer.status);
 
   const InfoRow = ({ icon: Icon, label, value }) =>
     value ? (
-      <div className="flex items-start gap-2 text-sm py-1.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
+      <div className="flex items-start gap-2 text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
         <Icon className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
         <div className="min-w-0">
           <p className="text-[11px] text-slate-400 uppercase tracking-wide">{label}</p>
-          <p className="text-slate-800 dark:text-slate-200 font-medium text-sm truncate">{value}</p>
+          <p className="text-slate-800 dark:text-slate-200 font-medium text-sm break-words">{value}</p>
         </div>
       </div>
     ) : null;
@@ -91,14 +108,14 @@ export default function CustomerCard({ customer, onChange }) {
       {/* ── Compact Kanban Card ── */}
       <div
         onClick={() => setOpen(true)}
-        className="bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-teal-400 dark:hover:border-teal-500 transition-all duration-200"
+        className="bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-teal-400 dark:hover:border-teal-500 transition-all duration-200 group"
       >
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2 min-w-0">
             <Avatar className="h-6 w-6 flex-shrink-0">
               <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white text-[10px]">
                 {customer?.name
-                  ? customer.name.trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2)
+                  ? customer.name.trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2).toUpperCase()
                   : "?"}
               </AvatarFallback>
             </Avatar>
@@ -135,66 +152,46 @@ export default function CustomerCard({ customer, onChange }) {
         </div>
       </div>
 
-      {/* ── Centered Detail Dialog (80% screen) ── */}
+      {/* ── Detail Dialog — same size as LeadCard (80vw × 85vh) ── */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="max-w-[80vw] w-[80vw] max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0"
-          style={{ borderRadius: "12px" }}
+          className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0 gap-0 border-none shadow-2xl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b bg-slate-50 dark:bg-slate-900/80 flex-shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b bg-slate-50 dark:bg-slate-900/80 flex-shrink-0 pr-12">
             <div className="flex items-center gap-3 min-w-0">
-              <Avatar className="h-9 w-9 flex-shrink-0">
-                <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white text-sm">
+              <Avatar className="h-10 w-10 flex-shrink-0">
+                <AvatarFallback className="bg-gradient-to-br from-sky-700 to-teal-500 text-white font-bold">
                   {customer?.name
-                    ? customer.name.trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2)
+                    ? customer.name.trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2).toUpperCase()
                     : "?"}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <h2 className="text-base font-bold text-slate-900 dark:text-white truncate">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">
                   {customer?.name}
                 </h2>
-                <p className="text-xs text-slate-500 truncate">
-                  {customer?.email}
-                </p>
+                <Badge
+                  className={`mt-0.5 ${STATUS_COLOR[customer.status] || "bg-slate-400"} text-white border-0 text-[10px] h-5`}
+                >
+                  {customer.status}
+                </Badge>
               </div>
-              <Badge
-                className={`ml-1 flex-shrink-0 ${STATUS_COLOR[customer.status] || "bg-slate-400"} text-white border-0 text-xs`}
-              >
-                {customer.status}
-              </Badge>
-              {customer?.price && (
-                <span className="text-base font-bold text-green-600 dark:text-green-400 flex-shrink-0 ml-1">
-                  — ${customer.price}
-                </span>
-              )}
             </div>
 
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs" onClick={() => setEmailOpen(true)}>
-                    <Mail className="w-3.5 h-3.5 mr-1" /> Email
-                  </Button>
-                </DialogTrigger>
-                <EmailTemplate
-                  type="Customers"
-                  id={customer.id}
-                  email={customer.email}
-                  open={emailOpen}
-                  onOpenChange={setEmailOpen}
-                />
-              </Dialog>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button size="sm" variant="outline" className="h-9 px-3" onClick={() => setEmailOpen(true)}>
+                <Mail className="w-4 h-4 mr-2" /> Email
+              </Button>
 
-              <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs">
-                <Phone className="w-3.5 h-3.5 mr-1" /> Call
+              <Button size="sm" variant="outline" className="h-9 px-3">
+                <Phone className="w-4 h-4 mr-2" /> Call
               </Button>
 
               <Sheet open={editOpen} onOpenChange={setEditOpen}>
                 <SheetTrigger asChild>
-                  <Button size="sm" variant="outline" className="h-8 px-2.5 text-xs">
-                    <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                  <Button size="sm" variant="outline" className="h-9 px-3">
+                    <Edit className="w-4 h-4 mr-2" /> Edit
                   </Button>
                 </SheetTrigger>
                 <SheetContent className="overflow-y-auto min-w-[85vw]">
@@ -209,149 +206,150 @@ export default function CustomerCard({ customer, onChange }) {
                 </SheetContent>
               </Sheet>
 
-              <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 px-2 text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Delete Customer</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to delete{" "}
-                      <strong>{customer.name}</strong>?
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-                    <Button variant="destructive" onClick={handleDeleteCustomer}>Delete</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 px-3 text-red-500 border-red-200 hover:bg-red-50"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
           </div>
 
-          {/* Body */}
+          {/* Body: two columns */}
           <div className="flex flex-1 overflow-hidden">
-            {/* Left info */}
-            <div className="w-[300px] min-w-[300px] border-r overflow-y-auto p-4 bg-white dark:bg-slate-900 space-y-0.5">
-              <p className="text-[10px] font-semibold uppercase text-slate-400 tracking-widest mb-3">
-                General Information
-              </p>
-              <InfoRow icon={Mail} label="Email" value={customer.email} />
-              <InfoRow icon={Phone} label="Phone" value={customer.number || customer.phone} />
-              <InfoRow icon={Building2} label="Industry" value={customer.industry} />
-              <InfoRow icon={MapPin} label="Address" value={customer.address} />
-              <InfoRow icon={Globe} label="Website" value={customer.website} />
-              <InfoRow icon={Linkedin} label="LinkedIn" value={customer.linkedIn} />
-              <InfoRow icon={DollarSign} label="Total Value" value={customer.price ? `$${customer.price}` : null} />
-              <InfoRow icon={Calendar} label="Created" value={customer.created_at?.split("T")[0]} />
+            {/* Left — General Info */}
+            <div className="w-1/3 border-r overflow-y-auto p-6 bg-white dark:bg-slate-900 custom-scrollbar">
+              <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-4">General Information</h3>
+              <div className="space-y-1">
+                <InfoRow icon={Mail} label="Email" value={customer.email} />
+                <InfoRow icon={Phone} label="Phone" value={customer.number || customer.phone} />
+                <InfoRow icon={Building2} label="Industry" value={customer.industry} />
+                <InfoRow icon={MapPin} label="Address" value={customer.address} />
+                <InfoRow icon={Globe} label="Website" value={customer.website} />
+                <InfoRow icon={Linkedin} label="LinkedIn" value={customer.linkedIn} />
+                <InfoRow
+                  icon={DollarSign}
+                  label="Total Value"
+                  value={customer.price ? `$${customer.price}` : null}
+                />
+                <InfoRow
+                  icon={Calendar}
+                  label="Created"
+                  value={customer.created_at?.split("T")[0]}
+                />
+              </div>
               {customer.issues && customer.issues !== "[]" && (
-                <div className="pt-2">
-                  <p className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">Issues</p>
-                  <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg p-2.5">
-                    {typeof customer.issues === "string" ? customer.issues : JSON.stringify(customer.issues)}
+                <div className="mt-6">
+                  <p className="text-[11px] text-slate-400 uppercase tracking-widest mb-2">Issues</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl leading-relaxed">
+                    {typeof customer.issues === "string"
+                      ? customer.issues
+                      : JSON.stringify(customer.issues)}
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Right: Purchase history */}
-            <div className="flex-1 overflow-y-auto p-4 bg-slate-50/60 dark:bg-slate-900/40">
-              <p className="text-[10px] font-semibold uppercase text-slate-400 tracking-widest mb-3">
-                Purchase History
-              </p>
-              {customer.purchase_history && (
-                Array.isArray(customer.purchase_history)
-                  ? customer.purchase_history
-                  : [customer.purchase_history]
-              ).length > 0 ? (
-                <div className="space-y-2">
-                  {(Array.isArray(customer.purchase_history)
+            {/* Right — Purchase History */}
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50 dark:bg-slate-950/20 custom-scrollbar">
+              <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-4">Purchase History</h3>
+              {(() => {
+                const history = customer.purchase_history
+                  ? Array.isArray(customer.purchase_history)
                     ? customer.purchase_history
                     : [customer.purchase_history]
-                  ).map((p, i) => (
-                    <div
-                      key={i}
-                      className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <ShoppingBag className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" />
-                        <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                          {p.product || "Purchase"}
-                        </p>
-                        {p.price && (
-                          <span className="ml-auto text-xs font-bold text-green-600">${p.price}</span>
+                  : [];
+
+                return history.length > 0 ? (
+                  <div className="space-y-3">
+                    {history.map((p, i) => (
+                      <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-4 border shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-teal-500" />
+                          <p className="text-sm font-semibold text-slate-800 dark:text-white">
+                            {p.product || "Purchase"}
+                          </p>
+                          {p.price && (
+                            <span className="ml-auto text-xs font-bold text-green-600">
+                              ${p.price}
+                            </span>
+                          )}
+                        </div>
+                        {p.purchase_date && (
+                          <p className="text-[11px] text-slate-400 ml-5">{p.purchase_date}</p>
                         )}
                       </div>
-                      {p.purchase_date && (
-                        <p className="text-xs text-slate-400 ml-5">{p.purchase_date}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
-                    <ShoppingBag className="w-5 h-5 text-slate-400" />
+                    ))}
                   </div>
-                  <p className="text-sm text-slate-400">No purchase history yet.</p>
-                </div>
-              )}
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 pb-20">
+                    <ShoppingBag className="w-12 h-12 mb-2 opacity-20" />
+                    <p className="text-sm">No purchase history yet.</p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
-          {/* ── Status Pipeline ── */}
-          <div className="border-t bg-white dark:bg-slate-900 px-5 py-3 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-400 font-semibold whitespace-nowrap mr-1">
-                Customer Status
-              </span>
-              <div className="flex items-center gap-0">
-                {CUSTOMER_STAGES.map((stage, idx) => {
-                  const isCompleted = idx < currentIdx;
-                  const isCurrent = idx === currentIdx;
-                  const isLast = idx === CUSTOMER_STAGES.length - 1;
-                  return (
-                    <div key={stage} className="flex items-center flex-shrink-0">
-                      <div className="flex flex-col items-center gap-1 px-3">
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all
-                            ${isCurrent
-                              ? "bg-teal-500 border-teal-500 text-white shadow-md shadow-teal-200 dark:shadow-teal-900"
-                              : isCompleted
-                                ? "bg-teal-50 dark:bg-teal-900/30 border-teal-400 text-teal-600"
-                                : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-400"
-                            }`}
-                        >
-                          {idx + 1}
-                        </div>
-                        <span
-                          className={`text-[9px] whitespace-nowrap font-medium
-                            ${isCurrent ? "text-teal-600 dark:text-teal-400" : isCompleted ? "text-teal-500" : "text-slate-400"}`}
-                        >
-                          {stage}
-                        </span>
-                      </div>
-                      {!isLast && (
-                        <div
-                          className={`w-10 h-0.5 flex-shrink-0 ${isCompleted ? "bg-teal-400" : "bg-slate-200 dark:bg-slate-700"}`}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <Badge className="ml-auto flex-shrink-0 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border-0 text-[11px]">
-                {customer.status}
-              </Badge>
+          {/* ── Status Flow Footer ── */}
+          <div className="border-t bg-white dark:bg-slate-900 p-4 flex-shrink-0">
+            <div className="flex items-center gap-4 max-w-full overflow-x-auto no-scrollbar pb-2">
+              <span className="text-[10px] font-bold uppercase text-slate-400 tracking-tighter">Flow:</span>
+              {CUSTOMER_STAGES.map((stage, idx) => {
+                const isCompleted = idx < currentIdx;
+                const isCurrent = idx === currentIdx;
+                return (
+                  <div key={stage} className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleStageClick(stage)}
+                      disabled={updatingStatus}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
+                        isCurrent
+                          ? "bg-teal-500 border-teal-500 text-white font-bold"
+                          : isCompleted
+                          ? "bg-teal-50 border-teal-200 text-teal-600"
+                          : "bg-white border-slate-200 text-slate-400 hover:border-teal-300"
+                      } ${updatingStatus ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                    >
+                      <span className="text-[10px]">{idx + 1}. {stage}</span>
+                    </button>
+                    {idx < CUSTOMER_STAGES.length - 1 && <div className="w-4 h-[1px] bg-slate-200" />}
+                  </div>
+                );
+              })}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── ALL MODALS ── */}
+
+      {/* Email Modal */}
+      <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
+        <EmailTemplate
+          type="Customers"
+          id={customer.id}
+          email={customer.email}
+          open={emailOpen}
+          onOpenChange={setEmailOpen}
+        />
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Customer?</DialogTitle>
+            <DialogDescription>
+              This will permanently remove <strong>{customer.name}</strong> from your CRM. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteCustomer}>Confirm Delete</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
@@ -365,208 +363,413 @@ export default function CustomerCard({ customer, onChange }) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+// old one 
 // "use client";
 
+// import { useState } from "react";
 // import { Avatar, AvatarFallback } from "../ui/avatar";
-// import { Card, CardContent } from "../ui/card";
+// import { Badge } from "../ui/badge";
+// import { Button } from "../ui/button";
 // import {
-//   MapPin,
-//   Building2,
-//   Eye,
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogTrigger,
+// } from "../ui/dialog";
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetDescription,
+//   SheetHeader,
+//   SheetTitle,
+//   SheetTrigger,
+// } from "../ui/sheet";
+// import {
 //   Mail,
 //   Phone,
 //   Trash2,
 //   Edit,
+//   Building2,
+//   MapPin,
+//   Globe,
+//   DollarSign,
+//   Calendar,
+//   ShoppingBag,
+//   Linkedin,
 // } from "lucide-react";
-// import { Button } from "../ui/button";
-// import { Badge } from "../ui/badge";
-// import {
-//   Sheet,
-//   SheetTitle,
-//   SheetContent,
-//   SheetDescription,
-//   SheetHeader,
-//   SheetTrigger,
-// } from "../ui/sheet";
-// import {
-//   Dialog,
-//   DialogTitle,
-//   DialogContent,
-//   DialogDescription,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTrigger,
-// } from "../ui/dialog";
 // import EmailTemplate from "../EmailTemplate";
 // import UpdateCustomer from "../UpdateCustomer";
-// import { useState } from "react";
+// import { supabase } from "@/utils/supabase/client";
+// import { toast } from "react-toastify";
+
+// const CUSTOMER_STAGES = ["Active", "Inactive", "Churned"];
+
+// const STATUS_COLOR = {
+//   Active: "bg-emerald-500",
+//   Inactive: "bg-slate-400",
+//   Churned: "bg-red-500",
+// };
+
+// const STATUS_DOT = {
+//   Active: "bg-emerald-500",
+//   Inactive: "bg-slate-400",
+//   Churned: "bg-red-400",
+// };
 
 // export default function CustomerCard({ customer, onChange }) {
-//   const [email, setEmail] = useState(false);
+//   const [open, setOpen] = useState(false);
+//   const [deleteOpen, setDeleteOpen] = useState(false);
+//   const [editOpen, setEditOpen] = useState(false);
+//   const [emailOpen, setEmailOpen] = useState(false);
+//   const [updatingStatus, setUpdatingStatus] = useState(false);
+
+//   const handleDeleteCustomer = async () => {
+//     const { error } = await supabase
+//       .from("Customers")
+//       .delete()
+//       .eq("id", customer.id);
+//     if (error) {
+//       toast.error("Error deleting customer");
+//     } else {
+//       toast.success("Customer deleted");
+//       setOpen(false);
+//       onChange();
+//     }
+//   };
+
+//   const handleStageClick = async (stage) => {
+//     if (stage === customer.status || updatingStatus) return;
+//     setUpdatingStatus(true);
+//     const { error } = await supabase
+//       .from("Customers")
+//       .update({ status: stage })
+//       .eq("id", customer.id);
+//     if (error) {
+//       toast.error("Error updating status");
+//     } else {
+//       toast.success(`Status updated to ${stage}`);
+//       onChange();
+//     }
+//     setUpdatingStatus(false);
+//   };
+
+//   const currentIdx = CUSTOMER_STAGES.indexOf(customer.status);
+
+//   const InfoRow = ({ icon: Icon, label, value }) =>
+//     value ? (
+//       <div className="flex items-start gap-3 py-2.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
+//         <Icon className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
+//         <div className="min-w-0">
+//           <p className="text-[11px] text-slate-400 uppercase tracking-wide mb-0.5">{label}</p>
+//           <p className="text-slate-800 dark:text-slate-200 font-medium text-sm">{value}</p>
+//         </div>
+//       </div>
+//     ) : null;
+
 //   return (
-//     <Sheet>
-//       <Card className="backdrop-blur-sm bg-white/70 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-all duration-300 group xs:max-w-[290px] sm:max-w-full ">
-//         <CardContent className="">
-//           <div className="flex sm:flex-col md:flex-row items-center justify-between gap-4">
-//             <div className="flex items-center space-x-3 sm:space-x-4 flex-1 w-full">
-//               <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
-//                 <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white text-sm">
+//     <>
+//       {/* ── Compact Kanban Card ── */}
+//       <div
+//         onClick={() => setOpen(true)}
+//         className="bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-teal-400 dark:hover:border-teal-500 transition-all duration-200"
+//       >
+//         <div className="flex items-start justify-between gap-2 mb-2">
+//           <div className="flex items-center gap-2 min-w-0">
+//             <Avatar className="h-6 w-6 flex-shrink-0">
+//               <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white text-[10px]">
+//                 {customer?.name
+//                   ? customer.name.trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2)
+//                   : "?"}
+//               </AvatarFallback>
+//             </Avatar>
+//             <p className="font-semibold text-sm text-slate-800 dark:text-white truncate leading-tight">
+//               {customer?.name}
+//             </p>
+//           </div>
+//           <span
+//             className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${STATUS_DOT[customer.status] || "bg-slate-400"}`}
+//           />
+//         </div>
+
+//         {customer?.email && (
+//           <p className="text-xs text-slate-400 truncate mb-1">{customer.email}</p>
+//         )}
+//         {customer?.industry && (
+//           <p className="text-xs text-slate-500 flex items-center gap-1 mb-1">
+//             <Building2 className="w-3 h-3 flex-shrink-0" />
+//             <span className="truncate">{customer.industry}</span>
+//           </p>
+//         )}
+
+//         <div className="flex items-center justify-between mt-1.5 gap-1">
+//           {customer?.price ? (
+//             <span className="text-xs font-bold text-green-600 dark:text-green-400">
+//               ${customer.price}
+//             </span>
+//           ) : <span />}
+//           {customer?.created_at && (
+//             <span className="text-[10px] text-slate-400">
+//               {customer.created_at.split("T")[0]}
+//             </span>
+//           )}
+//         </div>
+//       </div>
+
+//       {/* ── Detail Dialog — matches screenshot layout ── */}
+//       <Dialog open={open} onOpenChange={setOpen}>
+//         <DialogContent
+//           className="w-[92vw] max-w-[780px] max-h-[88vh] overflow-hidden flex flex-col p-0 gap-0 rounded-2xl shadow-2xl"
+//         >
+//           {/* ── Header ── */}
+//           <div className="flex items-center justify-between px-6 py-4 border-b bg-white dark:bg-slate-900 flex-shrink-0">
+//             <div className="flex items-center gap-3 min-w-0">
+//               <Avatar className="h-11 w-11 flex-shrink-0">
+//                 <AvatarFallback className="bg-gradient-to-br from-sky-700 to-teal-500 text-white text-sm font-bold">
 //                   {customer?.name
-//                     ? customer.name
-//                         .trim()
-//                         .split(/\s+/)
-//                         .map((n) => n[0])
-//                         .join("")
+//                     ? customer.name.trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2).toUpperCase()
 //                     : "?"}
 //                 </AvatarFallback>
 //               </Avatar>
-//               <div className="flex-1 w-full">
-//                 <div>
-//                   <SheetTrigger asChild>
-//                     <h3 className="text-md flex items-center gap-2 hover:text-blue-400 md:text-lg cursor-pointer text-start font-semibold text-slate-900 dark:text-white break-words">
-//                       {customer.name}
-//                       <Edit className="h-4 w-4 text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer" />
-//                     </h3>
-//                   </SheetTrigger>
-//                   <p className="text-sm sm:text-xs text-slate-600 dark:text-slate-400 break-words">
-//                     {customer.email}
-//                   </p>
-//                 </div>
-//                 <div className="flex flex-col justify-self-start mt-2 text-sm text-slate-500 dark:text-slate-400 sm:gap-0">
-//                   <div className="flex items-center">
-//                     <Building2 className="h-4 w-4 mr-1 flex-shrink-0" />
-//                     <span className="break-words text-[10px] md:text-sm">
-//                       {customer.industry}
-//                     </span>
-//                   </div>
-//                   <div className="flex items-center mt-1">
-//                     <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-//                     <span className="break-words text-[10px] md:text-sm">
-//                       {customer.address}
-//                     </span>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//             <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
-//               <div className="text-left flex items-end flex-col sm:text-right">
+//               <div className="min-w-0">
+//                 <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
+//                   {customer?.name}
+//                 </h2>
 //                 <Badge
-//                   variant={
-//                     customer.status === "Active"
-//                       ? "default"
-//                       : customer.status === "At Risk"
-//                       ? "destructive"
-//                       : "secondary"
-//                   }
-//                   className="text-[10px] md:text-xs"
+//                   className={`mt-1 ${STATUS_COLOR[customer.status] || "bg-slate-400"} text-white border-0 text-xs px-2`}
 //                 >
 //                   {customer.status}
 //                 </Badge>
-//                 <p className="text-[10px] flex flex-col md:text-xs text-slate-500 dark:text-slate-400 mt-1 break-words ">
-//                   Created At:{" "}
-//                   <span>
-//                     {customer?.created_at
-//                       ? customer.created_at.split("T")[0]
-//                       : "N/A"}
-//                   </span>
-//                 </p>
 //               </div>
 //             </div>
-//           </div>
-//           <div className="flex flex-col items-start mt-4 gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-//             <div className="gap-6 flex w-full justify-between">
-//               <div>
-//                 <Dialog>
-//                   <DialogTrigger asChild>
-//                     <Button
-//                       size="sm"
-//                       variant="outline"
-//                       className="bg-white/50 cursor-pointer dark:bg-slate-800/50 border-white/20 flex-1 sm:flex-none "
-//                       onClick={() => setEmail(true)}
-//                     >
-//                       <Mail className="h-4 w-4 mr-1" />
-//                       <span className="hidden md:block">Email</span>
-//                     </Button>
-//                   </DialogTrigger>
 
-//                   <EmailTemplate
-//                     type="Customers"
-//                     id={customer.id}
-//                     email={customer.email}
-//                     open={email}
-//                     onOpenChange={setEmail}
-//                   />
-//                 </Dialog>
-//               </div>
-//               <div>
-//                 <Button
-//                   size="sm"
-//                   variant="outline"
-//                   className="bg-white/50 dark:bg-slate-800/50 border-white/20 flex-1 sm:flex-none"
-//                 >
-//                   <Phone className="h-4 w-4 mr-1" />
-//                   <span className="hidden md:block">Call</span>
-//                 </Button>
-//               </div>
-//               <div>
-//                 <Dialog>
-//                   <DialogTrigger asChild>
-//                     <Button
-//                       size="sm"
-//                       variant="outline"
-//                       className="bg-white/50 dark:bg-slate-800/50 border-white/20 flex-1 sm:flex-none"
-//                     >
-//                       <Trash2 className="h-4 w-4" />
-//                       <span className="hidden md:block">Delete</span>
-//                     </Button>
-//                   </DialogTrigger>
-//                   <DialogContent>
-//                     <DialogHeader>
-//                       <DialogTitle>Delete Deal</DialogTitle>
-//                       <DialogDescription>
-//                         Are you sure you want to delete this deal?
-//                       </DialogDescription>
-//                     </DialogHeader>
-//                     <DialogFooter>
-//                       <Button
-//                         type="submit"
-//                         onClick={() => {
-//                           handleDeleteDeal(deal.id);
-//                           setOpen(false);
-//                           onChange();
-//                         }}
+//             <div className="flex items-center gap-2 flex-shrink-0">
+//               <Dialog>
+//                 <DialogTrigger asChild>
+//                   <Button
+//                     size="sm"
+//                     variant="outline"
+//                     className="h-9 px-3 text-sm gap-1.5"
+//                     onClick={() => setEmailOpen(true)}
+//                   >
+//                     <Mail className="w-4 h-4" /> Email
+//                   </Button>
+//                 </DialogTrigger>
+//                 <EmailTemplate
+//                   type="Customers"
+//                   id={customer.id}
+//                   email={customer.email}
+//                   open={emailOpen}
+//                   onOpenChange={setEmailOpen}
+//                 />
+//               </Dialog>
+
+//               <Button size="sm" variant="outline" className="h-9 px-3 text-sm gap-1.5">
+//                 <Phone className="w-4 h-4" /> Call
+//               </Button>
+
+//               <Sheet open={editOpen} onOpenChange={setEditOpen}>
+//                 <SheetTrigger asChild>
+//                   <Button size="sm" variant="outline" className="h-9 px-3 text-sm gap-1.5">
+//                     <Edit className="w-4 h-4" /> Edit
+//                   </Button>
+//                 </SheetTrigger>
+//                 <SheetContent className="overflow-y-auto min-w-[85vw]">
+//                   <SheetHeader>
+//                     <SheetTitle>Edit Customer</SheetTitle>
+//                     <SheetDescription asChild>
+//                       <div>
+//                         <UpdateCustomer customer_id={customer.id} onChange={onChange} />
+//                       </div>
+//                     </SheetDescription>
+//                   </SheetHeader>
+//                 </SheetContent>
+//               </Sheet>
+
+//               <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+//                 <DialogTrigger asChild>
+//                   <Button
+//                     size="sm"
+//                     variant="outline"
+//                     className="h-9 w-9 p-0 text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
+//                   >
+//                     <Trash2 className="w-4 h-4" />
+//                   </Button>
+//                 </DialogTrigger>
+//                 <DialogContent>
+//                   <DialogHeader>
+//                     <DialogTitle>Delete Customer</DialogTitle>
+//                     <DialogDescription>
+//                       Are you sure you want to delete <strong>{customer.name}</strong>?
+//                     </DialogDescription>
+//                   </DialogHeader>
+//                   <DialogFooter>
+//                     <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+//                     <Button variant="destructive" onClick={handleDeleteCustomer}>Delete</Button>
+//                   </DialogFooter>
+//                 </DialogContent>
+//               </Dialog>
+//             </div>
+//           </div>
+
+//           {/* ── Body: two columns ── */}
+//           <div className="flex flex-1 min-h-0 overflow-hidden">
+
+//             {/* Left — General Info with visible scrollbar like screenshot 2 */}
+//             <div
+//               className="w-[300px] min-w-[300px] flex-shrink-0 border-r overflow-y-scroll bg-white dark:bg-slate-900 px-5 py-4"
+//             >
+//               <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-3">
+//                 General Information
+//               </p>
+//               <InfoRow icon={Mail} label="Email" value={customer.email} />
+//               <InfoRow icon={Phone} label="Phone" value={customer.number || customer.phone} />
+//               <InfoRow icon={Building2} label="Industry" value={customer.industry} />
+//               <InfoRow icon={MapPin} label="Address" value={customer.address} />
+//               <InfoRow icon={Globe} label="Website" value={customer.website} />
+//               <InfoRow icon={Linkedin} label="LinkedIn" value={customer.linkedIn} />
+//               <InfoRow
+//                 icon={DollarSign}
+//                 label="Total Value"
+//                 value={customer.price ? `$${customer.price}` : null}
+//               />
+//               <InfoRow
+//                 icon={Calendar}
+//                 label="Created"
+//                 value={customer.created_at?.split("T")[0]}
+//               />
+//               {customer.issues && customer.issues !== "[]" && (
+//                 <div className="pt-2">
+//                   <p className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">Issues</p>
+//                   <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg p-2.5">
+//                     {typeof customer.issues === "string"
+//                       ? customer.issues
+//                       : JSON.stringify(customer.issues)}
+//                   </p>
+//                 </div>
+//               )}
+//             </div>
+
+//             {/* Right — Purchase History */}
+//             <div className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-900/40 px-5 py-4 min-w-0">
+//               <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-3">
+//                 Purchase History
+//               </p>
+//               {(() => {
+//                 const history = customer.purchase_history
+//                   ? Array.isArray(customer.purchase_history)
+//                     ? customer.purchase_history
+//                     : [customer.purchase_history]
+//                   : [];
+
+//                 return history.length > 0 ? (
+//                   <div className="space-y-2">
+//                     {history.map((p, i) => (
+//                       <div
+//                         key={i}
+//                         className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700"
 //                       >
-//                         Delete
-//                       </Button>
-//                     </DialogFooter>
-//                   </DialogContent>
-//                 </Dialog>
+//                         <div className="flex items-center gap-2 mb-1">
+//                           <ShoppingBag className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" />
+//                           <p className="text-sm font-semibold text-slate-800 dark:text-white">
+//                             {p.product || "Purchase"}
+//                           </p>
+//                           {p.price && (
+//                             <span className="ml-auto text-xs font-bold text-green-600">
+//                               ${p.price}
+//                             </span>
+//                           )}
+//                         </div>
+//                         {p.purchase_date && (
+//                           <p className="text-xs text-slate-400 ml-5">{p.purchase_date}</p>
+//                         )}
+//                       </div>
+//                     ))}
+//                   </div>
+//                 ) : (
+//                   <div className="flex flex-col items-center justify-center h-48 gap-3">
+//                     <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+//                       <ShoppingBag className="w-5 h-5 text-slate-400" />
+//                     </div>
+//                     <p className="text-sm text-slate-400">No purchase history yet.</p>
+//                   </div>
+//                 );
+//               })()}
+//             </div>
+//           </div>
+
+//           {/* ── Status Flow Footer — pill buttons exactly like screenshot 2 ── */}
+//           <div className="border-t bg-white dark:bg-slate-900 px-5 py-3 flex-shrink-0">
+//             <div className="flex items-center gap-3 overflow-x-auto">
+//               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide whitespace-nowrap flex-shrink-0">
+//                 FLOW:
+//               </span>
+
+//               <div className="flex items-center">
+//                 {CUSTOMER_STAGES.map((stage, idx) => {
+//                   const isCompleted = idx < currentIdx;
+//                   const isCurrent = idx === currentIdx;
+//                   const isLast = idx === CUSTOMER_STAGES.length - 1;
+
+//                   return (
+//                     <div key={stage} className="flex items-center">
+//                       {/* Pill button — same shape as screenshot 2 */}
+//                       <button
+//                         onClick={() => handleStageClick(stage)}
+//                         disabled={updatingStatus}
+//                         title={`Set status to ${stage}`}
+//                         className={[
+//                           "flex flex-col items-center justify-center px-4 py-2 rounded-full border-2 transition-all duration-200 whitespace-nowrap leading-none",
+//                           isCurrent
+//                             ? "bg-teal-500 border-teal-500 text-white shadow-md shadow-teal-100"
+//                             : isCompleted
+//                               ? "bg-white dark:bg-slate-800 border-teal-400 text-teal-600 dark:text-teal-400"
+//                               : "bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-400 hover:border-teal-300 hover:text-teal-400",
+//                           updatingStatus ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+//                         ].join(" ")}
+//                       >
+//                         <span className="text-[9px] font-medium mb-0.5 opacity-80">{idx + 1}.</span>
+//                         <span className="text-xs font-semibold">{stage}</span>
+//                       </button>
+
+//                       {/* Connector line */}
+//                       {!isLast && (
+//                         <div
+//                           className={`w-5 h-0.5 flex-shrink-0 mx-0.5 ${
+//                             isCompleted ? "bg-teal-400" : "bg-slate-200 dark:bg-slate-700"
+//                           }`}
+//                         />
+//                       )}
+//                     </div>
+//                   );
+//                 })}
 //               </div>
 //             </div>
 //           </div>
-//         </CardContent>
-//       </Card>
-//       <SheetContent className="space-y-6 overflow-y-auto min-h-[80vh] md:min-w-[85vw] min-w-screen ">
-//         <SheetHeader>
-//           <SheetTitle>Customer Data</SheetTitle>
-//           <SheetDescription>
-//             <UpdateCustomer customer_id={customer.id} onChange={onChange} />
-//           </SheetDescription>
-//         </SheetHeader>
-//       </SheetContent>
-//     </Sheet>
+//         </DialogContent>
+//       </Dialog>
+//     </>
 //   );
 // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
