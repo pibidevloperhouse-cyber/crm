@@ -51,8 +51,8 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <span className="bg-teal-500/10 text-teal-700 p-2 rounded-lg">Level 3</span>
+        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <span className="bg-teal-500/10 text-teal-700 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-black">Level 3</span>
           Preview & Generate Quote
         </h2>
         <p className="text-slate-500 text-sm mt-1">Review the final quote and send it to your client.</p>
@@ -127,7 +127,7 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
                 <div className="w-3 h-3 rounded-full bg-emerald-400" />
               </div>
             </div>
-            <div className="p-8 h-full overflow-y-auto flex flex-col items-center justify-center gap-6">
+            <div className="p-4 sm:p-8 h-full overflow-y-auto flex flex-col items-center justify-center gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
                 <QuotePreview dealId={deal.id}>
                   <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3">

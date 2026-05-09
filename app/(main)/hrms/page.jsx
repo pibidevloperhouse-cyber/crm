@@ -42,13 +42,13 @@ export default function HRMSPage() {
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent drop-shadow-sm">
             HRMS Dashboard
           </h1>
-          <p className="text-slate-600 font-medium mt-1">
+          <p className="text-muted-foreground font-medium mt-1">
             Seamlessly manage your workforce, schedules, and finances.
           </p>
         </div>
 
         {/* Professional Tab Switcher */}
-        <div className="flex flex-wrap justify-center gap-1.5 bg-white/40 backdrop-blur-xl p-1.5 rounded-2xl border border-white/40 shadow-xl shadow-teal-900/5">
+        <div className="flex flex-wrap justify-center gap-1.5 bg-card/40 backdrop-blur-xl p-1.5 rounded-2xl border border-border/40 shadow-xl shadow-teal-900/5">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -58,7 +58,7 @@ export default function HRMSPage() {
                 onClick={() => handleTabChange(tab.id)}
                 className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${isActive
                   ? "bg-teal-600 text-white shadow-lg shadow-teal-600/30 scale-105"
-                  : "text-slate-600 hover:bg-teal-50 hover:text-teal-700"
+                  : "text-muted-foreground hover:bg-teal-500/10 hover:text-teal-500"
                   }`}
               >
                 <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-teal-500"}`} />
@@ -71,7 +71,7 @@ export default function HRMSPage() {
 
       {/* Content Area with smooth transition */}
       <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="bg-white/10 backdrop-blur-sm rounded-3xl overflow-hidden">
+        <div className="bg-card/10 backdrop-blur-sm rounded-3xl overflow-hidden">
           {activeTab === "calendar" && <CalendarPage />}
           {activeTab === "employee" && <EmployeesPage />}
           {activeTab === "leave" && <LeavePage />}
