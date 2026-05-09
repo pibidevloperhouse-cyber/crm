@@ -37,8 +37,7 @@ export default function OurProspects() {
       </div>
 
       {icpLoading && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium"
-          style={{ background: "#e6f9f8", border: "1.5px solid #0ea5a4", color: "#0f766e" }}>
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-teal-50 border border-teal-200 text-teal-700 dark:bg-teal-900/30 dark:border-teal-800 dark:text-teal-400">
           <svg className="w-4 h-4 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -48,8 +47,7 @@ export default function OurProspects() {
       )}
 
       {icpError && !icpLoading && (
-        <div className="px-4 py-3 rounded-xl text-sm"
-          style={{ background: "#fee2e2", border: "1px solid #fca5a5", color: "#991b1b" }}>
+        <div className="px-4 py-3 rounded-xl text-sm bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400">
           ⚠️ {icpError}
         </div>
       )}

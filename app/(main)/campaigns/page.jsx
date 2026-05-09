@@ -11,6 +11,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Plus, Megaphone, ChevronDown, Check } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs } from "@radix-ui/react-tabs";
@@ -33,6 +34,7 @@ export default function Campaigns() {
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
+  const [openFilter, setOpenFilter] = useState(null); // 'month', 'date', 'audience'
   const [user, setUser] = useState(null);
   const [savedCampaigns, setSavedCampaigns] = useState([]);
   const [sentCampaigns, setSentCampaigns] = useState([]);
@@ -369,12 +371,12 @@ export default function Campaigns() {
   };
 
   return (
-    <div className="min-h-screen w-full rounded-lg from-[#E9FDF9] via-[#C8F4EE] to-[#B2E8F7]">
+    <div className="min-h-screen w-full rounded-lg bg-transparent">
       <div className="flex flex-row justify-left items-center">
         <Sheet>
           <div className="flex w-full flex-col items-stretch md:flex-row gap-4 justify-between md:items-center relative">
             <div className="flex-1 w-full">
-              <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-gradient-to-r from-[#25C2A0] via-[#2d7d71] to-[#1f576f] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
+              <h1 className="text-3xl md:text-4xl font-bold flex items-start bg-gradient-to-r from-[#25C2A0] via-[#2d7d71] to-[#1f576f] dark:from-[#25C2A0] dark:to-[#4fd1c5] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
                 Campaigns
               </h1>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
@@ -389,7 +391,7 @@ export default function Campaigns() {
           </div>
           <SheetContent
             side="right"
-            className="min-w-[85vw] overflow-y-auto backdrop-blur-sm bg-white border border-slate-200/50 dark:border-white/20 mb-6"
+            className="w-full sm:min-w-[85vw] overflow-y-auto backdrop-blur-sm bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-white/10 mb-6"
           >
             <SheetHeader>
               <SheetTitle>Create Email Campaign</SheetTitle>
@@ -397,10 +399,10 @@ export default function Campaigns() {
                 <>
                   <div className="p-3 flex flex-col gap-4">
                     <div>
-                      <h2 className="text-xl font-semibold mb-4">
+                      <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">
                         Campaign Details
                       </h2>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input
                           type="text"
                           placeholder="Campaign Name"
@@ -408,7 +410,7 @@ export default function Campaigns() {
                           onChange={(e) =>
                             setCampaign({ ...campaign, name: e.target.value })
                           }
-                          className="border rounded p-2"
+                          className="border border-slate-200 dark:border-slate-800 rounded p-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 outline-none"
                         />
                         <input
                           type="text"
@@ -420,7 +422,7 @@ export default function Campaigns() {
                               subject: e.target.value,
                             })
                           }
-                          className="border rounded p-2"
+                          className="border border-slate-200 dark:border-slate-800 rounded p-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 outline-none"
                         />
                       </div>
                       <textarea
@@ -430,21 +432,24 @@ export default function Campaigns() {
                         onChange={(e) =>
                           setCampaign({ ...campaign, body: e.target.value })
                         }
-                        className="border rounded p-2 w-full mt-4"
+                        className="border border-slate-200 dark:border-slate-800 rounded p-2 w-full mt-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 outline-none"
                       />
                     </div>
 
                     <div>
-                      <h2 className="text-xl font-semibold mb-4">
+                      <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">
                         Select Audience
                       </h2>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <h3 className="font-medium mb-2">Customers</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <h3 className="font-medium mb-2 text-slate-900 dark:text-white flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-teal-500" />
+                            Customers
+                          </h3>
                           {customers.map((c) => (
                             <label
                               key={c.id}
-                              className="flex items-center mb-1"
+                              className="flex items-center mb-1 text-sm text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 cursor-pointer transition-colors"
                             >
                               <input
                                 type="checkbox"
@@ -459,12 +464,15 @@ export default function Campaigns() {
                           ))}
                         </div>
 
-                        <div>
-                          <h3 className="font-medium mb-2">Leads</h3>
+                        <div className="space-y-2">
+                          <h3 className="font-medium mb-2 text-slate-900 dark:text-white flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-sky-500" />
+                            Leads
+                          </h3>
                           {leads.map((l) => (
                             <label
                               key={l.id}
-                              className="flex items-center mb-1"
+                              className="flex items-center mb-1 text-sm text-slate-600 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 cursor-pointer transition-colors"
                             >
                               <input
                                 type="checkbox"
@@ -479,12 +487,15 @@ export default function Campaigns() {
                           ))}
                         </div>
 
-                        <div>
-                          <h3 className="font-medium mb-2">Deals</h3>
+                        <div className="space-y-2">
+                          <h3 className="font-medium mb-2 text-slate-900 dark:text-white flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-purple-500" />
+                            Deals
+                          </h3>
                           {deals.map((d) => (
                             <label
                               key={d.id}
-                              className="flex items-center mb-1"
+                              className="flex items-center mb-1 text-sm text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors"
                             >
                               <input
                                 type="checkbox"
@@ -502,11 +513,11 @@ export default function Campaigns() {
                     </div>
 
                     <div>
-                      <h2 className="text-xl font-semibold mb-4">
+                      <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">
                         Add New Contacts
                       </h2>
                       {newContacts.map((c, i) => (
-                        <div key={i} className="flex gap-2 mb-2">
+                        <div key={i} className="flex flex-col sm:flex-row gap-2 mb-2">
                           <input
                             type="text"
                             placeholder="Name"
@@ -516,7 +527,7 @@ export default function Campaigns() {
                               updated[i].name = e.target.value;
                               setNewContacts(updated);
                             }}
-                            className="border rounded p-2 w-1/2"
+                            className="border border-slate-200 dark:border-slate-800 rounded p-2 flex-1 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-teal-500"
                           />
                           <input
                             type="email"
@@ -527,7 +538,7 @@ export default function Campaigns() {
                               updated[i].email = e.target.value;
                               setNewContacts(updated);
                             }}
-                            className="border rounded p-2 w-1/2"
+                            className="border border-slate-200 dark:border-slate-800 rounded p-2 flex-1 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-teal-500"
                           />
                         </div>
                       ))}
@@ -538,9 +549,10 @@ export default function Campaigns() {
                             { name: "", email: "" },
                           ])
                         }
-                        className="bg-teal-200 px-3 py-1 rounded hover:bg-teal-300"
+                        className="bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 px-4 py-2 rounded-xl hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors font-medium flex items-center gap-2"
                       >
-                        + Add More
+                        <Plus className="w-4 h-4" />
+                        Add More Contacts
                       </button>
                     </div>
 
@@ -562,66 +574,77 @@ export default function Campaigns() {
 
       <div className="mt-10">
         <Card className="mb-6 shadow-sm rounded-2xl bg-white/70 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 p-5">
-          <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-            <input
-              type="text"
-              placeholder="Search campaigns..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="border rounded-lg px-3 py-2 w-full sm:w-1/2 focus:ring-2 focus:ring-sky-500 backdrop-blur-sm dark:bg-slate-800/50 border-slate-200/50 dark:border-white/20"
-            />
-            <select
-              value={monthFilter}
-              onChange={(e) => setMonthFilter(e.target.value)}
-              className="border rounded-lg px-3 py-2 backdrop-blur-sm dark:bg-slate-800/50 border-slate-200/50 dark:border-white/20"
-            >
-              <option value="">All time</option>
-              <option value="1">January</option>
-              <option value="2">February</option>
-              <option value="3">March</option>
-              <option value="4">April</option>
-              <option value="5">May</option>
-              <option value="6">June</option>
-              <option value="7">July</option>
-              <option value="8">August</option>
-              <option value="9">September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
-            </select>
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="border rounded-lg px-3 py-2 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/20"
-            >
-              <option value="">All time</option>
-              <option value="last2days">Last 2 days</option>
-              <option value="last10days">Last 10 days</option>
-              <option value="lastMonth">Last 1 month</option>
-              <option value="lastYear">Last 1 year</option>
-            </select>
-            <select
-              value={audienceFilter}
-              onChange={(e) => setAudienceFilter(e.target.value)}
-              className="border rounded-lg px-3 py-2 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/20"
-            >
-              <option value="">All audiences</option>
-              <option value="lt10">Less than 10</option>
-              <option value="10to50">10 - 50</option>
-              <option value="50to100">50 - 100</option>
-              <option value="100to500">100 - 500</option>
-              <option value="gt500">More than 500</option>
-            </select>
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">            {/* Custom Search Input */}
+            <div className="relative w-full sm:w-1/2 group">
+              <input
+                type="text"
+                placeholder="Search campaigns..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border rounded-xl px-4 py-2.5 w-full focus:ring-2 focus:ring-teal-500 outline-none backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/10 text-slate-900 dark:text-white transition-all pl-10"
+              />
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+
+            {/* Custom Dropdowns */}
+            {[
+              { id: 'month', label: 'Month', value: monthFilter, setValue: setMonthFilter, options: [
+                { v: "", l: "All months" }, { v: "1", l: "January" }, { v: "2", l: "February" }, { v: "3", l: "March" }, { v: "4", l: "April" }, { v: "5", l: "May" }, { v: "6", l: "June" }, { v: "7", l: "July" }, { v: "8", l: "August" }, { v: "9", l: "September" }, { v: "10", l: "October" }, { v: "11", l: "November" }, { v: "12", l: "December" }
+              ]},
+              { id: 'date', label: 'Time', value: dateFilter, setValue: setDateFilter, options: [
+                { v: "", l: "All time" }, { v: "last2days", l: "Last 2 days" }, { v: "last10days", l: "Last 10 days" }, { v: "lastMonth", l: "Last 1 month" }, { v: "lastYear", l: "Last 1 year" }
+              ]},
+              { id: 'audience', label: 'Audience', value: audienceFilter, setValue: setAudienceFilter, options: [
+                { v: "", l: "All audiences" }, { v: "lt10", l: "Less than 10" }, { v: "10to50", l: "10 - 50" }, { v: "50to100", l: "50 - 100" }, { v: "100to500", l: "100 - 500" }, { v: "gt500", l: "More than 500" }
+              ]}
+            ].map((f) => (
+              <div key={f.id} className="relative flex-1 min-w-[140px]">
+                <button
+                  onClick={() => setOpenFilter(openFilter === f.id ? null : f.id)}
+                  className="w-full flex items-center justify-between border rounded-xl px-4 py-2.5 backdrop-blur-sm bg-white/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/10 text-slate-900 dark:text-white hover:border-teal-500 dark:hover:border-teal-400 transition-all outline-none cursor-pointer text-sm font-medium"
+                >
+                  <span className="truncate">
+                    {f.options.find(opt => opt.v === f.value)?.l || f.label}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openFilter === f.id ? 'rotate-180' : ''}`} />
+                </button>
+
+                {openFilter === f.id && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setOpenFilter(null)} />
+                    <div className="absolute top-full left-0 mt-2 w-full min-w-[200px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
+                      {f.options.map((opt) => (
+                        <button
+                          key={opt.v}
+                          onClick={() => { f.setValue(opt.v); setOpenFilter(null); }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors
+                            ${f.value === opt.v 
+                              ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 font-semibold' 
+                              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            }`}
+                        >
+                          {opt.l}
+                          {f.value === opt.v && <Check className="w-4 h-4" />}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
           </div>
         </Card>
 
         {savedCampaigns.length === 0 && sentCampaigns.length === 0 ? (
-          <Card className="shadow-sm rounded-2xl bg-white/70 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20 w-[75vw] h-[60vh] flex flex-col items-center justify-center p-10 text-center">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+          <Card className="shadow-sm rounded-3xl bg-white/70 dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/10 w-full max-w-2xl mx-auto min-h-[40vh] flex flex-col items-center justify-center p-6 md:p-12 text-center my-8 backdrop-blur-md">
+            <div className="w-16 h-16 bg-teal-100 dark:bg-teal-900/30 rounded-2xl flex items-center justify-center mb-6">
+              <Megaphone className="w-8 h-8 text-teal-600 dark:text-teal-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
               No Campaigns Available
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Start by creating your first campaign to reach your audience.
+            <p className="text-base text-slate-600 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Your campaign list is empty. Start by creating your first campaign to reach and engage your audience effectively.
             </p>
           </Card>
         ) : (
@@ -634,9 +657,8 @@ export default function Campaigns() {
             className="w-full"
           >
             <TabsList
-              className={`${
-                campaignsTab === "Saved" ? "mb-1" : "mb-10"
-              } w-full backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20`}
+              className={`${campaignsTab === "Saved" ? "mb-1" : "mb-10"
+                } w-full backdrop-blur-sm dark:bg-slate-800/50 border border-slate-200/50 dark:border-white/20`}
             >
               <TabsTrigger value="Saved">Saved Campaigns</TabsTrigger>
               <TabsTrigger value="Sent">Sent Campaigns</TabsTrigger>
@@ -648,12 +670,12 @@ export default function Campaigns() {
                   <Card
                     key={c.id}
                     className="shadow-sm rounded-2xl border transition-all duration-200 hover:shadow-lg bg-white/70 dark:bg-slate-800/50 border-slate-200/50 dark:border-white/20 h-full"
-                    // onMouseEnter={() => {
-                    //   setShow(c.id);
-                    // }}
-                    // onMouseLeave={() => {
-                    //   setShow(-1);
-                    // }}
+                  // onMouseEnter={() => {
+                  //   setShow(c.id);
+                  // }}
+                  // onMouseLeave={() => {
+                  //   setShow(-1);
+                  // }}
                   >
                     <CardContent className="p flex flex-col h-full">
                       <h3 className="font-semibold text-xl text-gray-900 dark:text-white">
@@ -766,11 +788,10 @@ export default function Campaigns() {
                               handleDuplicateCampaign(c);
                             }
                           }}
-                          className={`${
-                            copyExists(c)
+                          className={`${copyExists(c)
                               ? "opacity-50 cursor-auto text-gray-800 dark:text-gray-400 border border-gray-300 dark:border-gray-600 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700"
                               : "bg-transparent text-black dark:text-white hover:bg-slate-200 dark:hover:bg-slate-600 cursor-pointer"
-                          }`}
+                            }`}
                         >
                           Duplicate
                         </Button>
