@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog_1";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { DialogContent, DialogHeader } from "@/components/ui/dialog_1";
 import {
   X,
   Maximize2,
@@ -10,6 +10,10 @@ import {
   Italic,
   Underline,
   Paperclip,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Mail,
 } from "lucide-react";
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { supabase } from "@/utils/supabase/client";
@@ -18,7 +22,7 @@ import { DialogClose } from "./ui/dialog";
 import { Textarea } from "./ui/textarea";
 import { toast } from "react-toastify";
 
-// Toolbar button
+// ── Toolbar button ────────────────────────────────────────────────────────────
 const ToolbarButton = ({ children, onClick }) => (
   <button
     type="button"
@@ -30,7 +34,7 @@ const ToolbarButton = ({ children, onClick }) => (
   </button>
 );
 
-// Dropdown
+// ── Font-size dropdown ────────────────────────────────────────────────────────
 const Dropdown = ({ options, onChange, value }) => (
   <div className="relative inline-block">
     <select
@@ -50,25 +54,29 @@ const Dropdown = ({ options, onChange, value }) => (
   </div>
 );
 
+// ── Main Component ────────────────────────────────────────────────────────────
 export default function EmailTemplate({ id, type, email, onOpenChange }) {
   const [isMaximized, setIsMaximized] = useState(false);
   const [fontSize, setFontSize] = useState("14px");
   const [sending, setSending] = useState(false);
+  const [connectingGmail, setConnectingGmail] = useState(false);
+  // Inline status message shown inside the dialog (not just as a toast)
+  const [statusMsg, setStatusMsg] = useState(null); // { type: 'success'|'error', text }
   const fileInputRef = useRef(null);
 
-  // ── Safely read user from localStorage ──────────────────────────────────────
-  let userEmail = "";
-  let refreshToken = null;
-  try {
-    const raw = localStorage.getItem("user");
-    if (raw) {
-      const parsedUser = JSON.parse(raw);
-      userEmail = parsedUser.email || "";
-      refreshToken = parsedUser.refresh_token || null;
+  // ── Read user from localStorage safely ───────────────────────────────────
+  const readUser = () => {
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
     }
-  } catch (e) {
-    console.error("Failed to parse user from localStorage:", e);
-  }
+  };
+
+  const [userData, setUserData] = useState(() => readUser());
+  const userEmail = userData?.email || "";
+  const refreshToken = userData?.refresh_token || null;
 
   const [form, setForm] = useState({
     from_email: userEmail,
@@ -78,21 +86,80 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
     body: "",
   });
 
-  const handleChange = (e) => {
+  // Re-sync token into form after OAuth reconnect
+  useEffect(() => {
+    if (userData?.refresh_token) {
+      setForm((prev) => ({
+        ...prev,
+        from_email: userData.email || prev.from_email,
+        refresh_token: userData.refresh_token,
+      }));
+    }
+  }, [userData]);
+
+  const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  // ── Connect Gmail (OAuth popup) ───────────────────────────────────────────
+  const handleConnectGmail = () => {
+    setConnectingGmail(true);
+    setStatusMsg(null);
+
+    const popup = window.open(
+      "/api/auth/email",
+      "gmail_oauth",
+      "width=520,height=660,scrollbars=yes"
+    );
+
+    // Poll every second; when popup closes, re-fetch token from Supabase
+    const timer = setInterval(async () => {
+      if (!popup || popup.closed) {
+        clearInterval(timer);
+        try {
+          const { data, error } = await supabase
+            .from("Users")
+            .select("*")
+            .eq("email", userEmail)
+            .maybeSingle();
+
+          if (!error && data?.refresh_token) {
+            localStorage.setItem("user", JSON.stringify(data));
+            setUserData(data);
+            setStatusMsg({
+              type: "success",
+              text: "✅ Gmail connected! You can now send emails.",
+            });
+            toast.success("✅ Gmail connected successfully!");
+          } else {
+            setStatusMsg({
+              type: "error",
+              text: "❌ Gmail authorization failed or was cancelled. Try again.",
+            });
+          }
+        } catch (err) {
+          console.error("Error re-fetching user after OAuth:", err);
+          setStatusMsg({ type: "error", text: "❌ Could not verify Gmail connection." });
+        }
+        setConnectingGmail(false);
+      }
+    }, 1000);
   };
 
+  // ── Send Email ────────────────────────────────────────────────────────────
   const handleSendEmail = async () => {
-    // ── Bug Fix #1: Guard missing refresh_token ─────────────────────────────
+    setStatusMsg(null);
+
+    // Guard: no refresh_token → show inline error (toast alone gets hidden behind dialog)
     if (!form.refresh_token) {
-      toast.error(
-        "❌ Gmail not connected. Please connect your Gmail account first via Settings → Connect Gmail."
-      );
+      setStatusMsg({
+        type: "error",
+        text: 'Gmail not connected. Click "Connect Gmail" above to authorize.',
+      });
       return;
     }
 
     if (!form.to_email || !form.subject || !form.body) {
-      toast.error("Please fill in To, Subject, and Body before sending.");
+      setStatusMsg({ type: "error", text: "Please fill in To, Subject, and Body." });
       return;
     }
 
@@ -107,26 +174,22 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
       const data = await res.json();
 
       if (data.success) {
-        toast.success("✅ Email sent successfully!");
-
-        // ── Bug Fix #2: Build the message object locally (not from stale state) ─
+        // Build message locally — avoids stale React state bug
         const newMessage = {
           message: `${form.subject} - ${form.body}`,
           type: "User-Sent",
           timestamp: new Date().toISOString().split("T")[0],
         };
 
-        // ── Bug Fix #3: Fix variable shadowing & correct error key ───────────
+        // Save to Supabase — fixed variable shadowing + correct .eq("id") match
         const { data: recordData, error: fetchError } = await supabase
           .from(type)
-          .select("*")
+          .select("messages")
           .eq("id", id)
           .eq("user_email", userEmail)
           .maybeSingle();
 
-        if (fetchError) {
-          console.error("Error fetching record:", fetchError);
-        }
+        if (fetchError) console.error("Fetch error:", fetchError);
 
         const oldMessages = Array.isArray(recordData?.messages)
           ? recordData.messages
@@ -138,87 +201,73 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
           .eq("id", id)
           .eq("user_email", userEmail);
 
-        if (updateError) {
-          console.error("Error saving message to DB:", updateError);
-        }
+        if (updateError) console.error("Update error:", updateError);
 
-        // ── Bug Fix #4: Call onOpenChange(false) not onOpenChange() ──────────
-        onOpenChange(false);
+        setStatusMsg({ type: "success", text: "✅ Email sent successfully!" });
+        toast.success("✅ Email sent successfully!");
         setForm((prev) => ({ ...prev, subject: "", body: "" }));
+        // Close after 1.5 s so user can see the success message
+        setTimeout(() => onOpenChange(false), 1500);
       } else {
-        console.error("Gmail API error:", data.error);
-        toast.error(`❌ Failed to send email: ${data.error || "Unknown error"}`);
+        const errText = data.error || "Unknown error";
+        console.error("Gmail API error:", errText);
+        setStatusMsg({ type: "error", text: `❌ Failed to send: ${errText}` });
+        toast.error(`❌ Failed to send: ${errText}`);
       }
     } catch (err) {
       console.error("Send email exception:", err);
-      toast.error("❌ Failed to send email. Check console for details.");
+      setStatusMsg({ type: "error", text: "❌ Network error. Check your connection." });
+      toast.error("❌ Network error.");
     } finally {
       setSending(false);
     }
   };
 
-  // ── Bug Fix #5: form.body is a string, not a ref — removed form.body.current.focus() ──
+  // ── Text formatting helpers ───────────────────────────────────────────────
   const applyStyle = useCallback((command, value = null) => {
     if (typeof window === "undefined") return;
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount) return;
     const range = sel.getRangeAt(0);
     const span = document.createElement("span");
-
     switch (command) {
-      case "bold":
-        span.style.fontWeight = "bold";
-        range.surroundContents(span);
-        break;
-      case "italic":
-        span.style.fontStyle = "italic";
-        range.surroundContents(span);
-        break;
-      case "underline":
-        span.style.textDecoration = "underline";
-        range.surroundContents(span);
-        break;
-      case "fontSize":
-        span.style.fontSize = value;
-        range.surroundContents(span);
-        break;
-      case "color":
-        span.style.color = value;
-        range.surroundContents(span);
-        break;
-      default:
-        console.warn(`Unsupported command: ${command}`);
+      case "bold":      span.style.fontWeight      = "bold";      break;
+      case "italic":    span.style.fontStyle        = "italic";    break;
+      case "underline": span.style.textDecoration   = "underline"; break;
+      case "fontSize":  span.style.fontSize         = value;       break;
+      default: return;
     }
+    range.surroundContents(span);
   }, []);
 
   const handleFileAttach = () => fileInputRef.current?.click();
   const handleFileChange = (e) =>
-    console.log(
-      "Attached:",
-      Array.from(e.target.files).map((f) => f.name)
-    );
+    console.log("Attached:", Array.from(e.target.files).map((f) => f.name));
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
       <DialogContent
         className={`fixed bottom-0 right-0 p-0 shadow-2xl rounded-t-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 flex flex-col transition-all duration-300 ease-in-out ${
           isMaximized
             ? "w-full h-full md:w-3/5 md:h-4/5"
-            : "w-full md:w-[550px] h-[60vh] md:h-auto"
+            : "w-full md:w-[550px] h-auto"
         }`}
+        style={{ zIndex: 9999 }}
       >
-        <DialogHeader className="bg-gray-600 dark:bg-gray-900 text-white px-4 py-2 flex justify-between rounded-t-lg">
-          <div className="flex justify-between text-center space-x-2">
-            <Label className="text-sm">New Message</Label>
-            <div className="gap-25 ml-auto">
+        {/* ── Header ── */}
+        <DialogHeader className="bg-gray-600 dark:bg-gray-900 text-white px-4 py-2 flex justify-between rounded-t-lg flex-shrink-0">
+          <div className="flex items-center justify-between w-full">
+            <Label className="text-sm font-medium">New Message</Label>
+            <div className="flex gap-1 ml-auto">
               <button
-                onClick={() => setIsMaximized(!isMaximized)}
-                className="p-1 hover:bg-gray-600 rounded"
+                onClick={() => setIsMaximized((v) => !v)}
+                className="p-1 hover:bg-gray-500 rounded"
               >
                 <Maximize2 size={16} />
               </button>
               <DialogClose asChild>
-                <button className="p-1 hover:bg-gray-600 rounded">
+                <button className="p-1 hover:bg-gray-500 rounded">
                   <X size={16} />
                 </button>
               </DialogClose>
@@ -226,11 +275,56 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
           </div>
         </DialogHeader>
 
-        {/* Body */}
+        {/* ── Gmail Not Connected Banner ── */}
+        {!refreshToken && (
+          <div className="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 flex-shrink-0">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                Gmail not connected
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400">
+                Authorize Gmail to send emails from this CRM.
+              </p>
+            </div>
+            <button
+              onClick={handleConnectGmail}
+              disabled={connectingGmail}
+              className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition disabled:opacity-60 flex-shrink-0"
+            >
+              {connectingGmail ? (
+                <><Loader2 className="w-3 h-3 animate-spin" /> Waiting…</>
+              ) : (
+                <><Mail className="w-3 h-3" /> Connect Gmail</>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* ── Inline Status Message ── */}
+        {statusMsg && (
+          <div
+            className={`flex items-start gap-2 px-4 py-2 text-sm border-b flex-shrink-0 ${
+              statusMsg.type === "success"
+                ? "bg-green-50 dark:bg-green-900/20 border-green-200 text-green-800 dark:text-green-300"
+                : "bg-red-50 dark:bg-red-900/20 border-red-200 text-red-800 dark:text-red-300"
+            }`}
+          >
+            {statusMsg.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            )}
+            <span>{statusMsg.text}</span>
+          </div>
+        )}
+
+        {/* ── Compose Body ── */}
         <div className="flex-grow flex flex-col overflow-hidden">
           <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+            {/* To */}
             <div className="flex items-center border-b border-gray-200 dark:border-gray-700 py-1">
-              <label className="text-sm text-gray-500 dark:text-gray-400 mr-2">
+              <label className="text-sm text-gray-500 dark:text-gray-400 w-16 flex-shrink-0">
                 To
               </label>
               <Input
@@ -238,11 +332,13 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
                 type="email"
                 value={form.to_email}
                 onChange={handleChange}
+                placeholder="recipient@example.com"
                 className="flex-grow focus:outline-none text-sm bg-transparent"
               />
             </div>
+            {/* Subject */}
             <div className="flex items-center py-1">
-              <label className="text-sm text-gray-500 dark:text-gray-400 mr-2">
+              <label className="text-sm text-gray-500 dark:text-gray-400 w-16 flex-shrink-0">
                 Subject
               </label>
               <Input
@@ -250,30 +346,39 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
                 type="text"
                 value={form.subject}
                 onChange={handleChange}
+                placeholder="Email subject…"
                 className="flex-grow focus:outline-none text-sm bg-transparent"
               />
             </div>
           </div>
 
+          {/* Body textarea */}
           <Textarea
             name="body"
             value={form.body}
             onChange={handleChange}
-            className="flex-grow p-4 focus:outline-none overflow-y-auto text-sm"
+            placeholder="Write your message here…"
+            className="flex-grow p-4 focus:outline-none overflow-y-auto text-sm min-h-[180px] resize-none border-0 rounded-none focus-visible:ring-0"
             aria-label="Email body"
             style={{ fontSize }}
           />
 
-          {/* Footer / Toolbar */}
-          <footer className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
+          {/* ── Footer / Toolbar ── */}
+          <footer className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex items-center bg-gray-50 dark:bg-gray-900 flex-shrink-0">
             <div className="flex items-center space-x-1">
               <button
-                className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                 onClick={handleSendEmail}
-                disabled={sending}
+                disabled={sending || !refreshToken}
+                title={!refreshToken ? "Connect Gmail first" : "Send email"}
               >
-                {sending ? "Sending…" : "Send"}
+                {sending ? (
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending…</>
+                ) : (
+                  "Send"
+                )}
               </button>
+
               <div className="flex items-center ml-2 space-x-1">
                 <Dropdown
                   options={[
@@ -281,10 +386,7 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
                     { value: "14px", label: "Normal" },
                     { value: "18px", label: "Large" },
                   ]}
-                  onChange={(size) => {
-                    setFontSize(size);
-                    applyStyle("fontSize", size);
-                  }}
+                  onChange={(size) => { setFontSize(size); applyStyle("fontSize", size); }}
                   value={fontSize}
                 />
                 <ToolbarButton onClick={() => applyStyle("bold")}>
@@ -300,6 +402,7 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
                   <Paperclip size={18} />
                 </ToolbarButton>
               </div>
+
               <input
                 type="file"
                 ref={fileInputRef}
