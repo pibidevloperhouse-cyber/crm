@@ -77,22 +77,25 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
   const [userData, setUserData] = useState(() => readUser());
   const userEmail = userData?.email || "";
   const refreshToken = userData?.refresh_token || null;
+  const accessToken  = userData?.access_token  || null;
 
   const [form, setForm] = useState({
-    from_email: userEmail,
+    from_email:    userEmail,
     refresh_token: refreshToken,
-    to_email: email || "",
-    subject: "",
-    body: "",
+    access_token:  accessToken,
+    to_email:      email || "",
+    subject:       "",
+    body:          "",
   });
 
-  // Re-sync token into form after OAuth reconnect
+  // Re-sync tokens into form after OAuth reconnect
   useEffect(() => {
-    if (userData?.refresh_token) {
+    if (userData?.refresh_token || userData?.access_token) {
       setForm((prev) => ({
         ...prev,
-        from_email: userData.email || prev.from_email,
-        refresh_token: userData.refresh_token,
+        from_email:    userData.email    || prev.from_email,
+        refresh_token: userData.refresh_token || prev.refresh_token,
+        access_token:  userData.access_token  || prev.access_token,
       }));
     }
   }, [userData]);
@@ -111,10 +114,16 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
       "width=520,height=660,scrollbars=yes"
     );
 
-    // Poll every second; when popup closes, re-fetch token from Supabase
-    const timer = setInterval(async () => {
-      if (!popup || popup.closed) {
-        clearInterval(timer);
+    // ── Listen for postMessage from the popup (callback closes it via script) ─
+    const onMessage = async (event) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "GMAIL_AUTH_RESULT") return;
+
+      window.removeEventListener("message", onMessage);
+      clearInterval(fallbackTimer); // clear fallback poll too
+
+      if (event.data.success) {
+        // Re-fetch user from Supabase to get the saved tokens
         try {
           const { data, error } = await supabase
             .from("Users")
@@ -125,21 +134,28 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
           if (!error && data?.refresh_token) {
             localStorage.setItem("user", JSON.stringify(data));
             setUserData(data);
-            setStatusMsg({
-              type: "success",
-              text: "✅ Gmail connected! You can now send emails.",
-            });
+            setStatusMsg({ type: "success", text: "✅ Gmail connected! You can now send emails." });
             toast.success("✅ Gmail connected successfully!");
           } else {
-            setStatusMsg({
-              type: "error",
-              text: "❌ Gmail authorization failed or was cancelled. Try again.",
-            });
+            setStatusMsg({ type: "error", text: "❌ Token not saved — check server logs." });
           }
         } catch (err) {
           console.error("Error re-fetching user after OAuth:", err);
           setStatusMsg({ type: "error", text: "❌ Could not verify Gmail connection." });
         }
+      } else {
+        setStatusMsg({ type: "error", text: `❌ Gmail auth failed: ${event.data.error || "cancelled"}` });
+      }
+      setConnectingGmail(false);
+    };
+
+    window.addEventListener("message", onMessage);
+
+    // Fallback: if popup is closed manually without sending postMessage
+    const fallbackTimer = setInterval(() => {
+      if (!popup || popup.closed) {
+        clearInterval(fallbackTimer);
+        window.removeEventListener("message", onMessage);
         setConnectingGmail(false);
       }
     }, 1000);
