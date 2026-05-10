@@ -224,7 +224,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
 
   const addProduct = async () => {
     if (!validateNewProduct()) return;
-    
+
     try {
       const { data: insertedProduct, error: productError } = await supabase
         .from("products")
@@ -270,12 +270,12 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
           console.error("Error assigning product to deal:", dealUpdateError);
         } else {
           // Update local deals data to reflect the change
-          const updatedDeals = dealsData.map(d => 
+          const updatedDeals = dealsData.map(d =>
             d.id === activeDealId ? { ...d, products: updatedDealProducts } : d
           );
           setDealsData(updatedDeals);
           setDealsToShow(updatedDeals);
-          
+
           // Inform parent about the new product status
           onDealSelect(activeDealId, true);
         }
@@ -373,7 +373,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                     <CardContent className="px-0">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {!deal.products || deal.products.length === 0 ? (
-                          <div className="col-span-full flex flex-col items-center justify-center p-12 border border-teal-100 rounded-[2.5rem] bg-teal-50/30 text-center space-y-5">
+                          <div className="col-span-full flex flex-col items-center justify-center p-12 border border-white/20 rounded-[2.5rem] bg-transparent text-center space-y-5">
                             <div className="bg-teal-100 p-5 rounded-full text-teal-600 shadow-inner">
                               <Package className="h-10 w-10" />
                             </div>

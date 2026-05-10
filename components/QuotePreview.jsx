@@ -15,7 +15,7 @@ import { toast } from "react-toastify";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-function QuotePreview({ dealId, children }) {
+function QuotePreview({ dealId, children, onComplete }) {
   const [open, setOpen] = useState(false);
   const [deal, setDeal] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -36,6 +36,7 @@ function QuotePreview({ dealId, children }) {
   const handlePreview = async () => {
     setOpen(true);
     await fetchDeal();
+    if (onComplete) onComplete();
   };
 
   async function fetchDeal() {

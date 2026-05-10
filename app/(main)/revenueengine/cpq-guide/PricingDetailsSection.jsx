@@ -538,217 +538,46 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
           {!deal.products || deal.products.length === 0 ? (
             <p>This deal has no products assigned.</p>
           ) : (
-          <div className="space-y-4">
-            {/* Mobile View: Product Cards */}
-            <div className="md:hidden space-y-4 mb-6">
-              {deal.products.map((productName, index) => {
-                const originalPrice = calculateOriginalPrice(productName);
-                const { lineBeforeTax } = calculateLineMetrics(productName, index);
+            <div className="space-y-4">
+              {/* Mobile View: Product Cards */}
+              <div className="md:hidden space-y-4 mb-6">
+                {deal.products.map((productName, index) => {
+                  const originalPrice = calculateOriginalPrice(productName);
+                  const { lineBeforeTax } = calculateLineMetrics(productName, index);
 
-                const aiInfo = getCalculatedAIDiscount(index);
-                const statusObj = deal.auto_discount_status || [];
-                let status = statusObj.length > index ? statusObj[index] : "pending";
-                const userValStr = String(deal.user_discount?.[index] || "");
-                const userValNum = parseFloat(userValStr.replace("%", ""));
-                let isAutoApplied = false;
+                  const aiInfo = getCalculatedAIDiscount(index);
+                  const statusObj = deal.auto_discount_status || [];
+                  let status = statusObj.length > index ? statusObj[index] : "pending";
+                  const userValStr = String(deal.user_discount?.[index] || "");
+                  const userValNum = parseFloat(userValStr.replace("%", ""));
+                  let isAutoApplied = false;
 
-                if (
-                  status !== "accepted" &&
-                  status !== "rejected" &&
-                  (isNaN(userValNum) || userValStr === "0" || userValStr === "")
-                ) {
-                  isAutoApplied = true;
-                }
+                  if (
+                    status !== "accepted" &&
+                    status !== "rejected" &&
+                    (isNaN(userValNum) || userValStr === "0" || userValStr === "")
+                  ) {
+                    isAutoApplied = true;
+                  }
 
-                const displayedValue = isAutoApplied ? aiInfo.combinedTargetDiscount : isNaN(userValNum) ? "0" : userValNum;
-                const netPrice = originalPrice * (1 - Number(displayedValue) / 100);
+                  const displayedValue = isAutoApplied ? aiInfo.combinedTargetDiscount : isNaN(userValNum) ? "0" : userValNum;
+                  const netPrice = originalPrice * (1 - Number(displayedValue) / 100);
 
-                return (
-                  <div key={index} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/20 space-y-4">
-                    <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
-                      <h4 className="font-bold text-slate-800 dark:text-slate-200">{productName}</h4>
-                      <Badge variant="outline" className="text-[10px] font-bold bg-white dark:bg-slate-950">Line #{index + 1}</Badge>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Strategy</span>
-                        <Select
-                          value={deal.pricing_strategy?.[index] || "AI Auto"}
-                          onValueChange={(val) => handleStrategyChange(index, val)}
-                        >
-                          <SelectTrigger className="w-full h-8 text-[11px] font-bold tracking-tight bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800">
-                            <SelectValue placeholder="Strategy" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="AI Auto">
-                              <div className="flex items-center gap-2">
-                                <Bot className="h-4 w-4 shrink-0 text-teal-500" />
-                                <span className="font-medium text-slate-700 dark:text-slate-200">AI Auto</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Bundled Pricing">
-                              <div className="flex items-center gap-2">
-                                <Layers className="h-4 w-4 shrink-0 text-teal-500" />
-                                <span className="font-medium text-slate-700 dark:text-slate-200">Bundled Pricing</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Competitive Pricing">
-                              <div className="flex items-center gap-2">
-                                <TrendingUp className="h-4 w-4 shrink-0 text-teal-500" />
-                                <span className="font-medium text-slate-700 dark:text-slate-200">Competitive Pricing</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Anchor Pricing">
-                              <div className="flex items-center gap-2">
-                                <Anchor className="h-4 w-4 shrink-0 text-teal-500" />
-                                <span className="font-medium text-slate-700 dark:text-slate-200">Anchor Pricing</span>
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                  return (
+                    <div key={index} className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/20 space-y-4">
+                      <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200">{productName}</h4>
+                        <Badge variant="outline" className="text-[10px] font-bold bg-white dark:bg-slate-950">Line #{index + 1}</Badge>
                       </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Unit Price</span>
-                        <div className="text-sm font-semibold tabular-nums">${originalPrice.toFixed(2)}</div>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Discount</span>
-                        <div className="flex flex-col gap-1">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-full ${isAutoApplied ? "bg-teal-50/50 dark:bg-teal-500/[0.03] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]" : "bg-white dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
-                                  }`}>
-                                  <div className="flex-1 flex items-center border-r border-slate-200/60 dark:border-slate-800 h-full">
-                                    <Input
-                                      className={`w-full h-full p-0 bg-transparent border-none shadow-none focus-visible:ring-0 text-right font-mono text-[13px] font-black tracking-tight ${isAutoApplied ? "text-teal-700 dark:text-teal-400" : "text-slate-800 dark:text-white"
-                                        }`}
-                                      value={displayedValue}
-                                      onChange={(e) => {
-                                        handleChange("user_discount", index, e.target.value);
-                                        handleChange("auto_discount_status", index, "accepted");
-                                      }}
-                                    />
-                                    <span className={`text-[11px] pl-0.5 pr-1.5 font-bold mt-0.5 ${isAutoApplied ? "text-teal-600/50 dark:text-teal-400/40" : "text-slate-400 dark:text-slate-500"
-                                      }`}>%</span>
-                                  </div>
-                                  <div className="flex px-1 gap-0.5 shrink-0 items-center h-full">
-                                    <button onClick={() => {
-                                      handleChange("user_discount", index, aiInfo.combinedTargetDiscount);
-                                      handleChange("auto_discount_status", index, "accepted");
-                                    }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "accepted" ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/30" : "text-slate-400 hover:text-teal-500 hover:bg-teal-500/10"
-                                      }`}>✓</button>
-                                  </div>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-slate-950 text-white w-64 p-4 rounded-xl shadow-xl border border-slate-800">
-                                <p className="font-bold border-b border-white/20 pb-2 mb-3 text-[10px] uppercase">Discount Anatomy</p>
-                                <div className="space-y-2 text-sm font-medium">
-                                  <div className="flex justify-between items-center"><span>Base AI</span><span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
-                                  <div className="flex justify-between items-center"><span>Loyalty</span><span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
-                                </div>
-                                <div className="flex justify-between mt-3 pt-2 border-t border-white/20 font-black text-sm">
-                                  <span className="text-teal-400">Total</span>
-                                  <span className="text-teal-400">{aiInfo.combinedTargetDiscount}%</span>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Net Price</span>
-                        <div className="text-sm font-bold text-slate-700 dark:text-slate-300 tabular-nums">${netPrice.toFixed(2)}</div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Qty</span>
-                        <Input
-                          value={deal.quantity?.[index] || 1}
-                          type="number"
-                          min="1"
-                          onChange={(e) => handleChange("quantity", index, e.target.value)}
-                          className="w-full h-8 text-center bg-white dark:bg-slate-900"
-                        />
-                      </div>
-                      {deal.tax_scope === "Line" && (
+                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Tax (%)</span>
-                          <Input
-                            value={deal.line_taxes?.[index] ?? 0}
-                            type="number"
-                            min="0"
-                            onChange={(e) => handleChange("line_taxes", index, e.target.value)}
-                            className="w-full h-8 text-center bg-white dark:bg-slate-900"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Line Total</span>
-                      <motion.div key={lineBeforeTax} initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }} className="text-lg font-black text-teal-600 dark:text-teal-400 tabular-nums">
-                        ${lineBeforeTax.toFixed(2)}
-                      </motion.div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Desktop View: Table */}
-            <div className="hidden md:block overflow-x-auto -mx-6 px-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Pricing Strategy</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
-                    <TableHead className="text-center">Discount (%)</TableHead>
-                    <TableHead className="text-right">Net Price</TableHead>
-                    <TableHead className="text-center">Qty</TableHead>
-                    {deal.tax_scope === "Line" && <TableHead className="text-center">Tax (%)</TableHead>}
-                    <TableHead className="text-right">Line Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {deal.products.map((productName, index) => {
-                    const originalPrice = calculateOriginalPrice(productName);
-                    const { lineBeforeTax } = calculateLineMetrics(productName, index);
-
-                    const aiInfo = getCalculatedAIDiscount(index);
-                    const statusObj = deal.auto_discount_status || [];
-                    let status = statusObj.length > index ? statusObj[index] : "pending";
-                    const userValStr = String(deal.user_discount?.[index] || "");
-                    const userValNum = parseFloat(userValStr.replace("%", ""));
-                    let isAutoApplied = false;
-
-                    if (
-                      status !== "accepted" &&
-                      status !== "rejected" &&
-                      (isNaN(userValNum) || userValStr === "0" || userValStr === "")
-                    ) {
-                      isAutoApplied = true;
-                    }
-
-                    const displayedValue = isAutoApplied ? aiInfo.combinedTargetDiscount : isNaN(userValNum) ? "0" : userValNum;
-                    const netPrice = originalPrice * (1 - Number(displayedValue) / 100);
-
-                    return (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{productName}</TableCell>
-                        <TableCell>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Strategy</span>
                           <Select
                             value={deal.pricing_strategy?.[index] || "AI Auto"}
                             onValueChange={(val) => handleStrategyChange(index, val)}
                           >
-                            <SelectTrigger className="w-[140px] h-8 text-[11px] font-bold tracking-tight bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800">
+                            <SelectTrigger className="w-full h-8 text-[11px] font-bold tracking-tight bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800">
                               <SelectValue placeholder="Strategy" />
                             </SelectTrigger>
                             <SelectContent>
@@ -778,14 +607,21 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                               </SelectItem>
                             </SelectContent>
                           </Select>
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">${originalPrice.toFixed(2)}</TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex flex-col items-center gap-1">
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Unit Price</span>
+                          <div className="text-sm font-semibold tabular-nums">${originalPrice.toFixed(2)}</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Discount</span>
+                          <div className="flex flex-col gap-1">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${isAutoApplied ? "bg-teal-50/50 dark:bg-teal-500/[0.03] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]" : "bg-slate-50 dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
+                                  <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-full ${isAutoApplied ? "bg-teal-50/50 dark:bg-teal-500/[0.03] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]" : "bg-white dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
                                     }`}>
                                     <div className="flex-1 flex items-center border-r border-slate-200/60 dark:border-slate-800 h-full">
                                       <Input
@@ -797,7 +633,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                                           handleChange("auto_discount_status", index, "accepted");
                                         }}
                                       />
-                                      <span className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${isAutoApplied ? "text-teal-600/50 dark:text-teal-400/40" : "text-slate-400 dark:text-slate-500"
+                                      <span className={`text-[11px] pl-0.5 pr-1.5 font-bold mt-0.5 ${isAutoApplied ? "text-teal-600/50 dark:text-teal-400/40" : "text-slate-400 dark:text-slate-500"
                                         }`}>%</span>
                                     </div>
                                     <div className="flex px-1 gap-0.5 shrink-0 items-center h-full">
@@ -806,66 +642,230 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
                                         handleChange("auto_discount_status", index, "accepted");
                                       }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "accepted" ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/30" : "text-slate-400 hover:text-teal-500 hover:bg-teal-500/10"
                                         }`}>✓</button>
-                                      <button onClick={() => {
-                                        handleChange("user_discount", index, 0);
-                                        handleChange("auto_discount_status", index, "rejected");
-                                      }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "rejected" ? "bg-red-500/10 text-red-600 ring-1 ring-red-500/30" : "text-slate-400 hover:text-red-500 hover:bg-red-500/10"
-                                        }`}>✕</button>
                                     </div>
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent className="bg-slate-950 text-white w-64 p-4 rounded-xl shadow-xl border border-slate-800">
                                   <p className="font-bold border-b border-white/20 pb-2 mb-3 text-[10px] uppercase">Discount Anatomy</p>
                                   <div className="space-y-2 text-sm font-medium">
-                                    <div className="flex justify-between items-center"><span>Base AI Discount</span><span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
-                                    <div className="flex justify-between items-center"><span>Loyalty Bonus</span><span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
-                                    {aiInfo.bundleDiscount > 0 && <div className="flex justify-between items-center"><span>Bundle Discount</span><span className="text-teal-400 font-mono">+{aiInfo.bundleDiscount}%</span></div>}
-                                    {aiInfo.competitiveDiscount > 0 && <div className="flex justify-between items-center"><span>Competitive Adjustment</span><span className="text-teal-400 font-mono">+{aiInfo.competitiveDiscount}%</span></div>}
+                                    <div className="flex justify-between items-center"><span>Base AI</span><span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
+                                    <div className="flex justify-between items-center"><span>Loyalty</span><span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
                                   </div>
                                   <div className="flex justify-between mt-3 pt-2 border-t border-white/20 font-black text-sm">
-                                    <span className="text-teal-400">Final Discount</span>
+                                    <span className="text-teal-400">Total</span>
                                     <span className="text-teal-400">{aiInfo.combinedTargetDiscount}%</span>
                                   </div>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right font-medium tabular-nums text-slate-700 dark:text-slate-300">
-                          ${netPrice.toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-center">
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Net Price</span>
+                          <div className="text-sm font-bold text-slate-700 dark:text-slate-300 tabular-nums">${netPrice.toFixed(2)}</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Qty</span>
                           <Input
                             value={deal.quantity?.[index] || 1}
                             type="number"
                             min="1"
                             onChange={(e) => handleChange("quantity", index, e.target.value)}
-                            className="w-20 mx-auto text-center"
+                            className="w-full h-8 text-center bg-white dark:bg-slate-900"
                           />
-                        </TableCell>
+                        </div>
                         {deal.tax_scope === "Line" && (
-                          <TableCell className="text-center">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Tax (%)</span>
                             <Input
                               value={deal.line_taxes?.[index] ?? 0}
                               type="number"
                               min="0"
                               onChange={(e) => handleChange("line_taxes", index, e.target.value)}
+                              className="w-full h-8 text-center bg-white dark:bg-slate-900"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Line Total</span>
+                        <motion.div key={lineBeforeTax} initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }} className="text-lg font-black text-teal-600 dark:text-teal-400 tabular-nums">
+                          ${lineBeforeTax.toFixed(2)}
+                        </motion.div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop View: Table */}
+              <div className="hidden md:block overflow-x-auto -mx-6 px-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Pricing Strategy</TableHead>
+                      <TableHead className="text-right">Unit Price</TableHead>
+                      <TableHead className="text-center">Discount (%)</TableHead>
+                      <TableHead className="text-right">Net Price</TableHead>
+                      <TableHead className="text-center">Qty</TableHead>
+                      {deal.tax_scope === "Line" && <TableHead className="text-center">Tax (%)</TableHead>}
+                      <TableHead className="text-right">Line Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {deal.products.map((productName, index) => {
+                      const originalPrice = calculateOriginalPrice(productName);
+                      const { lineBeforeTax } = calculateLineMetrics(productName, index);
+
+                      const aiInfo = getCalculatedAIDiscount(index);
+                      const statusObj = deal.auto_discount_status || [];
+                      let status = statusObj.length > index ? statusObj[index] : "pending";
+                      const userValStr = String(deal.user_discount?.[index] || "");
+                      const userValNum = parseFloat(userValStr.replace("%", ""));
+                      let isAutoApplied = false;
+
+                      if (
+                        status !== "accepted" &&
+                        status !== "rejected" &&
+                        (isNaN(userValNum) || userValStr === "0" || userValStr === "")
+                      ) {
+                        isAutoApplied = true;
+                      }
+
+                      const displayedValue = isAutoApplied ? aiInfo.combinedTargetDiscount : isNaN(userValNum) ? "0" : userValNum;
+                      const netPrice = originalPrice * (1 - Number(displayedValue) / 100);
+
+                      return (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{productName}</TableCell>
+                          <TableCell>
+                            <Select
+                              value={deal.pricing_strategy?.[index] || "AI Auto"}
+                              onValueChange={(val) => handleStrategyChange(index, val)}
+                            >
+                              <SelectTrigger className="w-[140px] h-8 text-[11px] font-bold tracking-tight bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800">
+                                <SelectValue placeholder="Strategy" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="AI Auto">
+                                  <div className="flex items-center gap-2">
+                                    <Bot className="h-4 w-4 shrink-0 text-teal-500" />
+                                    <span className="font-medium text-slate-700 dark:text-slate-200">AI Auto</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="Bundled Pricing">
+                                  <div className="flex items-center gap-2">
+                                    <Layers className="h-4 w-4 shrink-0 text-teal-500" />
+                                    <span className="font-medium text-slate-700 dark:text-slate-200">Bundled Pricing</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="Competitive Pricing">
+                                  <div className="flex items-center gap-2">
+                                    <TrendingUp className="h-4 w-4 shrink-0 text-teal-500" />
+                                    <span className="font-medium text-slate-700 dark:text-slate-200">Competitive Pricing</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="Anchor Pricing">
+                                  <div className="flex items-center gap-2">
+                                    <Anchor className="h-4 w-4 shrink-0 text-teal-500" />
+                                    <span className="font-medium text-slate-700 dark:text-slate-200">Anchor Pricing</span>
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">${originalPrice.toFixed(2)}</TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className={`relative flex items-center h-8 rounded-lg outline outline-1 outline-offset-[-1px] transition-all duration-300 w-[120px] mx-auto ${isAutoApplied ? "bg-teal-50/50 dark:bg-teal-500/[0.03] outline-teal-400/40 dark:outline-teal-500/40 shadow-[0_0_15px_-3px_rgba(13,148,136,0.15)]" : "bg-slate-50 dark:bg-slate-900/40 outline-slate-200 dark:outline-slate-800"
+                                      }`}>
+                                      <div className="flex-1 flex items-center border-r border-slate-200/60 dark:border-slate-800 h-full">
+                                        <Input
+                                          className={`w-full h-full p-0 bg-transparent border-none shadow-none focus-visible:ring-0 text-right font-mono text-[13px] font-black tracking-tight ${isAutoApplied ? "text-teal-700 dark:text-teal-400" : "text-slate-800 dark:text-white"
+                                            }`}
+                                          value={displayedValue}
+                                          onChange={(e) => {
+                                            handleChange("user_discount", index, e.target.value);
+                                            handleChange("auto_discount_status", index, "accepted");
+                                          }}
+                                        />
+                                        <span className={`text-[11px] pl-0.5 pr-2.5 font-bold mt-0.5 ${isAutoApplied ? "text-teal-600/50 dark:text-teal-400/40" : "text-slate-400 dark:text-slate-500"
+                                          }`}>%</span>
+                                      </div>
+                                      <div className="flex px-1 gap-0.5 shrink-0 items-center h-full">
+                                        <button onClick={() => {
+                                          handleChange("user_discount", index, aiInfo.combinedTargetDiscount);
+                                          handleChange("auto_discount_status", index, "accepted");
+                                        }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "accepted" ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/30" : "text-slate-400 hover:text-teal-500 hover:bg-teal-500/10"
+                                          }`}>✓</button>
+                                        <button onClick={() => {
+                                          handleChange("user_discount", index, 0);
+                                          handleChange("auto_discount_status", index, "rejected");
+                                        }} className={`w-6 h-6 flex items-center justify-center rounded-md transition-colors ${status === "rejected" ? "bg-red-500/10 text-red-600 ring-1 ring-red-500/30" : "text-slate-400 hover:text-red-500 hover:bg-red-500/10"
+                                          }`}>✕</button>
+                                      </div>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-slate-950 text-white w-64 p-4 rounded-xl shadow-xl border border-slate-800">
+                                    <p className="font-bold border-b border-white/20 pb-2 mb-3 text-[10px] uppercase">Discount Anatomy</p>
+                                    <div className="space-y-2 text-sm font-medium">
+                                      <div className="flex justify-between items-center"><span>Base AI Discount</span><span className="text-teal-400 font-mono">+{aiInfo.productAiDiscount}%</span></div>
+                                      <div className="flex justify-between items-center"><span>Loyalty Bonus</span><span className="text-teal-400 font-mono">+{aiInfo.loyaltyDiscount}%</span></div>
+                                      {aiInfo.bundleDiscount > 0 && <div className="flex justify-between items-center"><span>Bundle Discount</span><span className="text-teal-400 font-mono">+{aiInfo.bundleDiscount}%</span></div>}
+                                      {aiInfo.competitiveDiscount > 0 && <div className="flex justify-between items-center"><span>Competitive Adjustment</span><span className="text-teal-400 font-mono">+{aiInfo.competitiveDiscount}%</span></div>}
+                                    </div>
+                                    <div className="flex justify-between mt-3 pt-2 border-t border-white/20 font-black text-sm">
+                                      <span className="text-teal-400">Final Discount</span>
+                                      <span className="text-teal-400">{aiInfo.combinedTargetDiscount}%</span>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-medium tabular-nums text-slate-700 dark:text-slate-300">
+                            ${netPrice.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Input
+                              value={deal.quantity?.[index] || 1}
+                              type="number"
+                              min="1"
+                              onChange={(e) => handleChange("quantity", index, e.target.value)}
                               className="w-20 mx-auto text-center"
                             />
                           </TableCell>
-                        )}
-                        <TableCell className="text-right font-bold align-middle">
-                          <motion.div key={lineBeforeTax} initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }} className="inline-block px-2 py-1 tabular-nums">
-                            ${lineBeforeTax.toFixed(2)}
-                          </motion.div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                          {deal.tax_scope === "Line" && (
+                            <TableCell className="text-center">
+                              <Input
+                                value={deal.line_taxes?.[index] ?? 0}
+                                type="number"
+                                min="0"
+                                onChange={(e) => handleChange("line_taxes", index, e.target.value)}
+                                className="w-20 mx-auto text-center"
+                              />
+                            </TableCell>
+                          )}
+                          <TableCell className="text-right font-bold align-middle">
+                            <motion.div key={lineBeforeTax} initial={{ scale: 1.1 }} animate={{ scale: 1 }} transition={{ duration: 0.4 }} className="inline-block px-2 py-1 tabular-nums">
+                              ${lineBeforeTax.toFixed(2)}
+                            </motion.div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
-          </div>
           )}
 
           {/* Ultra-Compact Tax Configuration */}
@@ -928,23 +928,25 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
             </div>
           </div>
 
-          <div className="mt-3 px-5 py-4 bg-slate-50 dark:bg-slate-900/30 flex flex-col sm:flex-row justify-between items-center gap-4 border border-slate-100 dark:border-slate-800 rounded-xl">
-            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Pricing Summary</div>
-            <div className="flex flex-wrap gap-4 sm:gap-6 items-end justify-between sm:justify-end w-full sm:w-auto">
-              <div className="text-right">
+          <div className="mt-3 px-4 sm:px-5 py-4 bg-slate-50 dark:bg-slate-900/30 flex flex-col sm:flex-row justify-between items-center gap-6 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-xl">
+            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold w-full sm:w-auto text-center sm:text-left">Pricing Summary</div>
+            <div className="grid grid-cols-2 sm:flex sm:flex-row gap-4 sm:gap-6 items-center sm:items-end justify-between sm:justify-end w-full sm:w-auto">
+              <div className="text-left sm:text-right">
                 <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tight mb-0.5">Subtotal</p>
-                <p className="text-base font-bold tabular-nums">${totals.subtotalBeforeTax.toFixed(2)}</p>
+                <p className="text-base font-bold tabular-nums text-slate-900 dark:text-slate-100">${totals.subtotalBeforeTax.toFixed(2)}</p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] text-slate-500 uppercase font-bold tracking-tight mb-0.5">
                   Tax {(!deal.tax_scope || deal.tax_scope === "Transaction") ? `(${deal.tax_rate ?? 0}%)` : "(Line)"}
                 </p>
-                <p className="text-base font-bold tabular-nums">${totals.totalTax.toFixed(2)}</p>
+                <p className="text-base font-bold tabular-nums text-slate-900 dark:text-slate-100">${totals.totalTax.toFixed(2)}</p>
               </div>
-              <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 self-end mb-1" />
-              <div className="text-right bg-teal-600 dark:bg-teal-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl shadow-teal-500/20 border border-teal-400/30 transition-all hover:scale-[1.02] cursor-default min-w-full sm:min-w-[160px]">
-                <p className="text-[9px] sm:text-[10px] text-teal-100 uppercase font-black tracking-widest mb-1 opacity-80">Grand Total</p>
-                <p className="text-xl sm:text-2xl font-black tabular-nums leading-none">${totals.grandTotal.toFixed(2)}</p>
+              <div className="hidden sm:block h-8 w-px bg-slate-200 dark:bg-slate-700 self-end mb-1" />
+              <div className="col-span-2 text-right bg-teal-600 dark:bg-teal-500 text-white px-6 py-3 rounded-2xl shadow-xl shadow-teal-500/20 border border-teal-400/30 transition-all hover:scale-[1.02] cursor-default min-w-full sm:min-w-[160px]">
+                <div className="flex sm:flex-col justify-between items-center sm:items-end gap-2">
+                  <p className="text-[10px] text-teal-100 uppercase font-black tracking-widest opacity-80">Grand Total</p>
+                  <p className="text-xl sm:text-2xl font-black tabular-nums leading-none">${totals.grandTotal.toFixed(2)}</p>
+                </div>
               </div>
             </div>
           </div>
