@@ -199,17 +199,17 @@ export const CalendarBody = ({ features, children }) => {
     }
 
     days.push(
-      <div
-        className={cn(
-          "relative flex h-full w-full flex-col gap-1 p-1 text-xs",
-          isLeaveDay
-            ? isHoliday
-              ? "bg-green-600/40"
-              : "bg-teal-600/40"
-            : "bg-white text-muted-foreground"
-        )}
-        key={day}
-      >
+        <div
+          className={cn(
+            "relative flex h-full w-full flex-col gap-1 p-1 text-xs transition-colors duration-200",
+            isLeaveDay
+              ? isHoliday
+                ? "bg-green-600/40 dark:bg-green-500/30"
+                : "bg-teal-600/40 dark:bg-teal-500/30"
+              : "bg-white dark:bg-slate-900/40 text-muted-foreground"
+          )}
+          key={day}
+        >
         <div className="font-medium">{day}</div>
         <div>
           {featuresForDay.slice(0, 3).map((feature) => children({ feature }))}

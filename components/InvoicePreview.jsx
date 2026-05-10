@@ -15,7 +15,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { X, Download } from "lucide-react";
 
-export default function InvoicePreview({ dealId, children }) {
+export default function InvoicePreview({ dealId, children, onComplete }) {
   const [isOpen, setIsOpen] = useState(false);
   const [deal, setDeal] = useState(null);
   const [template, setTemplate] = useState(null);
@@ -37,6 +37,7 @@ export default function InvoicePreview({ dealId, children }) {
   const handlePreview = () => {
     setIsOpen(true);
     fetchData();
+    if (onComplete) onComplete();
   };
 
   const fetchData = async () => {

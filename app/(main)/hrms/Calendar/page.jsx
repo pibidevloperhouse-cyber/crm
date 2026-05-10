@@ -203,7 +203,7 @@ export default function HRMSDashboard() {
                 </Button>
               </SheetTrigger>
 
-              <SheetContent className="w-[95vw] sm:max-w-md bg-card/90 backdrop-blur-xl border border-primary/30 shadow-2xl p-6 overflow-y-auto rounded-l-[2rem]">
+              <SheetContent className="w-[95vw] sm:max-w-md bg-card/90 dark:bg-slate-950/90 backdrop-blur-xl border border-primary/30 dark:border-[#25C2A0]/20 shadow-2xl p-6 overflow-y-auto rounded-l-[2rem]">
                 <SheetHeader>
                   <SheetTitle className="text-lg font-semibold bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent">
                     Apply for Leave
@@ -220,7 +220,7 @@ export default function HRMSDashboard() {
                       mode="range"
                       selected={date}
                       onSelect={setDate}
-                      className="rounded-md border border-primary/40 p-2 bg-muted/20"
+                      className="rounded-md border border-primary/40 dark:border-[#25C2A0]/20 p-2 bg-muted/20 dark:bg-slate-900/50"
                     />
                   </div>
                   <div className="grid gap-3">
@@ -233,7 +233,7 @@ export default function HRMSDashboard() {
                       value={reason}
                       required
                       onChange={(e) => setReason(e.target.value)}
-                      className="border border-primary/40 focus:ring-2 focus:ring-primary/40 transition-all bg-muted/10 placeholder:text-muted-foreground/50"
+                      className="border border-primary/40 dark:border-[#25C2A0]/20 focus:ring-2 focus:ring-primary/40 transition-all bg-muted/10 dark:bg-slate-900/50 placeholder:text-muted-foreground/50"
                     />
                   </div>
                 </div>

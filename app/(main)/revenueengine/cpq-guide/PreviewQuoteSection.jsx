@@ -10,7 +10,7 @@ import InvoicePreview from "@/components/InvoicePreview";
 import { FileText, Package, DollarSign, Calendar, ArrowRight, Share2, Printer, Receipt } from "lucide-react";
 import { toast } from "react-toastify";
 
-export default function PreviewQuoteSection({ selectedDealId, onBack }) {
+export default function PreviewQuoteSection({ selectedDealId, onBack, onComplete }) {
   const [deal, setDeal] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -63,7 +63,7 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
         <div className="lg:col-span-1 space-y-6">
           <Card className="border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
             <CardHeader className="border-b border-slate-100 dark:border-slate-800 p-6">
-              <Badge className="w-fit mb-2 bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border-teal-200 dark:border-teal-800">
+              <Badge className="w-fit mb-2 bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border-teal-200 dark:border-slate-800">
                 Final Review
               </Badge>
               <CardTitle className="text-2xl font-black text-slate-800 dark:text-white">{deal.name}</CardTitle>
@@ -129,15 +129,19 @@ export default function PreviewQuoteSection({ selectedDealId, onBack }) {
             </div>
             <div className="p-4 sm:p-8 h-full overflow-y-auto flex flex-col items-center justify-center gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
-                <QuotePreview dealId={deal.id}>
-                  <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3">
+                <QuotePreview dealId={deal.id} onComplete={onComplete}>
+                  <Button 
+                    className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3"
+                  >
                     <FileText className="h-5 w-5" />
                     Preview Quote
                   </Button>
                 </QuotePreview>
 
-                <InvoicePreview dealId={deal.id}>
-                  <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3">
+                <InvoicePreview dealId={deal.id} onComplete={onComplete}>
+                  <Button 
+                    className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3"
+                  >
                     <Receipt className="h-5 w-5" />
                     Preview Invoice
                   </Button>

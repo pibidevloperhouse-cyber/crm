@@ -53,6 +53,7 @@ export default function CPQGuidePage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDealId, setSelectedDealId] = useState(null);
   const [dealHasProducts, setDealHasProducts] = useState(false);
+  const [isProcessComplete, setIsProcessComplete] = useState(false);
 
   const nextStep = () => {
     if (currentStep < 3) setCurrentStep(currentStep + 1);
@@ -116,7 +117,7 @@ export default function CPQGuidePage() {
                 >
                   {isCompleted ? <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" /> : <Icon className="w-5 h-5 md:w-6 md:h-6" />}
                 </button>
-                <div className="absolute -bottom-10 md:-bottom-12 flex flex-col items-center">
+                <div className="mt-4 flex flex-col items-center">
                   <p className={cn(
                     "text-[10px] md:text-sm font-bold transition-colors duration-300 whitespace-nowrap",
                     isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-500"
@@ -155,12 +156,13 @@ export default function CPQGuidePage() {
           <PreviewQuoteSection
             selectedDealId={selectedDealId}
             onBack={prevStep}
+            onComplete={() => setIsProcessComplete(true)}
           />
         )}
       </div>
 
       {/* Navigation Buttons (Floating or Bottom) */}
-      <div className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-full border border-slate-200 dark:border-slate-800 shadow-2xl z-[100] w-[90%] max-w-fit">
+      <div className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-full border border-slate-200 dark:border-slate-800 shadow-2xl z-40 w-[90%] max-w-fit">
         <Button
           variant="ghost"
           onClick={prevStep}
@@ -172,8 +174,19 @@ export default function CPQGuidePage() {
         </Button>
         <div className="w-px h-5 md:h-6 bg-slate-200 dark:bg-slate-800" />
         <Button
-          onClick={nextStep}
-          disabled={currentStep === 3 || (currentStep === 1 && (!selectedDealId || !dealHasProducts))}
+          onClick={() => {
+            if (currentStep === 3) {
+              // Final step completion logic
+              sessionStorage.setItem("activeTab", "Deals");
+              router.push('/crm');
+            } else {
+              nextStep();
+            }
+          }}
+          disabled={
+            (currentStep === 1 && (!selectedDealId || !dealHasProducts)) ||
+            (currentStep === 3 && !isProcessComplete)
+          }
           className="rounded-full bg-teal-600 hover:bg-teal-500 text-white px-5 md:px-8 gap-1 md:gap-2 h-9 md:h-11 text-sm md:text-base grow md:grow-0"
         >
           <span className="whitespace-nowrap">
@@ -188,8 +201,8 @@ export default function CPQGuidePage() {
         <div className="mt-12 flex justify-center">
           <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-full text-amber-700 dark:text-amber-400 text-sm">
             <AlertCircle className="w-4 h-4" />
-            {!selectedDealId 
-              ? "Please select a deal to proceed to the next level." 
+            {!selectedDealId
+              ? "Please select a deal to proceed to the next level."
               : "This deal has no products. Please add a product to proceed."}
           </div>
         </div>
