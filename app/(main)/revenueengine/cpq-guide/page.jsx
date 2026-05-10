@@ -162,7 +162,7 @@ export default function CPQGuidePage() {
       </div>
 
       {/* Navigation Buttons (Floating or Bottom) */}
-      <div className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-full border border-slate-200 dark:border-slate-800 shadow-2xl z-[100] w-[90%] max-w-fit">
+      <div className="fixed bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-full border border-slate-200 dark:border-slate-800 shadow-2xl z-40 w-[90%] max-w-fit">
         <Button
           variant="ghost"
           onClick={prevStep}

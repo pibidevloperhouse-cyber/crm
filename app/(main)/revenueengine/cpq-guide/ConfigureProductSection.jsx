@@ -390,22 +390,22 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                   + Add New Product
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="w-[95vw] sm:max-w-xl backdrop-blur-md bg-white/90 border border-teal-100 shadow-2xl rounded-3xl p-4 sm:p-8 overflow-y-auto max-h-[90vh]">
+                              <DialogContent className="w-[95vw] sm:max-w-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-teal-100 dark:border-teal-900/50 shadow-2xl rounded-3xl p-4 sm:p-8 overflow-y-auto max-h-[90vh]">
                                 <DialogHeader>
-                                  <DialogTitle className="text-2xl font-bold text-slate-800">Add New Product</DialogTitle>
-                                  <DialogDescription className="text-slate-500">
+                                  <DialogTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Add New Product</DialogTitle>
+                                  <DialogDescription className="text-slate-500 dark:text-slate-400">
                                     Please fill in the details of the new product you want to add to your catalog.
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="flex flex-col gap-5 py-6">
                                   <div className="grid grid-cols-2 gap-4">
                                     <div className="flex flex-col gap-2">
-                                      <Label htmlFor="name" className="text-sm font-semibold text-slate-700 ml-1">Product Name</Label>
+                                      <Label htmlFor="name" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Product Name</Label>
                                       <Input
                                         id="name"
                                         placeholder="e.g. Premium Subscription"
                                         value={newProduct.name}
-                                        className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
                                         onChange={(e) => setNewProduct((prev) => ({ ...prev, name: e.target.value }))}
                                       />
                                       {errors.newProduct?.name && (
@@ -413,12 +413,12 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                       )}
                                     </div>
                                     <div className="flex flex-col gap-2">
-                                      <Label htmlFor="category" className="text-sm font-semibold text-slate-700 ml-1">Product Category</Label>
+                                      <Label htmlFor="category" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Product Category</Label>
                                       <Input
                                         id="category"
                                         placeholder="e.g. Software"
                                         value={newProduct.category}
-                                        className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
                                         onChange={(e) => setNewProduct((prev) => ({ ...prev, category: e.target.value }))}
                                       />
                                       {errors.newProduct?.category && (
@@ -426,14 +426,13 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                       )}
                                     </div>
                                   </div>
-
                                   <div className="flex flex-col gap-2">
-                                    <Label htmlFor="description" className="text-sm font-semibold text-slate-700 ml-1">Product Description</Label>
+                                    <Label htmlFor="description" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Product Description</Label>
                                     <Input
                                       id="description"
                                       placeholder="Briefly describe the product..."
                                       value={newProduct.description}
-                                      className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                      className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
                                       onChange={(e) => setNewProduct((prev) => ({ ...prev, description: e.target.value }))}
                                     />
                                     {errors.newProduct?.description && (
@@ -443,24 +442,24 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
 
                                   <div className="grid grid-cols-2 gap-4">
                                     <div className="flex flex-col gap-2">
-                                      <Label htmlFor="stock" className="text-sm font-semibold text-slate-700 ml-1">Product Stock</Label>
+                                      <Label htmlFor="stock" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Product Stock</Label>
                                       <Input
                                         id="stock"
                                         type="number"
                                         placeholder="0"
                                         value={newProduct.stock}
-                                        className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
                                         onChange={(e) => setNewProduct((prev) => ({ ...prev, stock: e.target.value }))}
                                       />
                                     </div>
                                     <div className="flex flex-col gap-2">
-                                      <Label htmlFor="basePrice" className="text-sm font-semibold text-slate-700 ml-1">Base Price</Label>
+                                      <Label htmlFor="basePrice" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Base Price</Label>
                                       <Input
                                         id="basePrice"
                                         placeholder="0.00"
                                         type="number"
                                         value={newProduct.basePrice}
-                                        className="rounded-xl border-slate-200 focus:ring-teal-500 focus:border-teal-500"
+                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
                                         onChange={(e) => setNewProduct((prev) => ({ ...prev, basePrice: e.target.value }))}
                                       />
                                     </div>
@@ -468,14 +467,14 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
 
                                   <div className="grid grid-cols-2 gap-4 items-end">
                                     <div className="flex flex-col gap-2">
-                                      <Label className="text-sm font-semibold text-slate-700 ml-1">Currency</Label>
+                                      <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Currency</Label>
                                       <CurrencyDropDown
                                         value={newProduct.currency}
                                         onValueChange={(value) => setNewProduct((prev) => ({ ...prev, currency: value }))}
                                       />
                                     </div>
                                     <div className="flex flex-col gap-2">
-                                      <Label className="text-sm font-semibold text-slate-700 ml-1">Billing Cycle</Label>
+                                      <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Billing Cycle</Label>
                                       <BillingCycleSelect
                                         value={newProduct.billingCycle}
                                         onChange={(value) => setNewProduct((prev) => ({ ...prev, billingCycle: value }))}
@@ -483,10 +482,10 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center justify-between p-4 bg-teal-50/50 rounded-2xl border border-teal-100">
+                                  <div className="flex items-center justify-between p-4 bg-teal-50/50 dark:bg-teal-950/20 rounded-2xl border border-teal-100 dark:border-teal-900/50">
                                     <div className="space-y-0.5">
-                                      <Label htmlFor="isConfigurable" className="text-sm font-bold text-teal-900">Enable Configuration</Label>
-                                      <p className="text-xs text-teal-600/70 font-medium">Allow custom features for this product</p>
+                                      <Label htmlFor="isConfigurable" className="text-sm font-bold text-teal-900 dark:text-teal-400">Enable Configuration</Label>
+                                      <p className="text-xs text-teal-600/70 dark:text-teal-500/50 font-medium">Allow custom features for this product</p>
                                     </div>
                                     <Switch
                                       id="isConfigurable"
