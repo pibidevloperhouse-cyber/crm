@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog_1"; // ShadCN Dialog
+import React, { useState, useRef, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog_1";
 import {
   X,
   Maximize2,
@@ -53,80 +53,116 @@ const Dropdown = ({ options, onChange, value }) => (
 export default function EmailTemplate({ id, type, email, onOpenChange }) {
   const [isMaximized, setIsMaximized] = useState(false);
   const [fontSize, setFontSize] = useState("14px");
+  const [sending, setSending] = useState(false);
   const fileInputRef = useRef(null);
-  const [message, setMessage] = useState({});
-  const user = localStorage.getItem("user");
-  const parsedUser = JSON.parse(user);
-  const userEmail = parsedUser.email;
+
+  // ── Safely read user from localStorage ──────────────────────────────────────
+  let userEmail = "";
+  let refreshToken = null;
+  try {
+    const raw = localStorage.getItem("user");
+    if (raw) {
+      const parsedUser = JSON.parse(raw);
+      userEmail = parsedUser.email || "";
+      refreshToken = parsedUser.refresh_token || null;
+    }
+  } catch (e) {
+    console.error("Failed to parse user from localStorage:", e);
+  }
+
   const [form, setForm] = useState({
-    from_email: userEmail || "",
-    refresh_token: parsedUser.refresh_token,
+    from_email: userEmail,
+    refresh_token: refreshToken,
     to_email: email || "",
     subject: "",
     body: "",
   });
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
   const handleSendEmail = async () => {
+    // ── Bug Fix #1: Guard missing refresh_token ─────────────────────────────
+    if (!form.refresh_token) {
+      toast.error(
+        "❌ Gmail not connected. Please connect your Gmail account first via Settings → Connect Gmail."
+      );
+      return;
+    }
+
+    if (!form.to_email || !form.subject || !form.body) {
+      toast.error("Please fill in To, Subject, and Body before sending.");
+      return;
+    }
+
+    setSending(true);
     try {
       const res = await fetch("/api/gmail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      setMessage({
-        message: form.subject.concat(" - ", form.body),
-        type: "User-Sent",
-        timestamp: new Date().toISOString().split("T")[0],
-      });
+
       const data = await res.json();
+
       if (data.success) {
         toast.success("✅ Email sent successfully!");
 
-        const { data, error_1 } = await supabase
+        // ── Bug Fix #2: Build the message object locally (not from stale state) ─
+        const newMessage = {
+          message: `${form.subject} - ${form.body}`,
+          type: "User-Sent",
+          timestamp: new Date().toISOString().split("T")[0],
+        };
+
+        // ── Bug Fix #3: Fix variable shadowing & correct error key ───────────
+        const { data: recordData, error: fetchError } = await supabase
           .from(type)
           .select("*")
           .eq("id", id)
           .eq("user_email", userEmail)
           .maybeSingle();
-        const oldMessages = Array.isArray(data?.messages) ? data.messages : [];
-        if (error_1) {
-          console.error("Error fetching email:", error_1);
+
+        if (fetchError) {
+          console.error("Error fetching record:", fetchError);
         }
-        const { error } = await supabase
+
+        const oldMessages = Array.isArray(recordData?.messages)
+          ? recordData.messages
+          : [];
+
+        const { error: updateError } = await supabase
           .from(type)
-          .update({ ...data, messages: [...oldMessages, message] })
-          .eq("email", email)
+          .update({ messages: [...oldMessages, newMessage] })
+          .eq("id", id)
           .eq("user_email", userEmail);
-        if (error) {
-          console.error("Error updating email:", error);
-        } else {
-          toast.success("Email updated successfully", {
-            position: "top-right",
-            autoClose: 3000,
-          });
+
+        if (updateError) {
+          console.error("Error saving message to DB:", updateError);
         }
-        onOpenChange();
-        setForm({ from_email: "", to_email: "", subject: "", body: "" });
+
+        // ── Bug Fix #4: Call onOpenChange(false) not onOpenChange() ──────────
+        onOpenChange(false);
+        setForm((prev) => ({ ...prev, subject: "", body: "" }));
       } else {
-        toast.error("❌ Failed to send email.");
+        console.error("Gmail API error:", data.error);
+        toast.error(`❌ Failed to send email: ${data.error || "Unknown error"}`);
       }
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Send email exception:", err);
+      toast.error("❌ Failed to send email. Check console for details.");
+    } finally {
+      setSending(false);
     }
   };
 
-  // FIX: wrap selection with span to persist styles
+  // ── Bug Fix #5: form.body is a string, not a ref — removed form.body.current.focus() ──
   const applyStyle = useCallback((command, value = null) => {
-    if (!form.body) return;
     if (typeof window === "undefined") return;
-
     const sel = window.getSelection();
-    if (!sel.rangeCount) return;
+    if (!sel || !sel.rangeCount) return;
     const range = sel.getRangeAt(0);
-
-    // Create a span wrapper for styling commands
     const span = document.createElement("span");
 
     switch (command) {
@@ -134,37 +170,25 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
         span.style.fontWeight = "bold";
         range.surroundContents(span);
         break;
-
       case "italic":
         span.style.fontStyle = "italic";
         range.surroundContents(span);
         break;
-
       case "underline":
         span.style.textDecoration = "underline";
         range.surroundContents(span);
         break;
-
       case "fontSize":
         span.style.fontSize = value;
         range.surroundContents(span);
         break;
-
       case "color":
         span.style.color = value;
         range.surroundContents(span);
         break;
-
-      case "insertText": // replacing execCommand('insertText', false, value)
-        range.deleteContents();
-        range.insertNode(document.createTextNode(value));
-        break;
-
       default:
         console.warn(`Unsupported command: ${command}`);
     }
-
-    form.body.current.focus();
   }, []);
 
   const handleFileAttach = () => fileInputRef.current?.click();
@@ -224,7 +248,7 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
               <Input
                 name="subject"
                 type="text"
-                placeholder={form.subject}
+                value={form.subject}
                 onChange={handleChange}
                 className="flex-grow focus:outline-none text-sm bg-transparent"
               />
@@ -233,6 +257,7 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
 
           <Textarea
             name="body"
+            value={form.body}
             onChange={handleChange}
             className="flex-grow p-4 focus:outline-none overflow-y-auto text-sm"
             aria-label="Email body"
@@ -243,10 +268,11 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
           <footer className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
             <div className="flex items-center space-x-1">
               <button
-                className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition-colors text-sm"
+                className="bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleSendEmail}
+                disabled={sending}
               >
-                Send
+                {sending ? "Sending…" : "Send"}
               </button>
               <div className="flex items-center ml-2 space-x-1">
                 <Dropdown
