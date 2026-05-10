@@ -41,11 +41,11 @@ export default function PayrollPage() {
   }, []);
   const fetchEmployees = async () => {
     if (!userEmail) return;
-    
-    const{data: company_data } = await supabase
-    .from("HRMS")
-    .select("*")
-    .eq("user_email", userEmail);
+
+    const { data: company_data } = await supabase
+      .from("HRMS")
+      .select("*")
+      .eq("user_email", userEmail);
 
     if (!company_data || company_data.length === 0) return;
 
@@ -114,13 +114,13 @@ export default function PayrollPage() {
               Payroll Dashboard
             </h1>
 
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-slate-400">
               Manage salaries, deductions, PF & ESI automatically
             </p>
           </div>
           <Badge
             variant="outline"
-            className="border-[#25C2A0] text-[#25C2A0] font-semibold py-2 px-4 rounded-b-lg text-sm bg-white backdrop-blur-sm"
+            className="border-[#25C2A0] text-[#25C2A0] font-semibold py-2 px-4 rounded-b-lg text-sm bg-white dark:bg-slate-900/50 backdrop-blur-sm shadow-sm"
           >
             Total Employees: {employees.length}
           </Badge>
@@ -131,11 +131,11 @@ export default function PayrollPage() {
           {employees.map((emp) => (
             <Card
               key={emp.id}
-              className="shadow-lg border border-[#25C2A0]/20 bg-white/40 backdrop-blur-md hover:shadow-xl hover:scale-[1.02] transition-all"
+              className="shadow-lg border border-[#25C2A0]/20 dark:border-[#25C2A0]/30 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md hover:shadow-xl hover:scale-[1.02] transition-all"
             >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span className="font-semibold text-[#1e7e68]">
+                  <span className="font-semibold text-[#1e7e68] dark:text-[#2AD4B7]">
                     {emp.name}
                   </span>
                   <Users className="w-5 h-5 text-[#25C2A0]" />
@@ -143,14 +143,14 @@ export default function PayrollPage() {
               </CardHeader>
 
               <CardContent className="space-y-3 pt-2">
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-slate-300">
                   <span className="font-medium">Base Salary:</span> ₹
                   {emp.salary || 0}
                 </p>
-                <p className="text-gray-700">
+                <p className="text-gray-700 dark:text-slate-300">
                   <span className="font-medium">Last Paid:</span>{" "}
                   {emp.last_paid || (
-                    <span className="italic text-gray-500">Not Paid Yet</span>
+                    <span className="italic text-gray-500 dark:text-slate-500">Not Paid Yet</span>
                   )}
                 </p>
 
@@ -174,9 +174,9 @@ export default function PayrollPage() {
                     </Button>
                   </SheetTrigger>
 
-                  <SheetContent className="p-6 space-y-6 max-w-md bg-white/95 backdrop-blur-md border border-[#25C2A0]/30 shadow-lg rounded-lg">
-                    <SheetHeader className="-mx-6 -mt-6 bg-gradient-to-r from-[#A3E3DB] to-[#25C2A0] px-6 py-3 rounded-t-lg shadow-sm">
-                      <SheetTitle className="text-white font-semibold">
+                  <SheetContent className="p-6 space-y-6 max-w-md bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border border-[#25C2A0]/30 dark:border-[#25C2A0]/40 shadow-lg rounded-lg">
+                    <SheetHeader className="-mx-6 -mt-6 bg-[#25C2A0] px-6 py-3 rounded-t-lg shadow-sm">
+                      <SheetTitle className="text-white dark:text-black font-semibold">
                         Edit Payroll – {emp.name}
                       </SheetTitle>
                     </SheetHeader>
@@ -186,7 +186,7 @@ export default function PayrollPage() {
                     {/* Salary & Allowances */}
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-700">
+                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
                           Base Salary
                         </label>
                         <Input
@@ -202,7 +202,7 @@ export default function PayrollPage() {
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">
+                        <h3 className="font-semibold text-gray-700 dark:text-slate-200 mb-2">
                           Allowances
                         </h3>
                         {Object.keys(payroll.allowances || {}).map((key) => (
@@ -210,7 +210,7 @@ export default function PayrollPage() {
                             key={key}
                             className="flex items-center gap-2 mb-2"
                           >
-                            <label className="w-24 text-gray-600">{key}</label>
+                            <label className="w-24 text-gray-600 dark:text-slate-400">{key}</label>
                             <Input
                               type="number"
                               value={payroll.allowances[key] ?? 0}
@@ -229,7 +229,7 @@ export default function PayrollPage() {
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-gray-700 mb-2">
+                        <h3 className="font-semibold text-gray-700 dark:text-slate-200 mb-2">
                           Deductions
                         </h3>
                         {Object.keys(payroll.deductions || {}).map((key) => (
@@ -237,7 +237,7 @@ export default function PayrollPage() {
                             key={key}
                             className="flex items-center gap-2 mb-2"
                           >
-                            <label className="w-24 text-gray-600">{key}</label>
+                            <label className="w-24 text-gray-600 dark:text-slate-400">{key}</label>
                             <Input
                               type="number"
                               value={payroll.deductions[key] ?? 0}
@@ -259,18 +259,18 @@ export default function PayrollPage() {
                     <Separator />
 
                     {/* Calculated Summary */}
-                    <div className="space-y-2 text-sm text-gray-700 bg-[#A3E3DB]/20 p-3 rounded-md">
+                    <div className="space-y-2 text-sm text-gray-700 dark:text-slate-300 bg-[#A3E3DB]/20 dark:bg-[#A3E3DB]/10 p-3 rounded-md border border-[#A3E3DB]/30 dark:border-[#A3E3DB]/20">
                       <p>Gross Salary: ₹{gross.toFixed(2)}</p>
                       <p>PF (12%): ₹{pf.toFixed(2)}</p>
                       <p>ESI (0.75%): ₹{esi.toFixed(2)}</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-gray-900 dark:text-white">
                         Net Pay: ₹{net.toFixed(2)}
                       </p>
                     </div>
 
                     <Button
                       onClick={handleUpdate}
-                      className="w-full bg-gradient-to-r from-[#25C2A0] to-[#2AD4B7] text-white font-semibold hover:opacity-90 hover:scale-[1.02] transition-all"
+                      className="w-full bg-[#2AD4B7] text-white dark:text-black font-semibold hover:opacity-90 hover:scale-[1.02] transition-all"
                     >
                       Save Payroll
                     </Button>
