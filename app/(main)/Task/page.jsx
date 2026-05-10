@@ -95,31 +95,19 @@ export default function TaskPage() {
     return () => clearInterval(id);
   }, []);
 
-  // ── Get logged-in user email from Supabase Auth ───────────────────────────────
-  // This runs once on mount. It reads the active session and extracts the email.
-  // If no session exists we redirect to login (adjust the path as needed).
+  // ── Get logged-in user email from localStorage ────────────────────────────────
+  // Matches exact same pattern used in crm/page.jsx.
+  // NextAuth stores the session in localStorage under "session" key after Google login.
+  // This persists across refreshes automatically.
   useEffect(() => {
-    const resolveUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        // No active session — redirect to your login page
-        router.push("/login");
-        return;
-      }
-      setCurrentUserEmail(user.email);
-      setAuthLoading(false);
-    };
-    resolveUser();
-
-    // Also listen for auth state changes (sign-in / sign-out)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        router.push("/login");
-      } else {
-        setCurrentUserEmail(session.user.email);
-      }
-    });
-    return () => subscription.unsubscribe();
+    try {
+      const sessionJSON = JSON.parse(localStorage.getItem("session"));
+      const email = sessionJSON?.user?.email;
+      if (email) setCurrentUserEmail(email);
+    } catch (e) {
+      console.error("Could not read session from localStorage", e);
+    }
+    setAuthLoading(false);
   }, []);
 
   // ── Fetch tasks — scoped to current user's email ──────────────────────────────
@@ -400,18 +388,6 @@ export default function TaskPage() {
   const selectedDateLabel = new Date(selectedDate + "T00:00:00").toLocaleDateString("en-GB", {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
-
-  // ── Auth loading guard ────────────────────────────────────────────────────────
-  if (authLoading) {
-    return (
-      <div className={`flex items-center justify-center h-screen ${pageBg}`}>
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
-          <p className={`text-sm ${txtMuted}`}>Verifying session…</p>
-        </div>
-      </div>
-    );
-  }
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
@@ -928,8 +904,6 @@ export default function TaskPage() {
     </div>
   );
 }
-
-
 
 
 
