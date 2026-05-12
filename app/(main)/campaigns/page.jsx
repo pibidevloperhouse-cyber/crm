@@ -698,16 +698,16 @@ export default function Campaigns() {
                         </span>
                       </div>
                     </CardContent>
-                    <CardFooter className="flex gap-2 border-t mt-auto">
-                      <div className="flex justify-between w-full items-center text-xs border-slate-200 dark:border-slate-700">
+                    <CardFooter className="flex flex-col gap-3 border-t p-4 mt-auto">
+                      <div className="flex flex-col md:flex-row justify-between w-full items-start md:items-center gap-4 text-xs border-slate-200 dark:border-slate-700">
                         <div
-                          className={`flex flex-col w-full md:flex-row gap-3 h-7  mt-auto `}
+                          className={`flex flex-col md:flex-row gap-3 w-full md:w-auto mt-auto `}
                         >
                           <Button
                             onClick={() => router.push(`/campaigns/${c.name}`)}
                             className="text-sm px-3 py-1 rounded-lg border border-slate-300 dark:border-slate-600 
                       bg-transparent hover:bg-slate-200 dark:hover:bg-slate-600 text-black dark:text-white
-                       transition-colors cursor-pointer"
+                       transition-colors cursor-pointer w-full md:w-auto"
                           >
                             Edit
                           </Button>
@@ -718,7 +718,7 @@ export default function Campaigns() {
                             }}
                             className="text-sm px-3 py-1 rounded-lg border border-green-300 dark:border-green-600 
                       bg-transparent hover:bg-green-200 dark:hover:bg-green-600 text-green-600 dark:text-green-400
-                       transition-colors"
+                       transition-colors w-full md:w-auto"
                           >
                             Send Campaign
                           </Button>
@@ -727,7 +727,7 @@ export default function Campaigns() {
                               <Button
                                 className="text-sm px-3 py-1 rounded-lg border border-red-300 dark:border-red-600 
                       bg-transparent hover:bg-red-200 dark:hover:bg-red-600 text-red-600 dark:text-red-400
-                       transition-colors cursor-pointer"
+                       transition-colors cursor-pointer w-full md:w-auto"
                               >
                                 Delete
                               </Button>
