@@ -22,7 +22,7 @@ def get_users():
     For production: uncomment the supabase query.
     """
     # ── TESTING (one email) ──
-    return [get_user_by_email("kikuu737@gmail.com")]
+    return [get_user_by_email("arsha.tajdeen23@gmail.com")]
 
     # ── PRODUCTION (all users) ──
     # try:
