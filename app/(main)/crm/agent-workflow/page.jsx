@@ -426,7 +426,7 @@ export default function AgentWorkflowPage() {
                         {/* Left card */}
                         <div className="w-1/2 flex justify-end pr-10">
                           <div className="p-4 rounded-2xl max-w-sm w-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-500/25 shadow-sm">
-                            <p className="text-xs font-bold tracking-wide mb-1.5 text-blue-600 dark:text-blue-400">AGENT (INBOUND)</p>
+                            <p className="text-xs font-bold tracking-wide mb-1.5 text-blue-600 dark:text-blue-400">Client </p>
                             <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{item.inbound_summary}</p>
                             <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{formatDate(item.created_at)}</p>
                           </div>
@@ -459,7 +459,7 @@ export default function AgentWorkflowPage() {
                         {/* Right card */}
                         <div className="w-1/2 flex justify-start pl-10">
                           <div className="p-4 rounded-2xl max-w-sm w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/25 shadow-sm">
-                            <p className="text-xs font-bold tracking-wide mb-1.5 text-emerald-600 dark:text-emerald-400">HUMAN (OUTBOUND)</p>
+                            <p className="text-xs font-bold tracking-wide mb-1.5 text-emerald-600 dark:text-emerald-400">Agent</p>
                             <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{item.outbound_summary}</p>
                             <div className="flex items-center justify-between mt-2">
                               <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(item.created_at)}</p>

@@ -600,7 +600,7 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
         </div>
         <div className="md:col-span-3">
           <Card className="bg-transparent text-gray-600 border-0">
-            <CardHeader className={`flex items-center justify-between`}>
+            {/* <CardHeader className={`flex items-center justify-between`}>
               <CardTitle>Open Activities</CardTitle>
               <Dialog
                 open={isOpen}
@@ -716,7 +716,7 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
                   </div>
                 </DialogContent>
               </Dialog>
-            </CardHeader>
+            </CardHeader> */}
             <CardContent>
               <Card className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm">
                 <CardHeader>

@@ -618,7 +618,7 @@ export default function UpdateDeals(
             onChange={(e) => handleDealChange("description", e.target.value)}
           />
         </div>
-        <div className="md:col-span-3">
+        {/* <div className="md:col-span-3">
           <Card className="bg-transparent text-gray-600 border-0">
             <CardHeader className={`flex items-center justify-between`}>
               <CardTitle>Open Activities</CardTitle>
@@ -964,7 +964,7 @@ export default function UpdateDeals(
               </Card>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
         <Button
           onClick={handleUpdateDB}
           disabled={loading}
