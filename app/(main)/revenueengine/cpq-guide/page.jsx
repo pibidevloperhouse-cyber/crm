@@ -196,17 +196,6 @@ export default function CPQGuidePage() {
         </Button>
       </div>
 
-      {/* Info Warning */}
-      {currentStep === 1 && (!selectedDealId || !dealHasProducts) && (
-        <div className="mt-12 flex justify-center">
-          <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-full text-amber-700 dark:text-amber-400 text-sm">
-            <AlertCircle className="w-4 h-4" />
-            {!selectedDealId
-              ? "Please select a deal to proceed to the next level."
-              : "This deal has no products. Please add a product to proceed."}
           </div>
-        </div>
-      )}
-    </div>
   );
 }

@@ -558,7 +558,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
               <div className="bg-slate-100 dark:bg-slate-800 p-6 rounded-full mb-4">
                 <Search className="h-10 w-10" />
               </div>
-              <p className="text-lg font-medium">Select a deal from the left</p>
+              <p className="text-lg font-medium">Select a deal</p>
               <p className="text-sm">to start configuring products</p>
             </div>
           )}
