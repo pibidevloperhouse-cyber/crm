@@ -411,7 +411,7 @@ useEffect(() => {
             <Button
               size="sm"
               onClick={() => router.push("/crm/agent-workflow")}
-              className="h-9 bg-gradient-to-r from-sky-600 to-teal-500 text-white text-xs"
+              className="h-9 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
             >
               <Users size={14} className="mr-1.5" />
               Agent Workflow
