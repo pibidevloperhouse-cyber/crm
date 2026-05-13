@@ -58,6 +58,7 @@ export default function TaskPage() {
     toDateStr(today.getFullYear(), today.getMonth(), today.getDate())
   );
   const [tasks, setTasks] = useState([]);
+  const [leads, setLeads] = useState([]);          // ← leads list for dropdown
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -69,15 +70,14 @@ export default function TaskPage() {
   const [calendarOpen, setCalendarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  // ── CHANGED: removed assigneeId, added client_name + lead_email ──
+  // ── Form: removed assigneeId & lead_id, added client_name ────────────────────
   const [formData, setFormData] = useState({
-    title: "", dueAt: "", description: "", category: "Task",
-    lead_id: "", client_name: "", lead_email: "",
+    title: "",
+    dueAt: "",
+    description: "",
+    category: "Task",
+    client_name: "",
   });
-
-  // ── NEW: leads dropdown state ──
-  const [leadOptions, setLeadOptions] = useState([]);
-  const [leadDropdownOpen, setLeadDropdownOpen] = useState(false);
 
   // ── Mobile breakpoint tracker ─────────────────────────────────────────────────
   useEffect(() => {
@@ -110,7 +110,24 @@ export default function TaskPage() {
     setAuthLoading(false);
   }, []);
 
-  // ── Fetch tasks ───────────────────────────────────────────────────────────────
+  // ── Fetch leads for dropdown — scoped to current user ────────────────────────
+  const fetchLeads = async (email) => {
+    if (!email) return;
+    try {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("id, name")
+        .eq("user_email", email)
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      if (data) setLeads(data);
+    } catch (err) {
+      console.error("Error fetching leads:", err);
+    }
+  };
+
+  // ── Fetch tasks — scoped to current user ─────────────────────────────────────
   const getCategoryColor = (cat) =>
     ({ Meeting: "#0ea5e9", Call: "#f59e0b", Task: "#8b5cf6", "Follow up": "#14b8a6" }[cat] || "#64748b");
 
@@ -121,7 +138,7 @@ export default function TaskPage() {
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .eq("email", email)
+        .eq("user_email", email)           // ← was .eq("email", email)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -136,13 +153,10 @@ export default function TaskPage() {
             description: task.metadata?.description || "No description",
             category: task.metadata?.category || task.title || "Task",
             status: task.metadata?.status || "active",
-            assigneeId: task.assigneeId,
-            lead_id: task.lead_id,
-            client_name: task.client_name,   // ── NEW
-            lead_email: task.lead_email,     // ── NEW
+            client_name: task.client_name || "",   // ← new field
+            user_email: task.user_email,            // ← was task.email
             dueAt: task.dueAt,
             metadata: task.metadata,
-            email: task.email,
             color: getCategoryColor(task.metadata?.category || task.title || "Task"),
           }))
         );
@@ -154,27 +168,17 @@ export default function TaskPage() {
     }
   };
 
-  // ── NEW: fetch leads for dropdown ─────────────────────────────────────────────
-  const fetchLeadOptions = async (email) => {
-    const { data } = await supabase
-      .from("Leads")
-      .select("id, name, email")
-      .eq("user_email", email);
-    if (data) setLeadOptions(data);
-  };
-
-  // Trigger fetch once we have the email
+  // Trigger fetches once we have the email
   useEffect(() => {
     if (currentUserEmail) {
       fetchTasks(currentUserEmail);
-      fetchLeadOptions(currentUserEmail);   // ── NEW
+      fetchLeads(currentUserEmail);
     }
   }, [currentUserEmail]);
 
   // ── CRUD ──────────────────────────────────────────────────────────────────────
   const handleAddTask = async () => {
     if (!formData.title) { alert("Please enter a task title"); return; }
-    if (!formData.client_name) { alert("Please select a client"); return; }  // ── NEW mandatory check
     if (!currentUserEmail) { alert("Not logged in"); return; }
     setSubmitting(true);
     try {
@@ -185,10 +189,8 @@ export default function TaskPage() {
           dueAt: formData.dueAt
             ? new Date(formData.dueAt).toISOString()
             : new Date().toISOString(),
-          lead_id: formData.lead_id || null,
-          client_name: formData.client_name || null,   // ── NEW
-          lead_email: formData.lead_email || null,     // ── NEW
-          email: currentUserEmail,
+          client_name: formData.client_name || null,   // ← new col
+          user_email: currentUserEmail,                 // ← was email
           metadata: {
             description: formData.description || "",
             status: "active",
@@ -208,12 +210,10 @@ export default function TaskPage() {
           description: formData.description || "",
           category: formData.category || "Task",
           status: "active",
-          lead_id: t.lead_id,
-          client_name: t.client_name,     // ── NEW
-          lead_email: t.lead_email,       // ── NEW
+          client_name: t.client_name || "",
+          user_email: t.user_email,
           dueAt: t.dueAt,
           metadata: t.metadata,
-          email: t.email,
           color: getCategoryColor(formData.category || "Task"),
         }, ...tasks]);
         setIsModalOpen(false);
@@ -236,10 +236,8 @@ export default function TaskPage() {
         .update({
           title: formData.title,
           dueAt: formData.dueAt ? new Date(formData.dueAt).toISOString() : null,
-          lead_id: formData.lead_id || null,
-          client_name: formData.client_name || null,   // ── NEW
-          lead_email: formData.lead_email || null,     // ── NEW
-          email: currentUserEmail,
+          client_name: formData.client_name || null,   // ← new col
+          user_email: currentUserEmail,                 // ← was email
           metadata: {
             ...selectedTask.metadata,
             description: formData.description,
@@ -247,7 +245,7 @@ export default function TaskPage() {
           },
         })
         .eq("id", selectedTask.id)
-        .eq("email", currentUserEmail);
+        .eq("user_email", currentUserEmail);            // ← was .eq("email", ...)
 
       if (error) throw error;
       setTasks(tasks.map((t) =>
@@ -259,9 +257,7 @@ export default function TaskPage() {
             date: formData.dueAt,
             description: formData.description,
             category: formData.category,
-            lead_id: formData.lead_id,
-            client_name: formData.client_name,   // ── NEW
-            lead_email: formData.lead_email,     // ── NEW
+            client_name: formData.client_name,
             color: getCategoryColor(formData.category),
           }
           : t
@@ -284,7 +280,7 @@ export default function TaskPage() {
         .from("tasks")
         .delete()
         .eq("id", selectedTask.id)
-        .eq("email", currentUserEmail);
+        .eq("user_email", currentUserEmail);            // ← was .eq("email", ...)
 
       if (error) throw error;
       setTasks(tasks.filter((t) => t.id !== selectedTask.id));
@@ -305,11 +301,11 @@ export default function TaskPage() {
       const { error } = await supabase
         .from("tasks")
         .update({
-          email: currentUserEmail,
+          user_email: currentUserEmail,                 // ← was email
           metadata: { ...selectedTask.metadata, status: "closed" },
         })
         .eq("id", selectedTask.id)
-        .eq("email", currentUserEmail);
+        .eq("user_email", currentUserEmail);            // ← was .eq("email", ...)
 
       if (error) throw error;
       setTasks(tasks.map((t) =>
@@ -331,15 +327,12 @@ export default function TaskPage() {
     setModalMode(mode);
     if (task) {
       setSelectedTask(task);
-      // ── CHANGED: removed assigneeId, added client_name + lead_email ──
       setFormData({
         title: task.title,
         dueAt: task.date,
         description: task.description,
         category: task.category,
-        lead_id: task.lead_id || "",
         client_name: task.client_name || "",
-        lead_email: task.lead_email || "",
       });
     } else {
       resetForm();
@@ -348,13 +341,11 @@ export default function TaskPage() {
   };
 
   const resetForm = () => {
-    // ── CHANGED: removed assigneeId, added client_name + lead_email ──
     setFormData({
       title: "", dueAt: selectedDate, description: "",
-      category: "Task", lead_id: "", client_name: "", lead_email: "",
+      category: "Task", client_name: "",
     });
     setSelectedTask(null);
-    setLeadDropdownOpen(false);   // ── NEW
   };
 
   // ── Derived data ──────────────────────────────────────────────────────────────
@@ -412,7 +403,7 @@ export default function TaskPage() {
       className={`-m-4 sm:-m-6 lg:-m-10 flex flex-col overflow-hidden ${pageBg} transition-colors duration-300`}
       style={{ height: "calc(100vh - 64px)" }}
     >
-      {/* FIXED TOP */}
+      {/* ════ FIXED TOP — page header ════ */}
       <div className={`flex-shrink-0 ${panelBg} border-b ${border} px-4 sm:px-6 py-3`}>
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -437,10 +428,10 @@ export default function TaskPage() {
         </div>
       </div>
 
-      {/* BODY */}
+      {/* ════ BODY ════ */}
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
 
-        {/* CALENDAR PANEL */}
+        {/* ── CALENDAR PANEL ── */}
         <div
           className={`flex-shrink-0 ${panelBg} lg:border-b-0 lg:border-r ${border} lg:w-80 lg:overflow-y-auto flex flex-col`}
           style={{ borderBottom: calendarOpen ? undefined : "none" }}
@@ -450,6 +441,7 @@ export default function TaskPage() {
             style={isMobile ? { maxHeight: calendarOpen ? "700px" : "0px", opacity: calendarOpen ? 1 : 0 } : {}}
           >
             <div className="px-4 sm:px-5 pt-4 pb-2">
+              {/* Month navigation */}
               <div className="flex items-center justify-between mb-3">
                 <button
                   onClick={prevMonth}
@@ -470,12 +462,14 @@ export default function TaskPage() {
                 </button>
               </div>
 
+              {/* Day header row */}
               <div className="grid grid-cols-7 mb-1">
                 {DAYS.map((d) => (
                   <div key={d} className={`text-center text-[11px] font-semibold ${txtMuted} py-1`}>{d}</div>
                 ))}
               </div>
 
+              {/* Day cells */}
               <div className="grid grid-cols-7 gap-y-1">
                 {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} />)}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
@@ -527,8 +521,10 @@ export default function TaskPage() {
                 })}
               </div>
 
+              {/* Divider */}
               <div className={`my-3 border-t ${divider}`} />
 
+              {/* Month summary */}
               <div className={`rounded-xl border ${border} ${innerRow} px-3 py-2`}>
                 <p className={`text-[10px] font-bold uppercase tracking-wider ${txtMuted} mb-1.5`}>
                   {MONTHS[viewMonth]} Summary
@@ -591,9 +587,10 @@ export default function TaskPage() {
           </button>
         </div>
 
-        {/* TASKS PANEL */}
+        {/* ── TASKS PANEL ── */}
         <div className={`flex flex-col flex-1 min-h-0 min-w-0 ${pageBg}`}>
 
+          {/* Selected date label */}
           <div className={`flex-shrink-0 ${panelBg} border-b ${border} px-4 sm:px-6 py-3`}>
             <h2 className={`text-sm sm:text-base font-bold ${txtPrimary} leading-tight`}>
               {selectedDateLabel}
@@ -603,6 +600,7 @@ export default function TaskPage() {
             </p>
           </div>
 
+          {/* Search + filter pills */}
           <div className={`flex-shrink-0 ${panelBg} border-b ${border} px-4 sm:px-6 py-3`}>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <div
@@ -640,7 +638,7 @@ export default function TaskPage() {
             </div>
           </div>
 
-          {/* Scrollable task cards */}
+          {/* ── Scrollable task cards ── */}
           <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-3">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-40 gap-3">
@@ -669,6 +667,7 @@ export default function TaskPage() {
                   className={`rounded-xl border p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200
                     ${dm ? "bg-[#0d1117] border-[#21262d]" : "bg-white border-slate-200"}`}
                 >
+                  {/* Title + status badge */}
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className={`text-sm sm:text-base font-bold ${txtPrimary}`}>{task.title}</h3>
                     {task.status === "closed" && (
@@ -681,6 +680,7 @@ export default function TaskPage() {
                     )}
                   </div>
 
+                  {/* Due date */}
                   <div className="flex items-center gap-2 mb-1.5">
                     <Calendar size={13} className={txtMuted} />
                     <span className={`text-xs sm:text-sm ${txtSub}`}>
@@ -688,26 +688,41 @@ export default function TaskPage() {
                     </span>
                   </div>
 
+                  {/* Category */}
                   <div className={`flex items-center gap-2 mb-1.5 ${txtSub}`}>
                     {categoryIcon(task.category)}
                     <span className="text-xs sm:text-sm">{task.category}</span>
                   </div>
 
-                  {/* ── NEW: show client name on card ── */}
+                  {/* Client name badge */}
                   {task.client_name && (
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium
-                        ${dm ? "bg-teal-900/40 text-teal-400" : "bg-teal-50 text-teal-600"}`}
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Users size={13} className={txtMuted} />
+                      <span className={`text-xs sm:text-sm font-medium
+                        ${dm ? "text-sky-400" : "text-sky-600"}`}
                       >
-                        👤 {task.client_name}
+                        {task.client_name}
                       </span>
                     </div>
                   )}
 
+                  {/* Owner email badge */}
+                  {task.user_email && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium
+                        ${dm ? "bg-teal-900/40 text-teal-400" : "bg-teal-50 text-teal-600"}`}
+                      >
+                        {task.user_email}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Description */}
                   <p className={`text-xs sm:text-sm ${txtMuted} mb-3 pb-3 border-b ${divider}`}>
                     {task.description}
                   </p>
 
+                  {/* Action buttons */}
                   <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={() => openModal("delete", task)}
@@ -740,7 +755,7 @@ export default function TaskPage() {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* ════ MODAL ════ */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div
@@ -765,6 +780,7 @@ export default function TaskPage() {
             <div className="p-5 space-y-4 overflow-y-auto flex-1">
               {(modalMode === "add" || modalMode === "edit") ? (
                 <>
+                  {/* Task Title */}
                   <div>
                     <label className={`block text-sm font-semibold ${labelCls} mb-1`}>Task Title</label>
                     <input
@@ -776,6 +792,7 @@ export default function TaskPage() {
                     />
                   </div>
 
+                  {/* Due Date */}
                   <div>
                     <label className={`block text-sm font-semibold ${labelCls} mb-1`}>Due Date</label>
                     <input
@@ -786,6 +803,7 @@ export default function TaskPage() {
                     />
                   </div>
 
+                  {/* Category */}
                   <div>
                     <label className={`block text-sm font-semibold ${labelCls} mb-1`}>Category</label>
                     <select
@@ -800,6 +818,7 @@ export default function TaskPage() {
                     </select>
                   </div>
 
+                  {/* Description */}
                   <div>
                     <label className={`block text-sm font-semibold ${labelCls} mb-1`}>Description</label>
                     <textarea
@@ -811,56 +830,31 @@ export default function TaskPage() {
                     />
                   </div>
 
-                  {/* ── NEW: Client dropdown (replaces Assignee ID + Lead ID inputs) ── */}
-                  <div className="relative">
+                  {/* ── Client Name dropdown — fetched from leads table ── */}
+                  <div>
                     <label className={`block text-sm font-semibold ${labelCls} mb-1`}>
-                      Client <span className="text-red-500">*</span>
+                      Client Name
                     </label>
-                    <div
-                      onClick={() => setLeadDropdownOpen(!leadDropdownOpen)}
-                      className={`w-full px-3 py-2 border rounded-lg text-sm cursor-pointer flex justify-between items-center ${inputCls}`}
+                    <select
+                      value={formData.client_name}
+                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-lg text-sm outline-none ${inputCls}`}
                     >
-                      <span className={formData.client_name ? "" : (dm ? "text-slate-500" : "text-slate-400")}>
-                        {formData.client_name || "Select a client"}
-                      </span>
-                      <svg
-                        className={`w-4 h-4 transition-transform duration-200 ${leadDropdownOpen ? "rotate-180" : ""} ${dm ? "text-slate-400" : "text-slate-400"}`}
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-
-                    {leadDropdownOpen && (
-                      <div className={`absolute z-50 w-full mt-1 border rounded-lg shadow-lg max-h-48 overflow-y-auto
-                        ${dm ? "bg-[#161b22] border-[#30363d]" : "bg-white border-slate-200"}`}
-                      >
-                        {leadOptions.length === 0 ? (
-                          <p className={`px-3 py-2 text-sm ${txtMuted}`}>No leads found</p>
-                        ) : (
-                          leadOptions.map((lead) => (
-                            <div
-                              key={lead.id}
-                              onClick={() => {
-                                setFormData({
-                                  ...formData,
-                                  lead_id: lead.id,
-                                  client_name: lead.name,
-                                  lead_email: lead.email,
-                                });
-                                setLeadDropdownOpen(false);
-                              }}
-                              className={`px-3 py-2 text-sm cursor-pointer transition-colors flex items-center justify-between
-                                ${dm
-                                  ? "text-slate-200 hover:bg-[#21262d]"
-                                  : "text-slate-800 hover:bg-slate-50"}`}
-                            >
-                              <span className="font-medium">{lead.name}</span>
-                              <span className={`text-xs ${txtMuted}`}>{lead.email}</span>
-                            </div>
-                          ))
-                        )}
-                      </div>
+                      <option value="">— Select a client —</option>
+                      {leads.length === 0 ? (
+                        <option disabled>No leads found</option>
+                      ) : (
+                        leads.map((lead) => (
+                          <option key={lead.id} value={lead.name}>
+                            {lead.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    {leads.length === 0 && (
+                      <p className={`text-[11px] mt-1 ${txtMuted}`}>
+                        No leads in your account yet. Add leads first.
+                      </p>
                     )}
                   </div>
                 </>
@@ -947,18 +941,6 @@ export default function TaskPage() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-//for client name in tasks
 // "use client";
 
 // import { useState, useEffect } from "react";
