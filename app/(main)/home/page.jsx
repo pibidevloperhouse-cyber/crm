@@ -359,7 +359,7 @@ export default function Home() {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-teal-700 bg-clip-text text-transparent">
             GTM Dashboard
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -526,7 +526,7 @@ export default function Home() {
   );
 }
 
-// old version 
+// old version
 // "use client";
 
 // import { use, useEffect, useState } from "react";
