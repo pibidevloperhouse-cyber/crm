@@ -168,6 +168,7 @@ export default function UpdateDeals(
     "Closed-lost",
     "On-hold",
     "Abandoned",
+    "Contract Sent",
   ];
   const updateActivitiesFormData = (field, value) => {
     setActivitiesFormData((prev) => ({ ...prev, [field]: value }));

@@ -353,11 +353,11 @@ const DealForm = ({ fetchDeals, session, products, setDealsData }) => {
               <SelectItem value="New">New</SelectItem>
               <SelectItem value="Proposal Sent">Proposal Sent</SelectItem>
               <SelectItem value="Negotiation">Negotiation</SelectItem>
-              <SelectItem value="Contract Sent">Contract Sent</SelectItem>
               <SelectItem value="Closed-won">Closed - Won</SelectItem>
               <SelectItem value="Closed-lost">Closed - Lost</SelectItem>
               <SelectItem value="On-hold">On Hold</SelectItem>
               <SelectItem value="Abandoned">Abandoned</SelectItem>
+              <SelectItem value="Contract Sent">Contract Sent</SelectItem>
             </SelectContent>
           </Select>
           {errors.status && <ErrorMessage error={errors.status} />}

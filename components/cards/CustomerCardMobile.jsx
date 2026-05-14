@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../ui/dialog";
+import { Textarea } from "../ui/textarea";
 import {
   Mail,
   Phone,
@@ -54,6 +55,20 @@ export default function CustomerCardMobile({ customer, onChange }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
+  const [confirmStage, setConfirmStage] = useState(null);
+  const [description, setDescription] = useState("");
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const parseStageHistory = (raw) => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
 
   const handleDeleteCustomer = async () => {
     const { error } = await supabase.from("Customers").delete().eq("id", customer.id);
@@ -64,6 +79,48 @@ export default function CustomerCardMobile({ customer, onChange }) {
       setOpen(false);
       onChange();
     }
+  };
+
+  const handleStageClick = (stage) => {
+    const stageIdx = CUSTOMER_STAGES.indexOf(stage);
+    if (stageIdx <= currentIdx || updatingStatus) return;
+    setConfirmStage(stage);
+  };
+
+  const handleStatusUpdate = async () => {
+    setUpdatingStatus(true);
+    const today = new Date().toISOString().split("T")[0];
+    const existingHistory = parseStageHistory(customer.Stagehistory);
+    const length = existingHistory.length;
+    const start_date = existingHistory[length - 1]?.end_date || customer.created_at?.split("T")[0] || today;
+
+    const current_history = {
+      old_status: customer.status,
+      new_status: confirmStage,
+      start_date,
+      end_date: today,
+      state_description: description,
+    };
+    const updatedHistory = [...existingHistory, current_history];
+
+    const { error } = await supabase
+      .from("Customers")
+      .update({
+        status: confirmStage,
+        Stagehistory: JSON.stringify(updatedHistory),
+      })
+      .eq("id", customer.id);
+
+    if (error) {
+      toast.error("Error updating status");
+    } else {
+      toast.success(`Status updated to ${confirmStage}`);
+      onChange();
+    }
+
+    setUpdatingStatus(false);
+    setConfirmStage(null);
+    setDescription("");
   };
 
   const currentIdx = CUSTOMER_STAGES.indexOf(customer.status);
@@ -162,9 +219,6 @@ export default function CustomerCardMobile({ customer, onChange }) {
             >
               <Mail className="w-3.5 h-3.5 text-teal-500" /> Email
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex-shrink-0 active:scale-95 transition-transform">
-              <Phone className="w-3.5 h-3.5 text-teal-500" /> Call
-            </button>
             <button
               onClick={() => setEditOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex-shrink-0 active:scale-95 transition-transform"
@@ -260,42 +314,73 @@ export default function CustomerCardMobile({ customer, onChange }) {
             {activeTab === "status" && (
               <div className="p-4">
                 <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-4">Customer Status</p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {CUSTOMER_STAGES.map((stage, idx) => {
                     const isCompleted = idx < currentIdx;
                     const isCurrent = idx === currentIdx;
                     const isFuture = idx > currentIdx;
                     return (
-                      <div
+                      <button
                         key={stage}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border ${
+                        onClick={() => handleStageClick(stage)}
+                        disabled={!isFuture || updatingStatus}
+                        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl border transition-all active:scale-[0.98] ${
                           isCurrent
-                            ? "bg-teal-500 border-teal-500 text-white"
+                            ? "bg-teal-500 border-teal-500 text-white shadow-md"
                             : isCompleted
-                              ? "bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800 text-teal-600 dark:text-teal-400"
-                              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400"
-                        }`}
+                              ? "bg-teal-50 dark:bg-teal-900/10 border-teal-100 dark:border-teal-900 text-teal-400 dark:text-teal-600 opacity-60"
+                              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-teal-300"
+                        } ${updatingStatus ? "opacity-50" : ""}`}
                       >
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                          isCurrent ? "bg-white/20 text-white"
-                            : isCompleted ? "bg-teal-100 dark:bg-teal-800 text-teal-600"
-                            : "bg-slate-100 dark:bg-slate-700 text-slate-400"
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                          isCurrent ? "bg-white text-teal-500" : isCompleted ? "bg-teal-50 dark:bg-teal-900/10 text-teal-600" : "bg-slate-100 dark:bg-slate-700 text-slate-400"
                         }`}>
                           {idx + 1}
                         </div>
-                        <span className="text-sm font-medium">{stage}</span>
+                        <span className="text-sm font-medium text-left">{stage}</span>
                         {isCurrent && (
                           <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
                             Current
                           </span>
                         )}
-                      </div>
+                        {isFuture && (
+                          <ChevronRight className="ml-auto w-4 h-4 text-teal-500" />
+                        )}
+                      </button>
                     );
                   })}
                 </div>
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stage Update Note Modal */}
+      <Dialog open={!!confirmStage} onOpenChange={() => setConfirmStage(null)}>
+        <DialogContent className="mx-4 max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Update Status: {confirmStage}</DialogTitle>
+            <DialogDescription>
+              Add a note about this status change.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="What happened?..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="min-h-[100px] bg-slate-50 dark:bg-slate-900 text-sm"
+          />
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setConfirmStage(null)}>Cancel</Button>
+            <Button
+              className="flex-1 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+              onClick={handleStatusUpdate}
+              disabled={updatingStatus}
+            >
+              {updatingStatus ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -319,7 +404,14 @@ export default function CustomerCardMobile({ customer, onChange }) {
 
       {/* Email Modal */}
       <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
-        <EmailTemplate type="Customers" id={customer.id} email={customer.email} />
+        <DialogContent className="w-[95vw] sm:max-w-4xl h-[90vh] sm:h-[85vh] p-0 overflow-hidden border-0 shadow-2xl rounded-2xl mx-auto">
+          <EmailTemplate
+            type="Customers"
+            id={customer.id}
+            email={customer.email}
+            onOpenChange={setEmailOpen}
+          />
+        </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}

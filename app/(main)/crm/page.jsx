@@ -64,7 +64,84 @@ const STATUS_DOT = {
   Active: "bg-emerald-500",
   Inactive: "bg-slate-400",
   Churned: "bg-red-400",
+  "Contract Sent": "bg-fuchsia-400",
 };
+
+// ── Kanban column ─────────────────────────────────────────────────────────
+const KanbanColumn = ({ title, count, children, collapsedCols, toggleCollapse }) => {
+  const isCollapsed = collapsedCols[title];
+  return (
+    <div
+      className={`flex flex-col rounded-xl bg-slate-100/70 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 h-full transition-all duration-200 flex-shrink-0
+        ${isCollapsed ? "w-10 min-w-[40px]" : "w-[160px] sm:w-[185px] md:flex-1 md:min-w-[185px] md:max-w-[300px]"}`}
+    >
+      {/* Column header */}
+      <div className="flex items-center justify-between px-2 py-2 border-b border-slate-200 dark:border-slate-700/50 flex-shrink-0">
+        {!isCollapsed && (
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT[title] || "bg-slate-400"}`} />
+            <span className="font-semibold text-xs text-slate-700 dark:text-slate-200 truncate">
+              {title}
+            </span>
+            <span className="text-[10px] font-semibold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded-full ml-auto flex-shrink-0">
+              {count}
+            </span>
+          </div>
+        )}
+        <button
+          onClick={() => toggleCollapse(title)}
+          className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all ${isCollapsed ? "mx-auto" : "ml-1"}`}
+          title={isCollapsed ? `Expand ${title}` : `Collapse ${title}`}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-3 h-3" />
+          ) : (
+            <ChevronLeft className="w-3 h-3" />
+          )}
+        </button>
+      </div>
+
+      {/* Collapsed: rotated label */}
+      {isCollapsed && (
+        <div className="flex-1 flex items-center justify-center py-4">
+          <span
+            className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 select-none"
+            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+          >
+            {title} ({count})
+          </span>
+        </div>
+      )}
+
+      {/* Scrollable cards */}
+      {!isCollapsed && (
+        <div className="flex-1 overflow-y-auto p-1.5 space-y-1.5 min-h-[60px]">
+          <AnimatePresence>
+            {count === 0 && (
+              <p className="text-center text-xs text-slate-400 dark:text-slate-600 py-6 select-none">
+                Empty
+              </p>
+            )}
+            {children}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Wrapped card with animation ───────────────────────────────────────────
+const AnimatedCard = ({ id, children }) => (
+  <motion.div
+    key={id}
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -8 }}
+    transition={{ duration: 0.15 }}
+  >
+    {children}
+  </motion.div>
+);
 
 // ─── Normalize constant arrays ────────────────────────────────────────────────
 const normalizeStatuses = (arr) => {
@@ -78,7 +155,7 @@ const normalizeStatuses = (arr) => {
 
 // ─── Fallback status lists ────────────────────────────────────────────────────
 const LEAD_DEFAULTS = ["New", "Contacted", "Qualified", "Not Qualified", "Converted"];
-const DEAL_DEFAULTS = ["New Lead", "Qualified", "Proposal", "Negotiation", "Closed-won", "Closed", "Closed-lost"];
+const DEAL_DEFAULTS = ["New Lead", "Qualified", "Proposal", "Negotiation", "Closed-won", "Closed", "Closed-lost", "Contract Sent"];
 const CUSTOMER_DEFAULTS = ["Active", "Inactive", "Churned"];
 
 export default function CRM() {
@@ -204,81 +281,7 @@ useEffect(() => {
     return merged.length ? merged : CUSTOMER_DEFAULTS;
   };
 
-  // ── Kanban column ─────────────────────────────────────────────────────────
-  const KanbanColumn = ({ title, count, children }) => {
-    const isCollapsed = collapsedCols[title];
-    return (
-      <div
-        className={`flex flex-col rounded-xl bg-slate-100/70 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 h-full transition-all duration-200 flex-shrink-0
-          ${isCollapsed ? "w-10 min-w-[40px]" : "w-[160px] sm:w-[185px] md:flex-1 md:min-w-[185px] md:max-w-[300px]"}`}
-      >
-        {/* Column header */}
-        <div className="flex items-center justify-between px-2 py-2 border-b border-slate-200 dark:border-slate-700/50 flex-shrink-0">
-          {!isCollapsed && (
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT[title] || "bg-slate-400"}`} />
-              <span className="font-semibold text-xs text-slate-700 dark:text-slate-200 truncate">
-                {title}
-              </span>
-              <span className="text-[10px] font-semibold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded-full ml-auto flex-shrink-0">
-                {count}
-              </span>
-            </div>
-          )}
-          <button
-            onClick={() => toggleCollapse(title)}
-            className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all ${isCollapsed ? "mx-auto" : "ml-1"}`}
-            title={isCollapsed ? `Expand ${title}` : `Collapse ${title}`}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-3 h-3" />
-            ) : (
-              <ChevronLeft className="w-3 h-3" />
-            )}
-          </button>
-        </div>
 
-        {/* Collapsed: rotated label */}
-        {isCollapsed && (
-          <div className="flex-1 flex items-center justify-center py-4">
-            <span
-              className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 select-none"
-              style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-            >
-              {title} ({count})
-            </span>
-          </div>
-        )}
-
-        {/* Scrollable cards */}
-        {!isCollapsed && (
-          <div className="flex-1 overflow-y-auto p-1.5 space-y-1.5 min-h-[60px]">
-            <AnimatePresence>
-              {count === 0 && (
-                <p className="text-center text-xs text-slate-400 dark:text-slate-600 py-6 select-none">
-                  Empty
-                </p>
-              )}
-              {children}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // ── Wrapped card with animation ───────────────────────────────────────────
-  const AnimatedCard = ({ id, children }) => (
-    <motion.div
-      key={id}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.15 }}
-    >
-      {children}
-    </motion.div>
-  );
 
   // ── CSV sheet content ─────────────────────────────────────────────────────
   const CsvSheetContent = () => (
@@ -586,7 +589,7 @@ useEffect(() => {
     {getLeadStatuses().map((status) => {
       const items = leadsData.filter((l) => l.status === status);
       return (
-        <KanbanColumn key={status} title={status} count={items.length}>
+        <KanbanColumn key={status} title={status} count={items.length} collapsedCols={collapsedCols} toggleCollapse={toggleCollapse}>
           {items.map((lead) => (
             <AnimatedCard key={lead.id} id={lead.id}>
               {isMobile ? (
@@ -618,7 +621,7 @@ useEffect(() => {
             {getDealStatuses().map((status) => {
               const items = dealsData.filter((d) => d.status === status);
               return (
-                <KanbanColumn key={status} title={status} count={items.length}>
+                <KanbanColumn key={status} title={status} count={items.length} collapsedCols={collapsedCols} toggleCollapse={toggleCollapse}>
                   {items.map((deal) => (
   <AnimatedCard key={deal.id} id={deal.id}>
     {isMobile ? (
@@ -651,7 +654,7 @@ useEffect(() => {
             {getCustomerStatuses().map((status) => {
               const items = customersData.filter((c) => c.status === status);
               return (
-                <KanbanColumn key={status} title={status} count={items.length}>
+                <KanbanColumn key={status} title={status} count={items.length} collapsedCols={collapsedCols} toggleCollapse={toggleCollapse}>
                   {items.map((customer) => (
   <AnimatedCard key={customer.id} id={customer.id}>
     {isMobile ? (

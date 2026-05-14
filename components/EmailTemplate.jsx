@@ -244,36 +244,21 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
   const handleFileChange = (e) =>
     console.log("Attached:", Array.from(e.target.files).map((f) => f.name));
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <>
-      <DialogContent
-        className={`fixed bottom-0 right-0 p-0 shadow-2xl rounded-t-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 flex flex-col transition-all duration-300 ease-in-out ${
-          isMaximized
-            ? "w-full h-full md:w-3/5 md:h-4/5"
-            : "w-full md:w-[550px] h-auto"
-        }`}
-        style={{ zIndex: 9999 }}
-      >
-        {/* ── Header ── */}
-        <DialogHeader className="bg-gray-600 dark:bg-gray-900 text-white px-4 py-2 flex justify-between rounded-t-lg flex-shrink-0">
-          <div className="flex items-center justify-between w-full">
-            <Label className="text-sm font-medium">New Message</Label>
-            <div className="flex gap-1 ml-auto">
-              <button
-                onClick={() => setIsMaximized((v) => !v)}
-                className="p-1 hover:bg-gray-500 rounded"
-              >
-                <Maximize2 size={16} />
-              </button>
-              <DialogClose asChild>
-                <button className="p-1 hover:bg-gray-500 rounded">
-                  <X size={16} />
-                </button>
-              </DialogClose>
-            </div>
-          </div>
-        </DialogHeader>
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900 overflow-hidden">
+      {/* ── Custom Header (if needed, otherwise can use DialogHeader in parent) ── */}
+      <div className="bg-slate-800 dark:bg-slate-950 text-white px-4 py-3 flex justify-between items-center flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Mail className="w-4 h-4 text-teal-400" />
+          <span className="text-sm font-semibold">New Email Message</span>
+        </div>
+        <button 
+          onClick={() => onOpenChange(false)}
+          className="p-1 hover:bg-slate-700 rounded-md transition-colors"
+        >
+          <X size={18} />
+        </button>
+      </div>
 
         {/* ── Gmail Not Connected Banner ── */}
         {!refreshToken && (
@@ -413,7 +398,6 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
             </div>
           </footer>
         </div>
-      </DialogContent>
-    </>
+    </div>
   );
 }
