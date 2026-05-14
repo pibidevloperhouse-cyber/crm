@@ -8,6 +8,18 @@ import { useRouter } from "next/navigation";
 
 const OnBoarding = () => {
   const router = useRouter();
+  const [dots, setDots] = React.useState([]);
+
+  React.useEffect(() => {
+    const newDots = [...Array(20)].map((_, i) => ({
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 5}s`,
+      duration: `${3 + Math.random() * 4}s`,
+    }));
+    setDots(newDots);
+  }, []);
+
   return (
     <div className="relative min-h-screen overflow-hidden from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="absolute inset-0">
@@ -32,15 +44,15 @@ const OnBoarding = () => {
         </div>
 
         <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
+          {dots.map((dot, i) => (
             <div
               key={i}
               className="absolute w-2 h-2 bg-white/20 rounded-full animate-pulse-slow"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${3 + Math.random() * 4}s`,
+                left: dot.left,
+                top: dot.top,
+                animationDelay: dot.delay,
+                animationDuration: dot.duration,
               }}
             ></div>
           ))}
