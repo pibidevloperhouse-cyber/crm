@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -62,6 +64,7 @@ function useToast() {
 }
 
 export default function AgentWorkflowPage() {
+  const router = useRouter();
   const [grouped, setGrouped] = useState({});
   const [selectedLead, setSelectedLead] = useState(null);
   const [search, setSearch] = useState("");
@@ -173,6 +176,15 @@ export default function AgentWorkflowPage() {
   // ── Left panel ──
   const LeadListPanel = () => (
     <div className="flex flex-col h-full border-r border-[#d1e8e7] dark:border-[#30363d]">
+      <div className="px-3 py-2 border-b border-[#e5f0ef] dark:border-[#30363d] flex items-center">
+        <button
+          onClick={() => router.push("/crm")}
+          className="p-1.5 hover:bg-slate-100 dark:hover:bg-[#21262d] rounded-lg transition-colors text-slate-500 hover:text-teal-600 cursor-pointer"
+        >
+          <ArrowLeft size={18} />
+        </button>
+        <span className="ml-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Agent Workflow</span>
+      </div>
 
       <div className="flex items-center gap-2 px-3 pt-3 pb-2.5 flex-wrap border-b border-[#e5f0ef] dark:border-[#30363d]">
         <button

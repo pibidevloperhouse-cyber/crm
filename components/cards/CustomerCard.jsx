@@ -27,6 +27,7 @@ import {
   ShoppingBag,
   Linkedin,
   Tag,
+  ChevronRight,
 } from "lucide-react";
 import EmailTemplate from "../EmailTemplate";
 import UpdateCustomer from "../UpdateCustomer";
@@ -79,8 +80,11 @@ export default function CustomerCard({ customer, onChange }) {
     }
   };
 
+  const currentIdx = CUSTOMER_STAGES.indexOf(customer.status);
+
   const handleStageClick = (stage) => {
-    if (stage === customer.status || updatingStatus) return;
+    const stageIdx = CUSTOMER_STAGES.indexOf(stage);
+    if (stageIdx <= currentIdx || updatingStatus) return;
     setConfirmStage(stage);
   };
 
@@ -127,7 +131,7 @@ export default function CustomerCard({ customer, onChange }) {
     setDescription("");
   };
 
-  const currentIdx = CUSTOMER_STAGES.indexOf(customer.status);
+
 
   // Parse history for display
   const stageHistory = parseStageHistory(customer.Stagehistory);
@@ -216,9 +220,6 @@ export default function CustomerCard({ customer, onChange }) {
             <div className="flex items-center gap-2 flex-shrink-0">
               <Button size="sm" variant="outline" className="h-9 px-3" onClick={() => setEmailOpen(true)}>
                 <Mail className="w-4 h-4 mr-2" /> Email
-              </Button>
-              <Button size="sm" variant="outline" className="h-9 px-3">
-                <Phone className="w-4 h-4 mr-2" /> Call
               </Button>
 
               <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -338,32 +339,54 @@ export default function CustomerCard({ customer, onChange }) {
             </div>
           </div>
 
-          {/* ── Status Flow Footer ── */}
-          <div className="border-t bg-white dark:bg-slate-900 p-4 flex-shrink-0">
-            <div className="flex items-center gap-4 max-w-full overflow-x-auto no-scrollbar pb-2">
-              <span className="text-[10px] font-bold uppercase text-slate-400 tracking-tighter">Flow:</span>
-              {CUSTOMER_STAGES.map((stage, idx) => {
-                const isCompleted = idx < currentIdx;
-                const isCurrent = idx === currentIdx;
-                return (
-                  <div key={stage} className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleStageClick(stage)}
-                      disabled={updatingStatus}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${
-                        isCurrent
-                          ? "bg-teal-500 border-teal-500 text-white font-bold"
-                          : isCompleted
-                          ? "bg-teal-50 border-teal-200 text-teal-600"
-                          : "bg-white border-slate-200 text-slate-400 hover:border-teal-300"
-                      } ${updatingStatus ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      <span className="text-[10px]">{idx + 1}. {stage}</span>
-                    </button>
-                    {idx < CUSTOMER_STAGES.length - 1 && <div className="w-4 h-[1px] bg-slate-200" />}
-                  </div>
-                );
-              })}
+          {/* ── Status Flow Footer Stepper ── */}
+          <div className="border-t bg-slate-50/50 dark:bg-slate-900/50 p-4 flex-shrink-0">
+            <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar py-2">
+              <span className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mr-4">Customer Status:</span>
+              <div className="flex items-center">
+                {CUSTOMER_STAGES.map((stage, idx) => {
+                  const isCompleted = idx < currentIdx;
+                  const isCurrent = idx === currentIdx;
+                  const isFuture = idx > currentIdx;
+                  const isNext = idx === currentIdx + 1;
+
+                  return (
+                    <div key={stage} className="flex items-center">
+                      <button
+                        onClick={() => handleStageClick(stage)}
+                        disabled={!isFuture || updatingStatus}
+                        className={`group relative flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${
+                          isCurrent
+                            ? "bg-teal-500 border-teal-500 text-white shadow-lg shadow-teal-500/25 scale-105 z-10"
+                            : isCompleted
+                            ? "bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800 text-teal-600 dark:text-teal-400 opacity-80"
+                            : isFuture
+                            ? "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-teal-400 hover:shadow-md hover:scale-105 hover:z-20 cursor-pointer"
+                            : "bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 text-slate-400 opacity-40 cursor-not-allowed"
+                        } ${updatingStatus ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        <div className={`flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold ${
+                          isCurrent ? "bg-white text-teal-500" : isCompleted ? "bg-teal-100 dark:bg-teal-800 text-teal-600" : "bg-slate-100 dark:bg-slate-700 text-slate-400"
+                        }`}>
+                          {idx + 1}
+                        </div>
+                        <span className="text-[11px] font-bold uppercase tracking-tighter whitespace-nowrap">{stage}</span>
+                        
+                        {/* Hover Pulse for Next Step */}
+                        {isNext && (
+                          <span className="absolute inset-0 rounded-xl bg-teal-400/10 animate-pulse" />
+                        )}
+                      </button>
+
+                      {idx < CUSTOMER_STAGES.length - 1 && (
+                        <div className="mx-2">
+                          <ChevronRight className="w-3.5 h-3.5 text-teal-500" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </DialogContent>
@@ -385,13 +408,14 @@ export default function CustomerCard({ customer, onChange }) {
 
       {/* Email Modal */}
       <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
-        <EmailTemplate
-          type="Customers"
-          id={customer.id}
-          email={customer.email}
-          open={emailOpen}
-          onOpenChange={setEmailOpen}
-        />
+        <DialogContent className="w-[95vw] sm:max-w-4xl h-[90vh] sm:h-[85vh] p-0 overflow-hidden border-0 shadow-2xl mx-auto">
+          <EmailTemplate
+            type="Customers"
+            id={customer.id}
+            email={customer.email}
+            onOpenChange={setEmailOpen}
+          />
+        </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}

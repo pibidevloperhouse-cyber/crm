@@ -108,15 +108,14 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
     }
 
     const { data: productsData, error: productsError } = await supabase
-      .from("Users")
-      .select("products")
-      .eq("email", email)
-      .single();
+      .from("products")
+      .select("*")
+      .eq("user_email", email);
 
     if (productsError) {
       console.error("Error fetching products:", productsError);
     } else if (productsData) {
-      setProducts(productsData.products || []);
+      setProducts(productsData || []);
     }
     setIsLoading(false);
   };
@@ -297,7 +296,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
 
   const calculateOriginalPrice = (productName) => {
     const product = products.find((p) => p.name === productName);
-    let price = parseFloat(product?.price || 0);
+    let price = parseFloat(product?.base_price || product?.price || 0);
 
     if (!product && price === 0) {
       price = parseFloat(deal?.value || 0);
@@ -971,13 +970,13 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button
+              {/* <Button
                 disabled={deal.approved}
                 className="w-full sm:w-auto rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-lg gap-2 transition-all h-11"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Approve Deal
-              </Button>
+              </Button> */}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] w-[95%] rounded-2xl">
               <div className="p-2 sm:p-4">

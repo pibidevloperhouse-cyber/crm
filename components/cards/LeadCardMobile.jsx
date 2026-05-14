@@ -74,7 +74,8 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
   const [description, setDescription] = useState("");
 
   const handleStageClick = (stage) => {
-    if (stage === lead.status) return;
+    const stageIdx = LEAD_STAGES.indexOf(stage);
+    if (stageIdx <= currentIdx) return;
     setConfirmStage(stage);
   };
 
@@ -222,9 +223,6 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
             >
               <Mail className="w-3.5 h-3.5 text-teal-500" /> Email
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex-shrink-0 active:scale-95 transition-transform">
-              <Phone className="w-3.5 h-3.5 text-teal-500" /> Call
-            </button>
             <button
               onClick={() => setEditOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 flex-shrink-0 active:scale-95 transition-transform"
@@ -323,7 +321,7 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
             {activeTab === "flow" && (
               <div className="p-4">
                 <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-4">Lead Pipeline</p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {LEAD_STAGES.map((stage, idx) => {
                     const isCompleted = idx < currentIdx;
                     const isCurrent = idx === currentIdx;
@@ -332,21 +330,17 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
                       <button
                         key={stage}
                         onClick={() => handleStageClick(stage)}
-                        disabled={isCurrent}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all active:scale-[0.98] ${
+                        disabled={!isFuture}
+                        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl border transition-all active:scale-[0.98] ${
                           isCurrent
-                            ? "bg-teal-500 border-teal-500 text-white"
+                            ? "bg-teal-500 border-teal-500 text-white shadow-md"
                             : isCompleted
-                              ? "bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800 text-teal-600 dark:text-teal-400"
-                              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:border-teal-300"
+                              ? "bg-teal-50 dark:bg-teal-900/10 border-teal-100 dark:border-teal-900 text-teal-400 dark:text-teal-600 opacity-60"
+                              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-teal-300"
                         }`}
                       >
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                          isCurrent
-                            ? "bg-white/20 text-white"
-                            : isCompleted
-                              ? "bg-teal-100 dark:bg-teal-800 text-teal-600 dark:text-teal-300"
-                              : "bg-slate-100 dark:bg-slate-700 text-slate-400"
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                          isCurrent ? "bg-white text-teal-500" : isCompleted ? "bg-teal-50 dark:bg-teal-900/10 text-teal-600" : "bg-slate-100 dark:bg-slate-700 text-slate-400"
                         }`}>
                           {idx + 1}
                         </div>
@@ -357,7 +351,7 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
                           </span>
                         )}
                         {isFuture && (
-                          <ChevronRight className="ml-auto w-4 h-4 opacity-40" />
+                          <ChevronRight className="ml-auto w-4 h-4 text-teal-500" />
                         )}
                       </button>
                     );
@@ -397,7 +391,14 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
 
       {/* Email Modal */}
       <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
-        <EmailTemplate type="Leads" id={lead.id} email={lead.email} />
+        <DialogContent className="w-[95vw] sm:max-w-4xl h-[90vh] sm:h-[85vh] p-0 overflow-hidden border-0 shadow-2xl rounded-2xl mx-auto">
+          <EmailTemplate
+            type="Leads"
+            id={lead.id}
+            email={lead.email}
+            onOpenChange={setEmailOpen}
+          />
+        </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation */}

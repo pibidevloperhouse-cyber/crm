@@ -218,6 +218,7 @@ export const dealStatus = [
   "Closed-lost",
   "On-hold",
   "Abandoned",
+  "Contract Sent",
 ];
 
 export const leadSources = [

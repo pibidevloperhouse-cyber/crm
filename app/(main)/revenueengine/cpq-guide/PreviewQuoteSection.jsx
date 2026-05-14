@@ -66,7 +66,7 @@ export default function PreviewQuoteSection({ selectedDealId, onBack, onComplete
               <Badge className="w-fit mb-2 bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border-teal-200 dark:border-slate-800">
                 Final Review
               </Badge>
-              <CardTitle className="text-2xl font-black text-slate-800 dark:text-white">{deal.name}</CardTitle>
+              <CardTitle className="text-slate-800 dark:text-white">{deal.name}</CardTitle>
               <CardDescription>{deal.title || "Standard Project Quote"}</CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
@@ -130,7 +130,7 @@ export default function PreviewQuoteSection({ selectedDealId, onBack, onComplete
             <div className="p-4 sm:p-8 h-full overflow-y-auto flex flex-col items-center justify-center gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
                 <QuotePreview dealId={deal.id} onComplete={onComplete}>
-                  <Button 
+                  <Button
                     className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3"
                   >
                     <FileText className="h-5 w-5" />
@@ -139,7 +139,7 @@ export default function PreviewQuoteSection({ selectedDealId, onBack, onComplete
                 </QuotePreview>
 
                 <InvoicePreview dealId={deal.id} onComplete={onComplete}>
-                  <Button 
+                  <Button
                     className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl px-6 h-14 shadow-xl shadow-teal-600/20 gap-3"
                   >
                     <Receipt className="h-5 w-5" />

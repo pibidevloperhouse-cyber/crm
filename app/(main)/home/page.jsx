@@ -75,12 +75,19 @@ export default function Home() {
 
   const fetchTasks = async () => {
     const { data } = await supabase
-      .from("Tasks")
+      .from("tasks")
       .select("*")
-      .eq("metadata->>category", "Meeting")
-      .not("email", "is", null)
-      .order("dueAt", { ascending: true });
-    if (data) setTasks(data);
+      .eq("user_email", !userEmail ? "undefined" : userEmail)
+      .gte("dueAt", new Date().toISOString())
+      .order("dueAt", { ascending: true })
+      .limit(5);
+    if (data) {
+      setTasks(data.map(t => ({
+        time: new Date(t.dueAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        client: t.client_name || t.title,
+        type: t.metadata?.category || "Meeting"
+      })));
+    }
   };
 
   useEffect(() => {
@@ -136,30 +143,28 @@ export default function Home() {
     "External referral", "Chat", "Facebook", "X(Twitter)", "Public relations",
   ].map((name) => ({ name, value: sourceCount?.[name] || 0 }));
 
-  const revenueData = [
-    { month: "Jan", revenue: 45000, deals: 12 },
-    { month: "Feb", revenue: 52000, deals: 15 },
-    { month: "Mar", revenue: 48000, deals: 13 },
-    { month: "Apr", revenue: 61000, deals: 18 },
-    { month: "May", revenue: 55000, deals: 16 },
-    { month: "Jun", revenue: 67000, deals: 19 },
-  ];
+  const revenueData = Array.from({ length: 6 }).map((_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - (5 - i));
+    const monthName = d.toLocaleString('default', { month: 'short' });
+    const monthDeals = deals.filter(deal => {
+      const dealDate = new Date(deal.created_at);
+      return dealDate.getMonth() === d.getMonth() && dealDate.getFullYear() === d.getFullYear();
+    });
+    const wonDeals = monthDeals.filter(deal => deal.status === "Closed-won");
+    const revenue = wonDeals.reduce((sum, deal) => sum + (Number(deal.finalPrice || deal.value) || 0), 0);
+    return { month: monthName, revenue, deals: monthDeals.length };
+  });
 
-  // ── Upcoming Meetings — live from Tasks + Leads ──
-  const emailToName = Object.fromEntries(leads.map((l) => [l.email, l.name]));
-  const upcomingMeetings = tasks.map((t) => ({
-    client: emailToName[t.email] ?? t.email,
-    type: t.metadata?.description || t.title,
-    time: new Date(t.dueAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-  }));
+  const upcomingMeetings = tasks;
 
-  // ── Active Deals — live from Deals table ──
   const activeDeals = deals
-    .filter((d) => !["Closed-lost", "Abandoned"].includes(d.status))
-    .map((d) => ({
-      company: d.name ?? d.company,
-      stage: d.status,
-      value: `$${Number(d.value ?? 0).toLocaleString()}`,
+    .filter(d => !["Closed-won", "Closed-lost", "Abandoned"].includes(d.status))
+    .slice(0, 5)
+    .map(d => ({
+      company: d.name,
+      value: (d.finalPrice || d.value) ? `$${Number(d.finalPrice || d.value).toLocaleString()}` : "$0",
+      stage: d.status
     }));
 
   const [chartsMode, setChartsMode] = useState("graphic");
@@ -465,11 +470,7 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {upcomingMeetings.length === 0 ? (
-              <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">
-                No upcoming meetings
-              </p>
-            ) : (
+            {upcomingMeetings.length > 0 ? (
               upcomingMeetings.map((m, i) => (
                 <div key={i} className={rowClass}>
                   <div>
@@ -479,6 +480,10 @@ export default function Home() {
                   <span className="text-sm text-slate-600 dark:text-slate-300">{m.time}</span>
                 </div>
               ))
+            ) : (
+              <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                No upcoming meetings scheduled
+              </div>
             )}
           </CardContent>
         </Card>
@@ -491,11 +496,7 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {activeDeals.length === 0 ? (
-              <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">
-                No active deals
-              </p>
-            ) : (
+            {activeDeals.length > 0 ? (
               activeDeals.map((d, i) => (
                 <div key={i} className={rowClass}>
                   <div>
@@ -505,6 +506,10 @@ export default function Home() {
                   <span className="font-bold text-green-500 dark:text-green-400">{d.value}</span>
                 </div>
               ))
+            ) : (
+              <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                No active deals in pipeline
+              </div>
             )}
           </CardContent>
         </Card>
