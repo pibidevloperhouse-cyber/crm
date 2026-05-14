@@ -40,9 +40,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import DealCardMobile from "@/components/cards/DealCardMobile";
 import CustomerCardMobile from "@/components/cards/CustomerCardMobile";
 
-
 import LeadCardMobile from "@/components/cards/LeadCardMobile";
-
 
 // ─── Status dot color map ────────────────────────────────────────────────────
 const STATUS_DOT = {
@@ -77,8 +75,22 @@ const normalizeStatuses = (arr) => {
 };
 
 // ─── Fallback status lists ────────────────────────────────────────────────────
-const LEAD_DEFAULTS = ["New", "Contacted", "Qualified", "Not Qualified", "Converted"];
-const DEAL_DEFAULTS = ["New Lead", "Qualified", "Proposal", "Negotiation", "Closed-won", "Closed", "Closed-lost"];
+const LEAD_DEFAULTS = [
+  "New",
+  "Contacted",
+  "Qualified",
+  "Not Qualified",
+  "Converted",
+];
+const DEAL_DEFAULTS = [
+  "New Lead",
+  "Qualified",
+  "Proposal",
+  "Negotiation",
+  "Closed-won",
+  "Closed",
+  "Closed-lost",
+];
 const CUSTOMER_DEFAULTS = ["Active", "Inactive", "Churned"];
 
 export default function CRM() {
@@ -97,12 +109,12 @@ export default function CRM() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-useEffect(() => {
-  const check = () => setIsMobile(window.innerWidth < 768);
-  check();
-  window.addEventListener("resize", check);
-  return () => window.removeEventListener("resize", check);
-}, []);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const toggleCollapse = (colTitle) =>
     setCollapsedCols((prev) => ({ ...prev, [colTitle]: !prev[colTitle] }));
@@ -187,19 +199,25 @@ useEffect(() => {
   // ── Status column builders ────────────────────────────────────────────────
   const getLeadStatuses = () => {
     const fromConst = normalizeStatuses(leadStatus);
-    const fromData = [...new Set(leadsData.map((l) => l.status).filter(Boolean))];
+    const fromData = [
+      ...new Set(leadsData.map((l) => l.status).filter(Boolean)),
+    ];
     const merged = [...new Set([...fromConst, ...fromData])];
     return merged.length ? merged : LEAD_DEFAULTS;
   };
   const getDealStatuses = () => {
     const fromConst = normalizeStatuses(dealStatus);
-    const fromData = [...new Set(dealsData.map((d) => d.status).filter(Boolean))];
+    const fromData = [
+      ...new Set(dealsData.map((d) => d.status).filter(Boolean)),
+    ];
     const merged = [...new Set([...fromConst, ...fromData])];
     return merged.length ? merged : DEAL_DEFAULTS;
   };
   const getCustomerStatuses = () => {
     const fromConst = normalizeStatuses(customerStatus);
-    const fromData = [...new Set(customersData.map((c) => c.status).filter(Boolean))];
+    const fromData = [
+      ...new Set(customersData.map((c) => c.status).filter(Boolean)),
+    ];
     const merged = [...new Set([...fromConst, ...fromData])];
     return merged.length ? merged : CUSTOMER_DEFAULTS;
   };
@@ -216,7 +234,9 @@ useEffect(() => {
         <div className="flex items-center justify-between px-2 py-2 border-b border-slate-200 dark:border-slate-700/50 flex-shrink-0">
           {!isCollapsed && (
             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT[title] || "bg-slate-400"}`} />
+              <span
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT[title] || "bg-slate-400"}`}
+              />
               <span className="font-semibold text-xs text-slate-700 dark:text-slate-200 truncate">
                 {title}
               </span>
@@ -243,7 +263,10 @@ useEffect(() => {
           <div className="flex-1 flex items-center justify-center py-4">
             <span
               className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 select-none"
-              style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+              style={{
+                writingMode: "vertical-rl",
+                transform: "rotate(180deg)",
+              }}
             >
               {title} ({count})
             </span>
@@ -283,12 +306,20 @@ useEffect(() => {
   // ── CSV sheet content ─────────────────────────────────────────────────────
   const CsvSheetContent = () => (
     <>
-      <div className={`${activeTab === "Customers" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}>
+      <div
+        className={`${activeTab === "Customers" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}
+      >
         <div>
-          <h3 className="font-semibold text-lg mb-2">📄 CSV Format Requirements</h3>
+          <h3 className="font-semibold text-lg mb-2">
+            📄 CSV Format Requirements
+          </h3>
           <ul className="list-disc pl-5 space-y-1 text-sm text-slate-900 dark:text-slate-400">
-            <li>Required: <b>name, number, email, status</b></li>
-            <li>Optional: address, website, industry, linkedIn, price, issues</li>
+            <li>
+              Required: <b>name, number, email, status</b>
+            </li>
+            <li>
+              Optional: address, website, industry, linkedIn, price, issues
+            </li>
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4 text-sm text-blue-700">
             💡 Download the template to ensure proper formatting.
@@ -297,25 +328,46 @@ useEffect(() => {
         <div className="space-y-4 mt-2">
           <div>
             <h3 className="font-semibold mb-2">📥 Download Template</h3>
-            <Button variant="outline" onClick={() => window.open("/templates/customer_template.xlsx")}>
+            <Button
+              variant="outline"
+              onClick={() => window.open("/templates/customer_template.xlsx")}
+            >
               Download Sample Excel
             </Button>
           </div>
           <div>
             <h3 className="font-semibold mb-2">📂 Select CSV File</h3>
-            <Button onClick={() => fileInputRef.current.click()} className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer">
+            <Button
+              onClick={() => fileInputRef.current.click()}
+              className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer"
+            >
               Choose File
             </Button>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
       </div>
-      <div className={`${activeTab === "Leads" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}>
+      <div
+        className={`${activeTab === "Leads" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}
+      >
         <div>
-          <h3 className="font-semibold text-lg mb-2">📄 CSV Format Requirements</h3>
+          <h3 className="font-semibold text-lg mb-2">
+            📄 CSV Format Requirements
+          </h3>
           <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-            <li>Required: <b>name, number, status</b></li>
-            <li>Optional: email, age, industry, company, income, address, linkedIn, description, website, source</li>
+            <li>
+              Required: <b>name, number, status</b>
+            </li>
+            <li>
+              Optional: email, age, industry, company, income, address,
+              linkedIn, description, website, source
+            </li>
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4 text-sm text-blue-700">
             💡 Download the template to ensure proper formatting.
@@ -324,24 +376,42 @@ useEffect(() => {
         <div className="space-y-4 mt-2">
           <div>
             <h3 className="font-semibold mb-2">📥 Download Template</h3>
-            <Button variant="outline" onClick={() => window.open("/templates/leads_template.xlsx")}>
+            <Button
+              variant="outline"
+              onClick={() => window.open("/templates/leads_template.xlsx")}
+            >
               Download Sample Excel
             </Button>
           </div>
           <div>
             <h3 className="font-semibold mb-2">📂 Select CSV File</h3>
-            <Button onClick={() => fileInputRef.current.click()} className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer">
+            <Button
+              onClick={() => fileInputRef.current.click()}
+              className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer"
+            >
               Choose File
             </Button>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
       </div>
-      <div className={`${activeTab === "Deals" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}>
+      <div
+        className={`${activeTab === "Deals" ? "grid" : "hidden"} p-3 grid-cols-1 md:grid-cols-2 gap-4`}
+      >
         <div>
-          <h3 className="font-semibold text-lg mb-2">📄 CSV Format Requirements</h3>
+          <h3 className="font-semibold text-lg mb-2">
+            📄 CSV Format Requirements
+          </h3>
           <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600">
-            <li>Required: <b>name, title, number, email, status, value</b></li>
+            <li>
+              Required: <b>name, title, number, email, status, value</b>
+            </li>
             <li>Optional: owner, source, priority, closeDate</li>
           </ul>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mt-4 text-sm text-blue-700">
@@ -351,16 +421,28 @@ useEffect(() => {
         <div className="space-y-4 mt-2">
           <div>
             <h3 className="font-semibold mb-2">📥 Download Template</h3>
-            <Button variant="outline" onClick={() => window.open("/templates/deals_template.xlsx")}>
+            <Button
+              variant="outline"
+              onClick={() => window.open("/templates/deals_template.xlsx")}
+            >
               Download Sample Excel
             </Button>
           </div>
           <div>
             <h3 className="font-semibold mb-2">📂 Select CSV File</h3>
-            <Button onClick={() => fileInputRef.current.click()} className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer">
+            <Button
+              onClick={() => fileInputRef.current.click()}
+              className="bg-gradient-to-r from-sky-700 to-teal-500 text-white cursor-pointer"
+            >
               Choose File
             </Button>
-            <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
       </div>
@@ -386,163 +468,129 @@ useEffect(() => {
         </div>
 
         {/* Right: action buttons — desktop full, mobile condensed */}
-        <div className="flex items-center gap-1.5 md:gap-2">
+        {/* ── Desktop buttons (hidden on mobile) ── */}
+        <div className="hidden sm:flex items-center gap-2">
+          {/* ── Agent Workflow ── */}
+          <Button
+            size="sm"
+            onClick={() => router.push("/crm/agent-workflow")}
+            className="
+      h-9 px-4 rounded-lg
+      bg-gradient-to-r from-sky-700 to-teal-500
+      text-white font-medium
+      shadow-sm
+      transition-all duration-200
+      hover:scale-[1.04]
+      hover:shadow-lg hover:shadow-cyan-500/20
+      hover:-translate-y-[1px]
+    "
+          >
+            <Users size={14} className="mr-1.5" />
+            Agent Workflow
+          </Button>
 
-          {/* ── Desktop buttons (hidden on mobile) ── */}
-          <div className="hidden sm:flex items-center gap-2">
-            {/* CSV */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button size="sm" variant="outline" className="h-9 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white">
-                  <Upload className="w-4 h-4 mr-1.5" />
-                  CSV
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Upload {activeTab} CSV</SheetTitle>
-                  <SheetDescription asChild>
-                    <div><CsvSheetContent /></div>
-                  </SheetDescription>
-                </SheetHeader>
-              </SheetContent>
-            </Sheet>
+          {/* ── Task ── */}
+          <Button
+            size="sm"
+            onClick={() => router.push("/Task")}
+            className="
+      h-9 px-4 rounded-lg
+      bg-gradient-to-r from-sky-700 to-teal-500
+      text-white font-medium
+      shadow-sm
+      transition-all duration-200
+      hover:scale-[1.04]
+      hover:shadow-lg hover:shadow-cyan-500/20
+      hover:-translate-y-[1px]
+    "
+          >
+            <TrendingUp size={14} className="mr-1.5" />
+            Task
+          </Button>
 
-            <Button
-              size="sm"
-              onClick={() => router.push("/crm/agent-workflow")}
-              className="h-9 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
-            >
-              <Users size={14} className="mr-1.5" />
-              Agent Workflow
-            </Button>
-
-            <Button
-              size="sm"
-              onClick={() => router.push("/Task")}
-              className="h-9 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white"
-            >
-              Task
-            </Button>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button size="sm" className="h-9 px-3 bg-gradient-to-r from-sky-700 to-teal-500 text-white">
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add {activeTab}
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Add New {activeTab}</SheetTitle>
-                  <SheetDescription asChild>
-                    <div>
-                      {activeTab === "Customers" && (
-                        <CustomerForm session={session} fetchCustomers={fetchCustomers} setCustomersData={setCustomersData} />
-                      )}
-                      {activeTab === "Leads" && (
-                        <LeadForm session={session} fetchDeals={fetchDeals} fetchLeads={fetchLeads} setLeadsData={setLeadsData} />
-                      )}
-                      {activeTab === "Deals" && (
-                        <DealForm fetchDeals={fetchDeals} session={session} products={products} setDealsData={setDealsData} />
-                      )}
-                    </div>
-                  </SheetDescription>
-                </SheetHeader>
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          {/* ── Mobile: Add button (always visible) + overflow menu ── */}
-          <div className="flex sm:hidden items-center gap-1.5">
-            {/* Primary: Add */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button size="sm" className="h-8 px-2.5 bg-gradient-to-r from-sky-700 to-teal-500 text-white text-xs">
-                  <Plus className="w-3.5 h-3.5 mr-1" />
-                  Add
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Add New {activeTab}</SheetTitle>
-                  <SheetDescription asChild>
-                    <div>
-                      {activeTab === "Customers" && (
-                        <CustomerForm session={session} fetchCustomers={fetchCustomers} setCustomersData={setCustomersData} />
-                      )}
-                      {activeTab === "Leads" && (
-                        <LeadForm session={session} fetchDeals={fetchDeals} fetchLeads={fetchLeads} setLeadsData={setLeadsData} />
-                      )}
-                      {activeTab === "Deals" && (
-                        <DealForm fetchDeals={fetchDeals} session={session} products={products} setDealsData={setDealsData} />
-                      )}
-                    </div>
-                  </SheetDescription>
-                </SheetHeader>
-              </SheetContent>
-            </Sheet>
-
-            {/* Hamburger → inline dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setMobileMenuOpen((v) => !v)}
-                className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-slate-300 active:scale-95 transition"
+          {/* ── CSV ── */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className="
+          h-9 px-3 rounded-lg
+          bg-gradient-to-r from-sky-700 to-teal-500
+          text-white
+          border-0
+          shadow-sm
+        "
               >
-                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-              </button>
+                <Upload className="w-4 h-4 mr-1.5" />
+                CSV
+              </Button>
+            </SheetTrigger>
 
-              {mobileMenuOpen && (
-                <>
-                  {/* Backdrop */}
-                  <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
-                  {/* Dropdown — appears right below the button */}
-                  <div className="absolute right-0 top-10 z-50 w-52 rounded-xl shadow-2xl border border-slate-700 bg-[#161b22] overflow-hidden">
-                    {/* CSV */}
-                    <Sheet>
-                      <SheetTrigger asChild>
-                        <button
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-slate-800 transition"
-                        >
-                          <Upload className="w-4 h-4 text-teal-400 shrink-0" />
-                          Upload CSV
-                        </button>
-                      </SheetTrigger>
-                      <SheetContent>
-                        <SheetHeader>
-                          <SheetTitle>Upload {activeTab} CSV</SheetTitle>
-                          <SheetDescription asChild>
-                            <div><CsvSheetContent /></div>
-                          </SheetDescription>
-                        </SheetHeader>
-                      </SheetContent>
-                    </Sheet>
-
-                    <div className="h-px bg-slate-700/60" />
-
-                    <button
-                      onClick={() => { setMobileMenuOpen(false); router.push("/crm/agent-workflow"); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-slate-800 transition"
-                    >
-                      <Users className="w-4 h-4 text-sky-400 shrink-0" />
-                      Agent Workflow
-                    </button>
-
-                    <div className="h-px bg-slate-700/60" />
-
-                    <button
-                      onClick={() => { setMobileMenuOpen(false); router.push("/Task"); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-200 hover:bg-slate-800 transition"
-                    >
-                      <TrendingUp className="w-4 h-4 text-purple-400 shrink-0" />
-                      Tasks
-                    </button>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Upload {activeTab} CSV</SheetTitle>
+                <SheetDescription asChild>
+                  <div>
+                    <CsvSheetContent />
                   </div>
-                </>
-              )}
-            </div>
-          </div>
+                </SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
+
+          {/* ── Add Lead ── */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                size="sm"
+                className="
+          h-9 px-3 rounded-lg
+          bg-gradient-to-r from-sky-700 to-teal-500
+          text-white
+          shadow-sm
+        "
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add {activeTab}
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Add New {activeTab}</SheetTitle>
+                <SheetDescription asChild>
+                  <div>
+                    {activeTab === "Customers" && (
+                      <CustomerForm
+                        session={session}
+                        fetchCustomers={fetchCustomers}
+                        setCustomersData={setCustomersData}
+                      />
+                    )}
+
+                    {activeTab === "Leads" && (
+                      <LeadForm
+                        session={session}
+                        fetchDeals={fetchDeals}
+                        fetchLeads={fetchLeads}
+                        setLeadsData={setLeadsData}
+                      />
+                    )}
+
+                    {activeTab === "Deals" && (
+                      <DealForm
+                        fetchDeals={fetchDeals}
+                        session={session}
+                        products={products}
+                        setDealsData={setDealsData}
+                      />
+                    )}
+                  </div>
+                </SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
@@ -580,37 +628,36 @@ useEffect(() => {
           </TabsList>
         </div>
 
-
         <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
-  <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
-    {getLeadStatuses().map((status) => {
-      const items = leadsData.filter((l) => l.status === status);
-      return (
-        <KanbanColumn key={status} title={status} count={items.length}>
-          {items.map((lead) => (
-            <AnimatedCard key={lead.id} id={lead.id}>
-              {isMobile ? (
-                <LeadCardMobile
-                  lead={lead}
-                  onChange={fetchLeads}
-                  fetchLeads={fetchLeads}
-                  fetchDeals={fetchDeals}
-                />
-              ) : (
-                <LeadCard
-                  lead={lead}
-                  onChange={fetchLeads}
-                  fetchLeads={fetchLeads}
-                  fetchDeals={fetchDeals}
-                />
-              )}
-            </AnimatedCard>
-          ))}
-        </KanbanColumn>
-      );
-    })}
-  </div>
-</TabsContent>
+          <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
+            {getLeadStatuses().map((status) => {
+              const items = leadsData.filter((l) => l.status === status);
+              return (
+                <KanbanColumn key={status} title={status} count={items.length}>
+                  {items.map((lead) => (
+                    <AnimatedCard key={lead.id} id={lead.id}>
+                      {isMobile ? (
+                        <LeadCardMobile
+                          lead={lead}
+                          onChange={fetchLeads}
+                          fetchLeads={fetchLeads}
+                          fetchDeals={fetchDeals}
+                        />
+                      ) : (
+                        <LeadCard
+                          lead={lead}
+                          onChange={fetchLeads}
+                          fetchLeads={fetchLeads}
+                          fetchDeals={fetchDeals}
+                        />
+                      )}
+                    </AnimatedCard>
+                  ))}
+                </KanbanColumn>
+              );
+            })}
+          </div>
+        </TabsContent>
 
         {/* ── DEALS board ── */}
         <TabsContent value="Deals" className="flex-1 min-h-0 m-0">
@@ -620,14 +667,26 @@ useEffect(() => {
               return (
                 <KanbanColumn key={status} title={status} count={items.length}>
                   {items.map((deal) => (
-  <AnimatedCard key={deal.id} id={deal.id}>
-    {isMobile ? (
-      <DealCardMobile deal={deal} onChange={fetchDeals} fetchDeals={fetchDeals} fetchCustomers={fetchCustomers} session={session} />
-    ) : (
-      <DealCard deal={deal} onChange={fetchDeals} fetchDeals={fetchDeals} fetchCustomers={fetchCustomers} session={session} />
-    )}
-  </AnimatedCard>
-))}
+                    <AnimatedCard key={deal.id} id={deal.id}>
+                      {isMobile ? (
+                        <DealCardMobile
+                          deal={deal}
+                          onChange={fetchDeals}
+                          fetchDeals={fetchDeals}
+                          fetchCustomers={fetchCustomers}
+                          session={session}
+                        />
+                      ) : (
+                        <DealCard
+                          deal={deal}
+                          onChange={fetchDeals}
+                          fetchDeals={fetchDeals}
+                          fetchCustomers={fetchCustomers}
+                          session={session}
+                        />
+                      )}
+                    </AnimatedCard>
+                  ))}
                   {/* {items.map((deal) => (
                     <AnimatedCard key={deal.id} id={deal.id}>
                       <DealCard
@@ -653,14 +712,20 @@ useEffect(() => {
               return (
                 <KanbanColumn key={status} title={status} count={items.length}>
                   {items.map((customer) => (
-  <AnimatedCard key={customer.id} id={customer.id}>
-    {isMobile ? (
-      <CustomerCardMobile customer={customer} onChange={fetchCustomers} />
-    ) : (
-      <CustomerCard customer={customer} onChange={fetchCustomers} />
-    )}
-  </AnimatedCard>
-))}
+                    <AnimatedCard key={customer.id} id={customer.id}>
+                      {isMobile ? (
+                        <CustomerCardMobile
+                          customer={customer}
+                          onChange={fetchCustomers}
+                        />
+                      ) : (
+                        <CustomerCard
+                          customer={customer}
+                          onChange={fetchCustomers}
+                        />
+                      )}
+                    </AnimatedCard>
+                  ))}
                   {/* {items.map((customer) => (
                     <AnimatedCard key={customer.id} id={customer.id}>
                       <CustomerCard customer={customer} onChange={fetchCustomers} />
@@ -678,7 +743,7 @@ useEffect(() => {
   );
 }
 
-// old version of crm page 
+// old version of crm page
 // "use client";
 
 // import { useRouter } from "next/navigation";
