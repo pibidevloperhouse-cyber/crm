@@ -515,7 +515,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                         <div className="mt-8 flex justify-center">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button className="rounded-xl px-6 py-3 cursor-pointer border-blue-600 bg-white text-blue-600 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-400 dark:hover:bg-blue-950/30">
+                              <Button className="rounded-xl px-6 py-3 cursor-pointer border-blue-600 bg-white text-blue-600 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-400 dark:bg-transparent dark:hover:bg-blue-950/30">
                                 + Add/Remove Products
                               </Button>
                             </DialogTrigger>
