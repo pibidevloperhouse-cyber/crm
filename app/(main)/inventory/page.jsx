@@ -54,14 +54,16 @@ import {
   Edit,
   LayoutList,
   Settings2,
+  ArrowLeft,
 } from "lucide-react";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import ConfigureProduct from "@/components/ConfigureProduct";
 import { BillingCycleSelect } from "@/components/BillingCycleSelect";
 import { CurrencyDropDown } from "@/components/ui/CurrencyDropDown";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function ProductsPage() {
+  const router = useRouter();
   // ── Shared ──────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("inventory"); // "inventory" | "configure"
   const [userEmail, setUserEmail] = useState(null);
@@ -239,7 +241,7 @@ export default function ProductsPage() {
 
   const addProduct = async () => {
     if (!validateNewProduct()) return;
-    const {data : {session} } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     const emailToUse = session?.user?.email || userEmail;
     if (!emailToUse) {
       toast.error("Session expired. Please log in again.");
@@ -398,8 +400,18 @@ export default function ProductsPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="px-4 pt-0 pb-8 space-y-5">
+    <div className="px-4 pt-4 pb-8 space-y-5">
       <ToastContainer />
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => router.back()}
+        className="flex items-center bg-teal-600 gap-2 text-white rounded-xl hover:bg-teal-700 hover:text-white px-6 py-3 cursor-pointer"
+      >
+        <ArrowLeft className="size-4" />
+        <span className="font-medium">Back</span>
+      </Button>
 
       {/* ── Page Header ── */}
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -511,22 +523,20 @@ export default function ProductsPage() {
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit border border-slate-200 dark:border-slate-700">
         <button
           onClick={() => setActiveTab("inventory")}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === "inventory"
-              ? "bg-white dark:bg-slate-900 shadow-sm text-teal-700 border border-slate-200 dark:border-slate-700"
-              : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
-          }`}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "inventory"
+            ? "bg-white dark:bg-slate-900 shadow-sm text-teal-700 border border-slate-200 dark:border-slate-700"
+            : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
+            }`}
         >
           <LayoutList className="size-4" />
           Inventory
         </button>
         <button
           onClick={() => setActiveTab("configure")}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-            activeTab === "configure"
-              ? "bg-white dark:bg-slate-900 shadow-sm text-teal-700 border border-slate-200 dark:border-slate-700"
-              : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
-          }`}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "configure"
+            ? "bg-white dark:bg-slate-900 shadow-sm text-teal-700 border border-slate-200 dark:border-slate-700"
+            : "text-slate-500 dark:text-slate-400 hover:text-slate-700"
+            }`}
         >
           <Settings2 className="size-4" />
           Configure Products
@@ -679,9 +689,8 @@ export default function ProductsPage() {
             products.map((product, index) => (
               <div
                 key={index}
-                className={`rounded-2xl border bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition-all hover:shadow-md ${
-                  product.isActive === false ? "opacity-70" : ""
-                }`}
+                className={`rounded-2xl border bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition-all hover:shadow-md ${product.isActive === false ? "opacity-70" : ""
+                  }`}
               >
                 {/* Card top bar */}
                 <div className={`h-1 w-full ${product.isActive === false ? "bg-slate-200" : "bg-gradient-to-r from-teal-400 to-teal-600"}`} />
@@ -698,11 +707,10 @@ export default function ProductsPage() {
                         <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{product.description || "No description"}</p>
                       </div>
                     </div>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${
-                      product.isActive === false
-                        ? "text-red-400 bg-red-400/10 hover:bg-red-400/20"
-                        : "text-teal-400 bg-teal-400/10 hover:bg-teal-400/20"
-                    }`}>
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${product.isActive === false
+                      ? "text-red-400 bg-red-400/10 hover:bg-red-400/20"
+                      : "text-teal-400 bg-teal-400/10 hover:bg-teal-400/20"
+                      }`}>
                       {product.isActive === false ? "Inactive" : "Active"}
                     </span>
                   </div>
@@ -715,20 +723,18 @@ export default function ProductsPage() {
                     <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full font-medium">
                       ₹ {product.basePrice || product.base_price || 0}
                     </span>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                      product.stock === 0 || product.stock === undefined
-                        ? "text-red-400 bg-red-400/10 hover:bg-red-400/20"
-                        : "text-red-400 bg-red-400/10 hover:bg-red-400/20"
-                    }`}>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${product.stock === 0 || product.stock === undefined
+                      ? "text-red-400 bg-red-400/10 hover:bg-red-400/20"
+                      : "text-red-400 bg-red-400/10 hover:bg-red-400/20"
+                      }`}>
                       {product.stock === 0 || product.stock === undefined
                         ? "⚠ Out of stock — update needed"
                         : `🗃 ${product.stock} units`}
                     </span>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                      product.isConfigurable
-                        ? "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
-                        : "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
-                    }`}>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${product.isConfigurable
+                      ? "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
+                      : "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
+                      }`}>
                       {product.isConfigurable ? "⚙ Configurable" : "⚙ Not configurable"}
                     </span>
                   </div>
