@@ -954,9 +954,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
       </Card>
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-        <Button variant="outline" onClick={onBack} className="w-full sm:w-auto rounded-xl px-6 border-slate-200 dark:border-slate-800 font-bold hover:bg-slate-50 h-11">
-          Back to Configure
-        </Button>
+
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
