@@ -598,9 +598,9 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
             onChange={(e) => handleLeadChange("description", e.target.value)}
           />
         </div>
-        <div className="md:col-span-3">
+        {/* <div className="md:col-span-3">
           <Card className="bg-transparent text-gray-600 border-0">
-            {/* <CardHeader className={`flex items-center justify-between`}>
+            <CardHeader className={`flex items-center justify-between`}>
               <CardTitle>Open Activities</CardTitle>
               <Dialog
                 open={isOpen}
@@ -716,7 +716,7 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
                   </div>
                 </DialogContent>
               </Dialog>
-            </CardHeader> */}
+            </CardHeader>
             <CardContent>
               <Card className="bg-white dark:bg-slate-800/50 rounded-xl shadow-sm">
                 <CardHeader>
@@ -731,7 +731,6 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
                             key={activity.id}
                             className="shadow-md rounded-2xl border border-purple-500 dark:border-slate-700 bg-white dark:bg-slate-800"
                           >
-                            {/* Header: Title + Category */}
                             <CardHeader className="pb-2">
                               <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 break-words">
                                 <Input
@@ -883,16 +882,12 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
                             key={activity.id}
                             className="shadow-md rounded-2xl border border-purple-500 dark:border-slate-700 bg-white dark:bg-slate-800"
                           >
-                            {/* Header: Title + Category */}
                             <CardHeader className="pb-2">
                               <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100 break-words">
                                 <Label>{activity.title}</Label>
                               </CardTitle>
                             </CardHeader>
-
-                            {/* Content */}
                             <CardContent className="space-y-4">
-                              {/* Info Row: Date + Category (responsive) */}
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                   <Label className="text-slate-500 dark:text-slate-400 text-xs">
@@ -919,8 +914,6 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
                                   </p>
                                 </div>
                               </div>
-
-                              {/* Description */}
                               <div>
                                 <Label className="text-slate-500 dark:text-slate-400 text-xs">
                                   Description
@@ -949,12 +942,11 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
               </Card>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
         <Button
           onClick={handleUpdateDB}
-          className={`mt-4 bg-blue-600 hover:bg-blue-700 text-white ${
-            loading ? "cursor-not-allowed opacity-70" : ""
-          }`}
+          className={`mt-4 bg-blue-600 hover:bg-blue-700 text-white ${loading ? "cursor-not-allowed opacity-70" : ""
+            }`}
           disabled={loading}
         >
           {loading ? (
@@ -1084,21 +1076,19 @@ export default function Updateleads(lead_id, onChange, fetchLeads, fetchDeals) {
               {messages.slice(-5).map((msg, idx) => (
                 <Card
                   key={idx}
-                  className={`rounded-xl shadow-sm border ${
-                    msg.type === "customer"
-                      ? "border-blue-400 bg-blue-50 dark:bg-slate-800/50"
-                      : "border-green-400 bg-green-50 dark:bg-slate-800/50"
-                  }`}
+                  className={`rounded-xl shadow-sm border ${msg.type === "customer"
+                    ? "border-blue-400 bg-blue-50 dark:bg-slate-800/50"
+                    : "border-green-400 bg-green-50 dark:bg-slate-800/50"
+                    }`}
                 >
                   <CardContent className="p-3">
                     {/* Sender Type */}
                     <div className="flex items-center justify-between mb-2">
                       <span
-                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                          msg.type === "customer"
-                            ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                            : "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                        }`}
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${msg.type === "customer"
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                          : "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                          }`}
                       >
                         {msg.type === "customer" ? "Customer" : "Assistant"}
                       </span>

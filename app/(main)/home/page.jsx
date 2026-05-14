@@ -19,6 +19,7 @@ import { redirect } from "next/navigation";
 export default function Home() {
   const [leads, setLeads] = useState([]);
   const [deals, setDeals] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -69,16 +70,35 @@ export default function Home() {
     if (data) setDeals(data);
   };
 
+  const fetchTasks = async () => {
+    const { data } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("user_email", !userEmail ? "undefined" : userEmail)
+      .gte("dueAt", new Date().toISOString())
+      .order("dueAt", { ascending: true })
+      .limit(5);
+    if (data) {
+      setTasks(data.map(t => ({
+        time: new Date(t.dueAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        client: t.client_name || t.title,
+        type: t.metadata?.category || "Meeting"
+      })));
+    }
+  };
+
   useEffect(() => {
     if (userEmail) {
       fetchCustomers();
       fetchLeads();
       fetchDeals();
+      fetchTasks();
     }
     const intervalId = setInterval(() => {
       fetchCustomers();
       fetchLeads();
       fetchDeals();
+      fetchTasks();
     }, 60000);
     return () => clearInterval(intervalId);
   }, [userEmail]);
@@ -120,26 +140,29 @@ export default function Home() {
     "External referral", "Chat", "Facebook", "X(Twitter)", "Public relations",
   ].map((name) => ({ name, value: sourceCount?.[name] || 0 }));
 
-  const revenueData = [
-    { month: "Jan", revenue: 45000, deals: 12 },
-    { month: "Feb", revenue: 52000, deals: 15 },
-    { month: "Mar", revenue: 48000, deals: 13 },
-    { month: "Apr", revenue: 61000, deals: 18 },
-    { month: "May", revenue: 55000, deals: 16 },
-    { month: "Jun", revenue: 67000, deals: 19 },
-  ];
+  const revenueData = Array.from({ length: 6 }).map((_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - (5 - i));
+    const monthName = d.toLocaleString('default', { month: 'short' });
+    const monthDeals = deals.filter(deal => {
+      const dealDate = new Date(deal.created_at);
+      return dealDate.getMonth() === d.getMonth() && dealDate.getFullYear() === d.getFullYear();
+    });
+    const wonDeals = monthDeals.filter(deal => deal.status === "Closed-won");
+    const revenue = wonDeals.reduce((sum, deal) => sum + (Number(deal.finalPrice || deal.value) || 0), 0);
+    return { month: monthName, revenue, deals: monthDeals.length };
+  });
 
-  const upcomingMeetings = [
-    { time: "10:00 AM", client: "Acme Corp", type: "Demo" },
-    { time: "2:30 PM", client: "TechStart Inc", type: "Follow-up" },
-    { time: "4:00 PM", client: "Global Solutions", type: "Proposal" },
-  ];
+  const upcomingMeetings = tasks;
 
-  const activeDeals = [
-    { company: "Enterprise Co", value: "$45,000", stage: "Negotiation" },
-    { company: "StartupXYZ", value: "$12,000", stage: "Proposal" },
-    { company: "MegaCorp", value: "$89,000", stage: "Demo" },
-  ];
+  const activeDeals = deals
+    .filter(d => !["Closed-won", "Closed-lost", "Abandoned"].includes(d.status))
+    .slice(0, 5)
+    .map(d => ({
+      company: d.name,
+      value: (d.finalPrice || d.value) ? `$${Number(d.finalPrice || d.value).toLocaleString()}` : "$0",
+      stage: d.status
+    }));
 
   const [chartsMode, setChartsMode] = useState("graphic");
 
@@ -455,15 +478,21 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {upcomingMeetings.map((m, i) => (
-              <div key={i} className={rowClass}>
-                <div>
-                  <p className="font-medium text-slate-800 dark:text-slate-200">{m.client}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{m.type}</p>
+            {upcomingMeetings.length > 0 ? (
+              upcomingMeetings.map((m, i) => (
+                <div key={i} className={rowClass}>
+                  <div>
+                    <p className="font-medium text-slate-800 dark:text-slate-200">{m.client}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{m.type}</p>
+                  </div>
+                  <span className="text-sm text-slate-600 dark:text-slate-300">{m.time}</span>
                 </div>
-                <span className="text-sm text-slate-600 dark:text-slate-300">{m.time}</span>
+              ))
+            ) : (
+              <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                No upcoming meetings scheduled
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
 
@@ -475,15 +504,21 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {activeDeals.map((d, i) => (
-              <div key={i} className={rowClass}>
-                <div>
-                  <p className="font-medium text-slate-800 dark:text-slate-200">{d.company}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{d.stage}</p>
+            {activeDeals.length > 0 ? (
+              activeDeals.map((d, i) => (
+                <div key={i} className={rowClass}>
+                  <div>
+                    <p className="font-medium text-slate-800 dark:text-slate-200">{d.company}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{d.stage}</p>
+                  </div>
+                  <span className="font-bold text-green-500 dark:text-green-400">{d.value}</span>
                 </div>
-                <span className="font-bold text-green-500 dark:text-green-400">{d.value}</span>
+              ))
+            ) : (
+              <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+                No active deals in pipeline
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </div>

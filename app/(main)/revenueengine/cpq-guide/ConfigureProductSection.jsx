@@ -45,6 +45,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import MultipleSelector from "@/components/ui/multiselect";
 
 const SkeletonCard = () => (
   <div className="mb-6 border border-slate-200/50 dark:border-white/20 rounded-lg p-4 animate-pulse">
@@ -81,6 +82,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
     isConfigurable: false,
     configurations: {},
   });
+  const [selectedItemsForDeal, setSelectedItemsForDeal] = useState([]);
   const [errors, setErrors] = useState({ newProduct: {} });
 
   const fetchData = async (email) => {
@@ -105,6 +107,8 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
       "Proposal Sent",
       "Contacted",
       "On-hold",
+      "Contract Sent",
+      "Closed-won",
     ];
     const activeDeals = deals.filter((deal) =>
       activeStatuses.includes(deal.status)
@@ -114,16 +118,15 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
     setDealsToShow(activeDeals);
 
     const { data: productsData, error: productsError } = await supabase
-      .from("Users")
-      .select("products")
-      .eq("email", email)
-      .single();
+      .from("products")
+      .select("*")
+      .eq("user_email", email);
 
     if (productsError) {
       console.error("Error fetching products:", productsError);
       toast.error("Failed to fetch products.");
     } else if (productsData) {
-      setProducts(productsData.products || []);
+      setProducts(productsData || []);
     }
     setIsLoading(false);
   };
@@ -193,9 +196,9 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
           );
         }
       }
-      setDealsToShow(result);
-      setDealConfig(result.map((deal) => deal.configuration || []));
     }
+    setDealsToShow(result);
+    setDealConfig(result.map((deal) => deal.configuration || []));
   }, [searchTerm, showSuggestions, dealsData, selectedProduct]);
 
   const handleSaveConfiguration = async (dealId, currentConfig) => {
@@ -297,7 +300,43 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
     setActiveDealId(dealId);
     const deal = dealsData.find(d => d.id === dealId);
     const hasProducts = deal?.products && deal.products.length > 0;
+
+    // Pre-populate selected items for the dialog
+    if (deal?.products) {
+      setSelectedItemsForDeal(deal.products.map(p => ({ label: p, value: p })));
+    } else {
+      setSelectedItemsForDeal([]);
+    }
+
     onDealSelect(dealId, hasProducts);
+  };
+
+  const handleUpdateDealProducts = async () => {
+    if (!activeDealId) return;
+
+    const productNames = selectedItemsForDeal.map(item => item.value);
+
+    try {
+      const { error } = await supabase
+        .from("Deals")
+        .update({ products: productNames })
+        .eq("id", activeDealId);
+
+      if (error) throw error;
+
+      toast.success("Products updated for this deal!");
+
+      // Update local state
+      const updatedDeals = dealsData.map(d =>
+        d.id === activeDealId ? { ...d, products: productNames } : d
+      );
+      setDealsData(updatedDeals);
+      setDealsToShow(updatedDeals);
+      onDealSelect(activeDealId, productNames.length > 0);
+    } catch (err) {
+      console.error("Error updating deal products:", err);
+      toast.error("Failed to update products.");
+    }
   };
 
   return (
@@ -344,7 +383,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                   )}
                 >
                   <div className="flex justify-between items-start">
-                    <span className="font-bold text-slate-900 dark:text-slate-100">{deal.name}</span>
+                    <span className="font-bold text-slate-600 dark:text-slate-100">{deal.name}</span>
                     {activeDealId === deal.id && <CheckCircle className="h-4 w-4 text-blue-500" />}
                   </div>
                   <p className="text-xs text-slate-500 mt-1 truncate">{deal.title || "No Title"}</p>
@@ -387,116 +426,38 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-8 h-12 font-bold shadow-xl shadow-teal-600/20 cursor-pointer transition-all hover:scale-105 active:scale-95">
-                                  + Add New Product
+                                  + Select Products
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="w-[95vw] sm:max-w-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-teal-100 dark:border-teal-900/50 shadow-2xl rounded-3xl p-4 sm:p-8 overflow-y-auto max-h-[90vh]">
+                              <DialogContent className="w-[95vw] sm:max-w-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-teal-100 dark:border-teal-900/50 shadow-2xl rounded-3xl p-4 sm:p-8">
                                 <DialogHeader>
-                                  <DialogTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Add New Product</DialogTitle>
+                                  <DialogTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Select Products from Catalog</DialogTitle>
                                   <DialogDescription className="text-slate-500 dark:text-slate-400">
-                                    Please fill in the details of the new product you want to add to your catalog.
+                                    Choose products from your inventory to assign to this deal.
                                   </DialogDescription>
                                 </DialogHeader>
-                                <div className="flex flex-col gap-5 py-6">
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-2">
-                                      <Label htmlFor="name" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Product Name</Label>
-                                      <Input
-                                        id="name"
-                                        placeholder="e.g. Premium Subscription"
-                                        value={newProduct.name}
-                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
-                                        onChange={(e) => setNewProduct((prev) => ({ ...prev, name: e.target.value }))}
-                                      />
-                                      {errors.newProduct?.name && (
-                                        <p className="text-red-500 text-xs mt-1 ml-1 font-medium">{errors.newProduct.name}</p>
-                                      )}
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                      <Label htmlFor="category" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Product Category</Label>
-                                      <Input
-                                        id="category"
-                                        placeholder="e.g. Software"
-                                        value={newProduct.category}
-                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
-                                        onChange={(e) => setNewProduct((prev) => ({ ...prev, category: e.target.value }))}
-                                      />
-                                      {errors.newProduct?.category && (
-                                        <p className="text-red-500 text-xs mt-1 ml-1 font-medium">{errors.newProduct.category}</p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-col gap-2">
-                                    <Label htmlFor="description" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Product Description</Label>
-                                    <Input
-                                      id="description"
-                                      placeholder="Briefly describe the product..."
-                                      value={newProduct.description}
-                                      className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
-                                      onChange={(e) => setNewProduct((prev) => ({ ...prev, description: e.target.value }))}
-                                    />
-                                    {errors.newProduct?.description && (
-                                      <p className="text-red-500 text-xs mt-1 ml-1 font-medium">{errors.newProduct.description}</p>
-                                    )}
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-2">
-                                      <Label htmlFor="stock" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Product Stock</Label>
-                                      <Input
-                                        id="stock"
-                                        type="number"
-                                        placeholder="0"
-                                        value={newProduct.stock}
-                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
-                                        onChange={(e) => setNewProduct((prev) => ({ ...prev, stock: e.target.value }))}
-                                      />
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                      <Label htmlFor="basePrice" className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Base Price</Label>
-                                      <Input
-                                        id="basePrice"
-                                        placeholder="0.00"
-                                        type="number"
-                                        value={newProduct.basePrice}
-                                        className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950 focus:ring-teal-500 focus:border-teal-500"
-                                        onChange={(e) => setNewProduct((prev) => ({ ...prev, basePrice: e.target.value }))}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-2 gap-4 items-end">
-                                    <div className="flex flex-col gap-2">
-                                      <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Currency</Label>
-                                      <CurrencyDropDown
-                                        value={newProduct.currency}
-                                        onValueChange={(value) => setNewProduct((prev) => ({ ...prev, currency: value }))}
-                                      />
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                      <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">Billing Cycle</Label>
-                                      <BillingCycleSelect
-                                        value={newProduct.billingCycle}
-                                        onChange={(value) => setNewProduct((prev) => ({ ...prev, billingCycle: value }))}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center justify-between p-4 bg-teal-50/50 dark:bg-teal-950/20 rounded-2xl border border-teal-100 dark:border-teal-900/50">
-                                    <div className="space-y-0.5">
-                                      <Label htmlFor="isConfigurable" className="text-sm font-bold text-teal-900 dark:text-teal-400">Enable Configuration</Label>
-                                      <p className="text-xs text-teal-600/70 dark:text-teal-500/50 font-medium">Allow custom features for this product</p>
-                                    </div>
-                                    <Switch
-                                      id="isConfigurable"
-                                      checked={newProduct.isConfigurable}
-                                      onCheckedChange={(value) => setNewProduct((prev) => ({ ...prev, isConfigurable: value }))}
-                                    />
-                                  </div>
+                                <div className="py-8">
+                                  <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 mb-3 block">
+                                    Available Products
+                                  </Label>
+                                  <MultipleSelector
+                                    commandProps={{ label: "Select Products" }}
+                                    value={selectedItemsForDeal}
+                                    onChange={setSelectedItemsForDeal}
+                                    defaultOptions={products.map(p => ({ label: p.name, value: p.name }))}
+                                    placeholder="Type to search products..."
+                                    emptyIndicator={
+                                      <p className="text-center text-sm py-2">No products found in catalog.</p>
+                                    }
+                                    className="bg-white dark:bg-slate-950 rounded-xl"
+                                  />
                                 </div>
                                 <DialogFooter>
-                                  <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold h-12 rounded-2xl shadow-lg shadow-teal-500/20" onClick={addProduct}>
-                                    Add Product to Catalog
+                                  <Button
+                                    className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold h-12 rounded-2xl shadow-lg shadow-teal-500/20"
+                                    onClick={handleUpdateDealProducts}
+                                  >
+                                    Update Deal Products
                                   </Button>
                                 </DialogFooter>
                               </DialogContent>
@@ -542,13 +503,57 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                   Configure features and options for this product.
                                 </p>
                                 <div className="text-xs font-medium text-slate-400 uppercase tracking-widest">
-                                  Base Price: ${product?.price || 0}
+                                  Base Price: ${product?.base_price || product?.price || 0}
                                 </div>
                               </div>
                             );
                           })
                         )}
                       </div>
+
+                      {deal.products && deal.products.length > 0 && (
+                        <div className="mt-8 flex justify-center">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button className="rounded-xl px-6 py-3 cursor-pointer border-blue-600 bg-white text-blue-600 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-400 dark:hover:bg-blue-950/30">
+                                + Add/Remove Products
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="w-[95vw] sm:max-w-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-teal-100 dark:border-teal-900/50 shadow-2xl rounded-3xl p-4 sm:p-8">
+                              <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold text-slate-800 dark:text-slate-100">Manage Deal Products</DialogTitle>
+                                <DialogDescription className="text-slate-500 dark:text-slate-400">
+                                  Add or remove products for this specific deal.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="py-8">
+                                <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1 mb-3 block">
+                                  Deal Products
+                                </Label>
+                                <MultipleSelector
+                                  commandProps={{ label: "Select Products" }}
+                                  value={selectedItemsForDeal}
+                                  onChange={setSelectedItemsForDeal}
+                                  defaultOptions={products.map(p => ({ label: p.name, value: p.name }))}
+                                  placeholder="Search products..."
+                                  emptyIndicator={
+                                    <p className="text-center text-sm py-2">No products found.</p>
+                                  }
+                                  className="bg-white dark:bg-slate-950 rounded-xl"
+                                />
+                              </div>
+                              <DialogFooter>
+                                <Button
+                                  className="bg-teal-600 hover:bg-teal-700 text-white font-bold h-12 rounded-2xl shadow-lg px-6 py-3 shadow-teal-500/20 cursor-pointer"
+                                  onClick={handleUpdateDealProducts}
+                                >
+                                  Save Changes
+                                </Button>
+                              </DialogFooter>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
