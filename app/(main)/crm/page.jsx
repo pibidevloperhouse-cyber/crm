@@ -152,10 +152,6 @@ const normalizeStatuses = (arr) => {
 };
 
 // ─── Fallback status lists ────────────────────────────────────────────────────
-<<<<<<< HEAD
-const LEAD_DEFAULTS = ["New", "Contacted", "Qualified", "Not Qualified", "Converted"];
-const DEAL_DEFAULTS = ["New Lead", "Qualified", "Proposal", "Negotiation", "Closed-won", "Closed", "Closed-lost", "Contract Sent"];
-=======
 const LEAD_DEFAULTS = [
   "New",
   "Contacted",
@@ -172,7 +168,6 @@ const DEAL_DEFAULTS = [
   "Closed",
   "Closed-lost",
 ];
->>>>>>> 8afd95bbc10209deb250e9972e202a8a830076bf
 const CUSTOMER_DEFAULTS = ["Active", "Inactive", "Churned"];
 
 export default function CRM() {
@@ -304,9 +299,6 @@ export default function CRM() {
     return merged.length ? merged : CUSTOMER_DEFAULTS;
   };
 
-<<<<<<< HEAD
-
-=======
   // ── Kanban column ─────────────────────────────────────────────────────────
   const KanbanColumn = ({ title, count, children }) => {
     const isCollapsed = collapsedCols[title];
@@ -387,7 +379,6 @@ export default function CRM() {
       {children}
     </motion.div>
   );
->>>>>>> 8afd95bbc10209deb250e9972e202a8a830076bf
 
   // ── CSV sheet content ─────────────────────────────────────────────────────
   const CsvSheetContent = () => (
@@ -738,37 +729,6 @@ export default function CRM() {
         </div>
 
         <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
-<<<<<<< HEAD
-  <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
-    {getLeadStatuses().map((status) => {
-      const items = leadsData.filter((l) => l.status === status);
-      return (
-        <KanbanColumn key={status} title={status} count={items.length} collapsedCols={collapsedCols} toggleCollapse={toggleCollapse}>
-          {items.map((lead) => (
-            <AnimatedCard key={lead.id} id={lead.id}>
-              {isMobile ? (
-                <LeadCardMobile
-                  lead={lead}
-                  onChange={fetchLeads}
-                  fetchLeads={fetchLeads}
-                  fetchDeals={fetchDeals}
-                />
-              ) : (
-                <LeadCard
-                  lead={lead}
-                  onChange={fetchLeads}
-                  fetchLeads={fetchLeads}
-                  fetchDeals={fetchDeals}
-                />
-              )}
-            </AnimatedCard>
-          ))}
-        </KanbanColumn>
-      );
-    })}
-  </div>
-</TabsContent>
-=======
           <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
             {getLeadStatuses().map((status) => {
               const items = leadsData.filter((l) => l.status === status);
@@ -798,7 +758,6 @@ export default function CRM() {
             })}
           </div>
         </TabsContent>
->>>>>>> 8afd95bbc10209deb250e9972e202a8a830076bf
 
         {/* ── DEALS board ── */}
         <TabsContent value="Deals" className="flex-1 min-h-0 m-0">
