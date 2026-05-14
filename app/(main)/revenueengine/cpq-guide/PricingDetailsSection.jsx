@@ -108,15 +108,14 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
     }
 
     const { data: productsData, error: productsError } = await supabase
-      .from("Users")
-      .select("products")
-      .eq("email", email)
-      .single();
+      .from("products")
+      .select("*")
+      .eq("user_email", email);
 
     if (productsError) {
       console.error("Error fetching products:", productsError);
     } else if (productsData) {
-      setProducts(productsData.products || []);
+      setProducts(productsData || []);
     }
     setIsLoading(false);
   };
@@ -297,7 +296,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
 
   const calculateOriginalPrice = (productName) => {
     const product = products.find((p) => p.name === productName);
-    let price = parseFloat(product?.price || 0);
+    let price = parseFloat(product?.base_price || product?.price || 0);
 
     if (!product && price === 0) {
       price = parseFloat(deal?.value || 0);

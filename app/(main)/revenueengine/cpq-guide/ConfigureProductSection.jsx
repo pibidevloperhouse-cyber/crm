@@ -105,6 +105,8 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
       "Proposal Sent",
       "Contacted",
       "On-hold",
+      "Contract Sent",
+      "Closed-won",
     ];
     const activeDeals = deals.filter((deal) =>
       activeStatuses.includes(deal.status)
@@ -114,16 +116,15 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
     setDealsToShow(activeDeals);
 
     const { data: productsData, error: productsError } = await supabase
-      .from("Users")
-      .select("products")
-      .eq("email", email)
-      .single();
+      .from("products")
+      .select("*")
+      .eq("user_email", email);
 
     if (productsError) {
       console.error("Error fetching products:", productsError);
       toast.error("Failed to fetch products.");
     } else if (productsData) {
-      setProducts(productsData.products || []);
+      setProducts(productsData || []);
     }
     setIsLoading(false);
   };
@@ -193,9 +194,9 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
           );
         }
       }
-      setDealsToShow(result);
-      setDealConfig(result.map((deal) => deal.configuration || []));
     }
+    setDealsToShow(result);
+    setDealConfig(result.map((deal) => deal.configuration || []));
   }, [searchTerm, showSuggestions, dealsData, selectedProduct]);
 
   const handleSaveConfiguration = async (dealId, currentConfig) => {
@@ -344,7 +345,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                   )}
                 >
                   <div className="flex justify-between items-start">
-                    <span className="font-bold text-slate-900 dark:text-slate-100">{deal.name}</span>
+                    <span className="font-bold text-slate-600 dark:text-slate-100">{deal.name}</span>
                     {activeDealId === deal.id && <CheckCircle className="h-4 w-4 text-blue-500" />}
                   </div>
                   <p className="text-xs text-slate-500 mt-1 truncate">{deal.title || "No Title"}</p>
@@ -542,7 +543,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                   Configure features and options for this product.
                                 </p>
                                 <div className="text-xs font-medium text-slate-400 uppercase tracking-widest">
-                                  Base Price: ${product?.price || 0}
+                                  Base Price: ${product?.base_price || product?.price || 0}
                                 </div>
                               </div>
                             );
