@@ -970,13 +970,13 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button
+              {/* <Button
                 disabled={deal.approved}
                 className="w-full sm:w-auto rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-lg gap-2 transition-all h-11"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Approve Deal
-              </Button>
+              </Button> */}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] w-[95%] rounded-2xl">
               <div className="p-2 sm:p-4">
