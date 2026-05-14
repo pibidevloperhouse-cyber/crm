@@ -106,7 +106,7 @@ export default function EmployeesPage() {
 
   const addEmployee = async () => {
     try {
-      const { data : {session} } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       const ownerEmail = session?.user?.email || userEmail;
 
       const generatedPassword = generatePassword(12);
@@ -192,18 +192,18 @@ export default function EmployeesPage() {
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-10 text-center md:text-left">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-teal-700 bg-clip-text text-transparent">
             Employee Management
           </h1>
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto cursor-pointer bg-gradient-to-r from-[#25C2A0] to-[#387e9d] text-white font-semibold px-5 py-2 rounded-xl shadow hover:scale-[1.03] hover:opacity-90 transition-all h-12">
+              <Button className="w-full sm:w-auto cursor-pointer bg-teal-600 text-white font-semibold px-5 py-2 rounded-xl hover:bg-teal-700 transition-all h-12">
                 Add Employee
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[95vw] sm:max-w-xl bg-card/90 backdrop-blur-xl border border-primary/30 shadow-xl rounded-[2rem] p-6 sm:p-8">
               <DialogHeader>
-                <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent">
+                <DialogTitle className="text-xl font-semibold bg-teal-700 bg-clip-text text-transparent">
                   Add New Employee
                 </DialogTitle>
               </DialogHeader>
@@ -265,7 +265,7 @@ export default function EmployeesPage() {
                 />
                 <Button
                   onClick={addEmployee}
-                  className="w-full bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] text-white font-semibold rounded-md hover:scale-[1.02] hover:opacity-90 transition-all"
+                  className="w-full bg-teal-600 text-white dark:text-slate-300 hover:bg-teal-700 dark:hover:bg-teal-700 font-semibold rounded-md transition-all cursor-pointer"
                 >
                   Save Employee
                 </Button>
@@ -307,7 +307,7 @@ export default function EmployeesPage() {
                   </SheetTrigger>
                   <SheetContent className="p-6 space-y-6 overflow-y-auto w-full md:min-w-[85vw] bg-card/90 backdrop-blur-xl border border-primary/30 rounded-2xl">
                     <SheetHeader>
-                      <SheetTitle className="bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent text-lg font-semibold cursor-pointer">
+                      <SheetTitle className="bg-teal-700 bg-clip-text text-transparent text-lg font-semibold cursor-pointer">
                         Edit Employee
                       </SheetTitle>
                     </SheetHeader>
@@ -348,7 +348,7 @@ export default function EmployeesPage() {
                         className="rounded-xl border-slate-200"
                         onChange={(e) => setEditedEmployee({ ...editedEmployee, manager: e.target.value })}
                       />
-                      
+
                       <div className="lg:col-span-1">
                         <Textarea
                           placeholder="Skills (comma separated)"
@@ -378,7 +378,7 @@ export default function EmployeesPage() {
                     </div>
                     <Button
                       onClick={saveEditedEmployee}
-                      className="w-full bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] text-white font-bold h-14 rounded-xl shadow-xl shadow-teal-500/20 hover:scale-[1.01] transition-all"
+                      className="bg-teal-600 text-white h-12 rounded-xl hover:bg-teal-700 cursor-pointer transition-all"
                     >
                       Save Employee Changes
                     </Button>
