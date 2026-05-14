@@ -15,20 +15,29 @@ export async function GET(req) {
   );
 
   const { tokens } = await oauth2Client.getToken(code);
-
   const supabase = await createClient();
   const session = await getServerSession(authOptions);
 
-  const { data: data, error: error } = await supabase
-    .from("Users")
-    .update({
-      refresh_token: tokens.refresh_token,
-    })
-    .eq("email", session.user.email);
-
-  if (error) {
-    console.error(error);
-    return NextResponse.redirect("http://localhost:3000/");
+  if (!session?.user?.email) {
+    console.error("No user session found in callback");
+    return NextResponse.redirect(new URL("/", req.url).toString());
   }
-  return NextResponse.redirect("http://localhost:3000/");
+
+  // Only update if we actually got a refresh token
+  if (tokens.refresh_token) {
+    const { error: error } = await supabase
+      .from("Users")
+      .update({
+        refresh_token: tokens.refresh_token,
+      })
+      .eq("email", session.user.email);
+
+    if (error) {
+      console.error("Database update error:", error);
+    }
+  } else {
+    console.log("No refresh token returned (user may have already authorized)");
+  }
+
+  return NextResponse.redirect(new URL("/", req.url).toString());
 }

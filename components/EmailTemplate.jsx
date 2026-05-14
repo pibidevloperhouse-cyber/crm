@@ -97,6 +97,29 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
     }
   }, [userData]);
 
+  // Fetch latest user data from Supabase on mount to ensure we have the refresh_token
+  useEffect(() => {
+    const fetchLatestUser = async () => {
+      if (!userEmail) return;
+      try {
+        const { data, error } = await supabase
+          .from("Users")
+          .select("*")
+          .eq("email", userEmail)
+          .maybeSingle();
+
+        if (!error && data) {
+          localStorage.setItem("user", JSON.stringify(data));
+          setUserData(data);
+        }
+      } catch (err) {
+        console.error("Error fetching latest user data:", err);
+      }
+    };
+
+    fetchLatestUser();
+  }, [userEmail]);
+
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -210,7 +233,7 @@ export default function EmailTemplate({ id, type, email, onOpenChange }) {
         setTimeout(() => onOpenChange(false), 1500);
       } else {
         const errText = data.error || "Unknown error";
-        console.error("Gmail API error:", errText);
+        console.error("Gmail API error:", errText, data.details || "");
         setStatusMsg({ type: "error", text: `❌ Failed to send: ${errText}` });
         toast.error(`❌ Failed to send: ${errText}`);
       }
