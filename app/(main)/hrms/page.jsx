@@ -58,7 +58,7 @@ export default function HRMSPage() {
                 onClick={() => handleTabChange(tab.id)}
                 className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${isActive
                   ? "bg-teal-600 text-white shadow-lg shadow-teal-600/30 scale-105 cursor-pointer"
-                  : "text-muted-foreground dark:hover:bg-teal-800 cursor-pointer"
+                  : "text-muted-foreground dark:hover:bg-teal-800 dark:hover:text-white cursor-pointer"
                   }`}
               >
                 <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-teal-500"}`} />

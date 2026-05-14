@@ -198,7 +198,7 @@ export default function HRMSDashboard() {
           {type === "admin" && (
             <Sheet onOpenChange={setOpen} open={open}>
               <SheetTrigger asChild>
-                <Button className="w-full sm:w-auto bg-teal-600 text-white font-semibold px-6 py-2 cursor-pointer rounded-xl shadow-lg hover:scale-[1.03] hover:opacity-90 transition-all h-12">
+                <Button className="w-full sm:w-auto bg-teal-600 text-white font-semibold px-6 py-2 cursor-pointer rounded-xl hover:bg-teal-700 transition-all h-12">
                   Add Leave
                 </Button>
               </SheetTrigger>

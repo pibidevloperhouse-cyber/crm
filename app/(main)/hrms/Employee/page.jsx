@@ -197,7 +197,7 @@ export default function EmployeesPage() {
           </h1>
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto cursor-pointer bg-teal-600 text-white font-semibold px-5 py-2 rounded-xl shadow hover:scale-[1.03] hover:opacity-90 transition-all h-12">
+              <Button className="w-full sm:w-auto cursor-pointer bg-teal-600 text-white font-semibold px-5 py-2 rounded-xl hover:bg-teal-700 transition-all h-12">
                 Add Employee
               </Button>
             </DialogTrigger>
