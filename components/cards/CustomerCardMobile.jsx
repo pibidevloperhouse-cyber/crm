@@ -29,6 +29,7 @@ import {
   ChevronRight,
   ArrowRight,
   User,
+  Tag,
 } from "lucide-react";
 import EmailTemplate from "../EmailTemplate";
 import UpdateCustomer from "../UpdateCustomer";
@@ -179,7 +180,10 @@ export default function CustomerCardMobile({ customer, onChange }) {
 
       {/* ── Mobile Bottom Sheet ── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full w-full h-[92vh] rounded-t-2xl rounded-b-none flex flex-col p-0 gap-0 border-0 shadow-2xl">
+        <DialogContent 
+          showCloseButton={false}
+          className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full w-full h-[92vh] rounded-t-2xl rounded-b-none flex flex-col p-0 gap-0 border-0 shadow-2xl"
+        >
           {/* Drag Handle */}
           <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
             <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-700" />
@@ -209,6 +213,12 @@ export default function CustomerCardMobile({ customer, onChange }) {
                 </div>
               </div>
             </div>
+            <button
+              onClick={() => setOpen(false)}
+              className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0"
+            >
+              <X className="w-4 h-4 text-slate-500" />
+            </button>
           </div>
 
           {/* Action Buttons */}
@@ -356,9 +366,8 @@ export default function CustomerCardMobile({ customer, onChange }) {
         </DialogContent>
       </Dialog>
 
-      {/* Stage Update Note Modal */}
       <Dialog open={!!confirmStage} onOpenChange={() => setConfirmStage(null)}>
-        <DialogContent className="mx-4 max-w-sm rounded-2xl">
+        <DialogContent className="w-[92vw] max-w-[400px] rounded-2xl mx-auto">
           <DialogHeader>
             <DialogTitle>Update Status: {confirmStage}</DialogTitle>
             <DialogDescription>
@@ -386,7 +395,10 @@ export default function CustomerCardMobile({ customer, onChange }) {
 
       {/* Edit Modal */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full w-full h-[92vh] rounded-t-2xl rounded-b-none flex flex-col p-0 gap-0 border-0 shadow-2xl">
+        <DialogContent 
+          showCloseButton={false}
+          className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full w-full h-[92vh] rounded-t-2xl rounded-b-none flex flex-col p-0 gap-0 border-0 shadow-2xl"
+        >
           <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
             <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-700" />
           </div>
@@ -416,7 +428,7 @@ export default function CustomerCardMobile({ customer, onChange }) {
 
       {/* Delete Confirmation */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="mx-4 max-w-sm rounded-2xl">
+        <DialogContent className="w-[92vw] max-w-[400px] rounded-2xl mx-auto">
           <DialogHeader>
             <DialogTitle>Delete Customer?</DialogTitle>
             <DialogDescription>
