@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -28,6 +28,7 @@ import {
   User,
   Package,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "react-toastify";
@@ -73,8 +74,44 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
   const [description, setDescription] = useState("");
   const [productName, setProductName] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [products, setProducts] = useState([]);
+  const [isCustomProduct, setIsCustomProduct] = useState(false);
+  const [customProductInput, setCustomProductInput] = useState("");
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   const currentIdx = LEAD_STAGES.indexOf(lead.status);
+
+  // Fetch products for the current user's email
+  useEffect(() => {
+    if (confirmStage === "Qualified" && lead.user_email) {
+      fetchUserProducts();
+    }
+  }, [confirmStage, lead.user_email]);
+
+  const fetchUserProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      console.log("Fetching products for user_email:", lead.user_email);
+      
+      const { data, error } = await supabase
+        .from("products")
+        .select("name")
+        .eq("user_email", lead.user_email)
+        .order("name");
+
+      if (error) {
+        console.error("Error fetching products:", error);
+        toast.error("Failed to load products");
+      } else {
+        console.log("Products fetched:", data);
+        setProducts(data || []);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   const handleStageClick = (stage) => {
     const stageIdx = LEAD_STAGES.indexOf(stage);
@@ -83,7 +120,28 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
     // Pre-fill company name from lead data if available
     if (stage === "Qualified") {
       setCompanyName(lead.company || "");
+      setProductName("");
+      setCustomProductInput("");
+      setIsCustomProduct(false);
     }
+  };
+
+  const handleProductSelect = (value) => {
+    console.log("Selected product value:", value);
+    if (value === "custom") {
+      setIsCustomProduct(true);
+      setProductName("");
+    } else {
+      setIsCustomProduct(false);
+      setProductName(value);
+      setCustomProductInput("");
+    }
+  };
+
+  const handleCustomProductChange = (e) => {
+    const value = e.target.value;
+    setCustomProductInput(value);
+    setProductName(value);
   };
 
   const handleStatusUpdate = async () => {
@@ -133,6 +191,8 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
           created_at: new Date().toISOString().split("T")[0],
           closeDate: new Date().toISOString().split("T")[0],
           user_email: LeadsData.user_email,
+          product_name: productName || null,
+          company_name: companyName || LeadsData.company || null,
         });
         await fetchDeals();
       }
@@ -141,6 +201,8 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
       setDescription("");
       setProductName("");
       setCompanyName("");
+      setIsCustomProduct(false);
+      setCustomProductInput("");
     }
   };
 
@@ -154,8 +216,6 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
       onChange();
     }
   };
-
-
 
   const InfoRow = ({ icon: Icon, label, value }) =>
     value ? (
@@ -425,6 +485,8 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
           setDescription("");
           setProductName("");
           setCompanyName("");
+          setIsCustomProduct(false);
+          setCustomProductInput("");
         }}
       >
         <DialogContent className="max-w-lg">
@@ -449,13 +511,53 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
                     <Package className="w-3.5 h-3.5 text-teal-500" />
                     Product Name
                   </label>
-                  <Input
-                    placeholder="e.g. Pro Plan, Enterprise Suite"
-                    value={productName}
-                    onChange={(e) => setProductName(e.target.value)}
-                    className="h-9 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-                  />
+                  
+                  {loadingProducts ? (
+                    <div className="text-sm text-slate-500">Loading products...</div>
+                  ) : products.length > 0 ? (
+                    <div className="relative">
+                      <select
+                        value={isCustomProduct ? "custom" : productName}
+                        onChange={(e) => handleProductSelect(e.target.value)}
+                        className="w-full h-9 px-3 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent appearance-none"
+                      >
+                        <option value="">Select a product...</option>
+                        {products.map((product, index) => (
+                          <option key={index} value={product.name}>
+                            {product.name}
+                          </option>
+                        ))}
+                        <option value="custom">+ Add custom product</option>
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                    </div>
+                  ) : (
+                    <Input
+                      placeholder="Enter product name"
+                      value={productName}
+                      onChange={(e) => setProductName(e.target.value)}
+                      className="h-9 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+                    />
+                  )}
+
+                  {isCustomProduct && (
+                    <Input
+                      placeholder="Type custom product name"
+                      value={customProductInput}
+                      onChange={handleCustomProductChange}
+                      className="h-9 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 mt-2"
+                      autoFocus
+                    />
+                  )}
+                  
+                  {/* Debug info - remove after testing */}
+                  {process.env.NODE_ENV === "development" && (
+                    <p className="text-xs text-slate-400 mt-1">
+                      Products found: {products.length} | User email: {lead.user_email}
+                    </p>
+                  )}
                 </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-teal-500" />
@@ -494,6 +596,8 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
                 setDescription("");
                 setProductName("");
                 setCompanyName("");
+                setIsCustomProduct(false);
+                setCustomProductInput("");
               }}
             >
               Cancel
@@ -510,6 +614,523 @@ export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
     </>
   );
 }
+
+
+
+
+// old version 
+// "use client";
+
+// import { useState } from "react";
+// import { Avatar, AvatarFallback } from "../ui/avatar";
+// import { Badge } from "../ui/badge";
+// import { Button } from "../ui/button";
+// import { Input } from "../ui/input";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogTrigger,
+// } from "../ui/dialog";
+// import { Textarea } from "../ui/textarea";
+// import {
+//   Mail,
+//   Phone,
+//   Trash2,
+//   Edit,
+//   Building2,
+//   MapPin,
+//   Globe,
+//   DollarSign,
+//   Tag,
+//   User,
+//   Package,
+//   ChevronRight,
+// } from "lucide-react";
+// import { supabase } from "@/utils/supabase/client";
+// import { toast } from "react-toastify";
+// import Updateleads from "../Updateleads";
+// import EmailTemplate from "../EmailTemplate";
+
+// const LEAD_STAGES = [
+//   "New",
+//   "In progress",
+//   "Contact Attempted",
+//   "Contacted",
+//   "Meeting Booked",
+//   "Qualified",
+//   "Unqualified",
+// ];
+
+// const STATUS_COLOR = {
+//   New: "bg-blue-500",
+//   "In progress": "bg-yellow-500",
+//   "Contact Attempted": "bg-orange-400",
+//   Contacted: "bg-purple-500",
+//   "Meeting Booked": "bg-indigo-500",
+//   Qualified: "bg-green-500",
+//   Unqualified: "bg-red-500",
+// };
+
+// const STATUS_DOT = {
+//   New: "bg-blue-400",
+//   "In progress": "bg-yellow-400",
+//   "Contact Attempted": "bg-orange-400",
+//   Contacted: "bg-purple-400",
+//   "Meeting Booked": "bg-indigo-400",
+//   Qualified: "bg-green-500",
+//   Unqualified: "bg-red-400",
+// };
+
+// export default function LeadCard({ lead, onChange, fetchLeads, fetchDeals }) {
+//   const [open, setOpen] = useState(false);
+//   const [deleteOpen, setDeleteOpen] = useState(false);
+//   const [editOpen, setEditOpen] = useState(false);
+//   const [emailOpen, setEmailOpen] = useState(false);
+//   const [confirmStage, setConfirmStage] = useState(null);
+//   const [description, setDescription] = useState("");
+//   const [productName, setProductName] = useState("");
+//   const [companyName, setCompanyName] = useState("");
+
+//   const currentIdx = LEAD_STAGES.indexOf(lead.status);
+
+//   const handleStageClick = (stage) => {
+//     const stageIdx = LEAD_STAGES.indexOf(stage);
+//     if (stageIdx <= currentIdx) return;
+//     setConfirmStage(stage);
+//     // Pre-fill company name from lead data if available
+//     if (stage === "Qualified") {
+//       setCompanyName(lead.company || "");
+//     }
+//   };
+
+//   const handleStatusUpdate = async () => {
+//     const stage_history = lead.stage_history || [];
+//     const length = stage_history.length;
+//     const start_date_raw =
+//       stage_history[length - 1]?.end_date ||
+//       lead?.created_at ||
+//       new Date().toISOString();
+//     const start_date = new Date(start_date_raw).toISOString().split("T")[0];
+
+//     const current_history = {
+//       old_status: lead.status,
+//       new_status: confirmStage,
+//       start_date,
+//       end_date: new Date().toISOString().split("T")[0],
+//       state_description: description,
+//     };
+//     stage_history.push(current_history);
+
+//     // Build update payload — always include stage_history + status
+//     const updatePayload = { stage_history, status: confirmStage };
+
+//     // Only save Productname / Companyname when moving to Qualified
+//     if (confirmStage === "Qualified") {
+//       if (productName) updatePayload.Productname = productName;
+//       if (companyName) updatePayload.Companyname = companyName;
+//     }
+
+//     const { data: LeadsData, error } = await supabase
+//       .from("Leads")
+//       .update(updatePayload)
+//       .select("*")
+//       .eq("id", lead.id)
+//       .single();
+
+//     if (error) {
+//       toast.error("Error updating lead");
+//     } else {
+//       toast.success("Lead updated");
+//       if (confirmStage === "Qualified") {
+//         await supabase.from("Deals").insert({
+//           name: LeadsData.name,
+//           number: LeadsData.number,
+//           email: LeadsData.email,
+//           status: "New",
+//           created_at: new Date().toISOString().split("T")[0],
+//           closeDate: new Date().toISOString().split("T")[0],
+//           user_email: LeadsData.user_email,
+//         });
+//         await fetchDeals();
+//       }
+//       await fetchLeads();
+//       setConfirmStage(null);
+//       setDescription("");
+//       setProductName("");
+//       setCompanyName("");
+//     }
+//   };
+
+//   const handleDeleteLead = async () => {
+//     const { error } = await supabase.from("Leads").delete().eq("id", lead.id);
+//     if (error) {
+//       toast.error("Error deleting lead");
+//     } else {
+//       toast.success("Deleted");
+//       setOpen(false);
+//       onChange();
+//     }
+//   };
+
+
+
+//   const InfoRow = ({ icon: Icon, label, value }) =>
+//     value ? (
+//       <div className="flex items-start gap-2 text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
+//         <Icon className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
+//         <div className="min-w-0">
+//           <p className="text-[11px] text-slate-400 uppercase tracking-wide">{label}</p>
+//           <p className="text-slate-800 dark:text-slate-200 font-medium text-sm break-words">{value}</p>
+//         </div>
+//       </div>
+//     ) : null;
+
+//   return (
+//     <>
+//       {/* ── Kanban Card ── */}
+//       <div
+//         onClick={() => setOpen(true)}
+//         className="bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-teal-400 dark:hover:border-teal-500 transition-all duration-200 group"
+//       >
+//         <div className="flex items-start justify-between gap-2 mb-2">
+//           <div className="flex items-center gap-2 min-w-0">
+//             <Avatar className="h-6 w-6 flex-shrink-0">
+//               <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white text-[10px]">
+//                 {lead?.name?.[0]?.toUpperCase() || "?"}
+//               </AvatarFallback>
+//             </Avatar>
+//             <p className="font-semibold text-sm text-slate-800 dark:text-white truncate leading-tight">
+//               {lead?.name}
+//             </p>
+//           </div>
+//           <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${STATUS_DOT[lead.status] || "bg-slate-400"}`} />
+//         </div>
+//         <p className="text-xs text-slate-500 flex items-center gap-1 mb-1">
+//           <Building2 className="w-3 h-3 flex-shrink-0" />
+//           <span className="truncate">{lead.company || "No Company"}</span>
+//         </p>
+//         <div className="flex items-center justify-between mt-1.5">
+//           <span className="text-[10px] text-slate-400">{lead.number}</span>
+//         </div>
+//       </div>
+
+//       {/* ── Main Detail Dialog (80% Size) ── */}
+//       <Dialog open={open} onOpenChange={setOpen}>
+//         <DialogContent
+//           className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0 gap-0 border-none shadow-2xl"
+//         >
+//           {/* Header Section */}
+//           <div className="flex items-center justify-between px-6 py-4 border-b bg-slate-50 dark:bg-slate-900/80 flex-shrink-0 pr-12">
+//             <div className="flex items-center gap-3 min-w-0">
+//               <Avatar className="h-10 w-10 flex-shrink-0">
+//                 <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white">
+//                   {lead?.name?.[0]?.toUpperCase() || "?"}
+//                 </AvatarFallback>
+//               </Avatar>
+//               <div className="min-w-0">
+//                 <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">{lead?.name}</h2>
+//                 <Badge className={`${STATUS_COLOR[lead.status]} text-white border-0 text-[10px] h-5`}>
+//                   {lead.status}
+//                 </Badge>
+//               </div>
+//             </div>
+
+//             {/* Action Buttons */}
+//             <div className="flex items-center gap-2">
+//               <Button size="sm" variant="outline" className="h-9 px-3" onClick={() => setEmailOpen(true)}>
+//                 <Mail className="w-4 h-4 mr-2" /> Email
+//               </Button>
+
+//               <Dialog open={editOpen} onOpenChange={setEditOpen}>
+//                 <DialogTrigger asChild>
+//                   <Button size="sm" variant="outline" className="h-9 px-3">
+//                     <Edit className="w-4 h-4 mr-2" /> Edit
+//                   </Button>
+//                 </DialogTrigger>
+//                 <DialogContent className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0">
+//                   <DialogHeader className="p-6 border-b">
+//                     <DialogTitle className="text-xl font-bold">Edit Lead Information</DialogTitle>
+//                   </DialogHeader>
+//                   <div className="flex-1 overflow-y-auto p-6">
+//                     <Updateleads
+//                       lead_id={lead.id}
+//                       onChange={onChange}
+//                       fetchLeads={fetchLeads}
+//                       fetchDeals={fetchDeals}
+//                     />
+//                   </div>
+//                 </DialogContent>
+//               </Dialog>
+
+//               <Button
+//                 size="sm"
+//                 variant="outline"
+//                 className="h-9 px-3 text-red-500 border-red-200 hover:bg-red-50"
+//                 onClick={() => setDeleteOpen(true)}
+//               >
+//                 <Trash2 className="w-4 h-4" />
+//               </Button>
+//             </div>
+//           </div>
+
+//           {/* Body Section */}
+//           <div className="flex flex-1 overflow-hidden">
+//             {/* Left Column */}
+//             <div className="w-1/3 border-r overflow-y-auto p-6 bg-white dark:bg-slate-900 custom-scrollbar">
+//               <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-4">General Information</h3>
+//               <div className="space-y-1">
+//                 <InfoRow icon={Mail} label="Email" value={lead.email} />
+//                 <InfoRow icon={Phone} label="Phone" value={lead.number} />
+//                 <InfoRow icon={Building2} label="Company" value={lead.company} />
+//                 <InfoRow icon={Tag} label="Industry" value={lead.industry} />
+//                 <InfoRow icon={Tag} label="Source" value={lead.source} />
+//                 <InfoRow icon={DollarSign} label="Income" value={lead.income} />
+//                 <InfoRow icon={MapPin} label="Address" value={lead.address} />
+//                 <InfoRow icon={Globe} label="Website" value={lead.website} />
+//                 <InfoRow icon={User} label="Age" value={lead.age} />
+//                 <InfoRow icon={Package} label="Product" value={lead.Productname} />
+//                 <InfoRow icon={Building2} label="Company Name" value={lead.Companyname} />
+//               </div>
+//               {lead.description && (
+//                 <div className="mt-6">
+//                   <p className="text-[11px] text-slate-400 uppercase tracking-widest mb-2">Description</p>
+//                   <p className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-4 rounded-xl leading-relaxed">
+//                     {lead.description}
+//                   </p>
+//                 </div>
+//               )}
+//             </div>
+
+//             {/* Right Column: Stage History */}
+//             <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50 dark:bg-slate-950/20 custom-scrollbar">
+//               <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-4">Stage History</h3>
+//               {lead.stage_history && lead.stage_history.length > 0 ? (
+//                 <div className="space-y-3">
+//                   {[...lead.stage_history].reverse().map((h, i) => (
+//                     <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-4 border shadow-sm">
+//                       <div className="flex items-center gap-3 mb-2">
+//                         <div className="w-2 h-2 rounded-full bg-teal-500" />
+//                         <p className="text-sm font-semibold">
+//                           <span className="text-slate-400">{h.old_status}</span>
+//                           <span className="mx-2 text-slate-300">→</span>
+//                           <span className="text-teal-600 dark:text-teal-400">{h.new_status}</span>
+//                         </p>
+//                       </div>
+//                       <p className="text-[11px] text-slate-400 ml-5">{h.start_date} to {h.end_date}</p>
+//                       {h.state_description && (
+//                         <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 ml-5 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg italic">
+//                           "{h.state_description}"
+//                         </p>
+//                       )}
+//                     </div>
+//                   ))}
+//                 </div>
+//               ) : (
+//                 <div className="h-full flex flex-col items-center justify-center text-slate-400 pb-20">
+//                   <Tag className="w-12 h-12 mb-2 opacity-20" />
+//                   <p className="text-sm">No stage history recorded yet.</p>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+
+//           {/* Bottom Bar: Lead Flow Stepper */}
+//           <div className="border-t bg-slate-50/50 dark:bg-slate-900/50 p-4 flex-shrink-0">
+//             <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar py-2">
+//               <span className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mr-4">Lead Pipeline:</span>
+//               <div className="flex items-center">
+//                 {LEAD_STAGES.map((stage, idx) => {
+//                   const isCompleted = idx < currentIdx;
+//                   const isCurrent = idx === currentIdx;
+//                   const isFuture = idx > currentIdx;
+//                   const isNext = idx === currentIdx + 1;
+
+//                   return (
+//                     <div key={stage} className="flex items-center">
+//                       <button
+//                         onClick={() => handleStageClick(stage)}
+//                         disabled={!isFuture}
+//                         className={`group relative flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${
+//                           isCurrent
+//                             ? "bg-teal-500 border-teal-500 text-white shadow-lg shadow-teal-500/25 scale-105 z-10"
+//                             : isCompleted
+//                             ? "bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800 text-teal-600 dark:text-teal-400 opacity-80"
+//                             : isFuture
+//                             ? "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-teal-400 hover:shadow-md hover:scale-105 hover:z-20 cursor-pointer"
+//                             : "bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 text-slate-400 opacity-40 cursor-not-allowed"
+//                         }`}
+//                       >
+//                         <div className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${
+//                           isCurrent ? "bg-white text-teal-500" : isCompleted ? "bg-teal-100 dark:bg-teal-800 text-teal-600" : "bg-slate-100 dark:bg-slate-700 text-slate-400"
+//                         }`}>
+//                           {idx + 1}
+//                         </div>
+//                         <span className="text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">{stage}</span>
+                        
+//                         {/* Hover Pulse for Next Step */}
+//                         {isNext && (
+//                           <span className="absolute inset-0 rounded-xl bg-teal-400/10 animate-pulse" />
+//                         )}
+//                       </button>
+
+//                       {idx < LEAD_STAGES.length - 1 && (
+//                         <div className="mx-2">
+//                           <ChevronRight className="w-4 h-4 text-teal-500" />
+//                         </div>
+//                       )}
+//                     </div>
+//                   );
+//                 })}
+//               </div>
+//             </div>
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* ── ALL MODALS ── */}
+
+//       {/* 1. Edit Lead Modal */}
+//       <Dialog open={editOpen} onOpenChange={setEditOpen}>
+//         <DialogContent className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
+//           <DialogHeader className="p-6 border-b bg-slate-50 dark:bg-slate-900">
+//             <DialogTitle className="text-xl font-bold">Edit Lead Information</DialogTitle>
+//           </DialogHeader>
+//           <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-950">
+//             <Updateleads
+//               lead_id={lead.id}
+//               onChange={onChange}
+//               fetchLeads={fetchLeads}
+//               fetchDeals={fetchDeals}
+//             />
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* 2. Email Template Modal */}
+//       <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
+//         <DialogContent className="w-[95vw] sm:max-w-4xl h-[90vh] sm:h-[85vh] p-0 overflow-hidden border-0 shadow-2xl mx-auto">
+//           <EmailTemplate
+//             type="Leads"
+//             id={lead.id}
+//             email={lead.email}
+//             onOpenChange={setEmailOpen}
+//           />
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* 3. Delete Confirmation */}
+//       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+//         <DialogContent className="max-w-md">
+//           <DialogHeader>
+//             <DialogTitle>Delete Lead?</DialogTitle>
+//             <DialogDescription>
+//               This will permanently remove <b>{lead.name}</b> from your CRM. This action cannot be undone.
+//             </DialogDescription>
+//           </DialogHeader>
+//           <DialogFooter className="gap-2 sm:gap-0">
+//             <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+//             <Button variant="destructive" onClick={handleDeleteLead}>Confirm Delete</Button>
+//           </DialogFooter>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* 4. Stage Update Note Modal */}
+//       <Dialog
+//         open={!!confirmStage}
+//         onOpenChange={() => {
+//           setConfirmStage(null);
+//           setDescription("");
+//           setProductName("");
+//           setCompanyName("");
+//         }}
+//       >
+//         <DialogContent className="max-w-lg">
+//           <DialogHeader>
+//             <DialogTitle className="flex items-center gap-2">
+//               Update Stage:
+//               <span className={`inline-block px-2 py-0.5 rounded-full text-white text-xs ${STATUS_COLOR[confirmStage] || "bg-slate-500"}`}>
+//                 {confirmStage}
+//               </span>
+//             </DialogTitle>
+//             <DialogDescription>
+//               Add a note regarding this status change for the history logs.
+//             </DialogDescription>
+//           </DialogHeader>
+
+//           <div className="space-y-3">
+//             {/* Product Name + Company Name — only for Qualified */}
+//             {confirmStage === "Qualified" && (
+//               <>
+//                 <div className="space-y-1.5">
+//                   <label className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+//                     <Package className="w-3.5 h-3.5 text-teal-500" />
+//                     Product Name
+//                   </label>
+//                   <Input
+//                     placeholder="e.g. Pro Plan, Enterprise Suite"
+//                     value={productName}
+//                     onChange={(e) => setProductName(e.target.value)}
+//                     className="h-9 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+//                   />
+//                 </div>
+//                 <div className="space-y-1.5">
+//                   <label className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+//                     <Building2 className="w-3.5 h-3.5 text-teal-500" />
+//                     Company Name
+//                   </label>
+//                   <Input
+//                     placeholder="e.g. Acme Corp"
+//                     value={companyName}
+//                     onChange={(e) => setCompanyName(e.target.value)}
+//                     className="h-9 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+//                   />
+//                 </div>
+//               </>
+//             )}
+
+//             {/* Description — always shown */}
+//             <div className="space-y-1.5">
+//               <label className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+//                 <Tag className="w-3.5 h-3.5 text-teal-500" />
+//                 Stage Note
+//               </label>
+//               <Textarea
+//                 placeholder="What happened in this stage? (e.g., 'Had a great call, they are interested in the Pro plan')"
+//                 value={description}
+//                 onChange={(e) => setDescription(e.target.value)}
+//                 className="min-h-[100px] bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+//               />
+//             </div>
+//           </div>
+
+//           <DialogFooter>
+//             <Button
+//               variant="outline"
+//               onClick={() => {
+//                 setConfirmStage(null);
+//                 setDescription("");
+//                 setProductName("");
+//                 setCompanyName("");
+//               }}
+//             >
+//               Cancel
+//             </Button>
+//             <Button
+//               className="bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+//               onClick={handleStatusUpdate}
+//             >
+//               Save Progress
+//             </Button>
+//           </DialogFooter>
+//         </DialogContent>
+//       </Dialog>
+//     </>
+//   );
+// }
 
 
 

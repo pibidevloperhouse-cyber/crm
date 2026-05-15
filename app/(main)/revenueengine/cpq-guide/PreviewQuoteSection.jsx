@@ -158,12 +158,6 @@ export default function PreviewQuoteSection({ selectedDealId, onBack, onComplete
           </Card>
         </div>
       </div>
-
-      <div className="flex justify-start pt-6 border-t border-slate-100 dark:border-slate-800">
-        <Button variant="outline" onClick={onBack} className="rounded-xl px-6">
-          Back to Pricing
-        </Button>
-      </div>
     </div>
   );
 }

@@ -164,8 +164,8 @@ const LeaveApproval = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div className="flex flex-col items-center md:items-start">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2d7b6e] to-[#2c6279] bg-clip-text text-transparent flex items-center gap-3">
-              <Coffee className="w-6 h-6 sm:w-8 sm:h-8 text-[#2b6781]" />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-teal-700 bg-clip-text text-transparent flex items-center gap-3">
+
               Leave Approval
             </h1>
             <p className="text-muted-foreground font-medium text-sm sm:text-base mt-1">
@@ -176,7 +176,7 @@ const LeaveApproval = () => {
 
         {/* Pending Leave Requests */}
         <div className="bg-card/50 backdrop-blur-xl border border-primary/30 shadow-lg rounded-[2rem] p-4 sm:p-6 md:p-8">
-          <h2 className="text-2xl font-semibold mb-6 text-[#2b6781]">
+          <h2 className="text-2xl mb-6 font-semibold text-[#2b6781]">
             Pending Leave Requests
           </h2>
 

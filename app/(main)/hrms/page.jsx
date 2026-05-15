@@ -38,8 +38,8 @@ export default function HRMSPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="ml-6">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent drop-shadow-sm">
+        <div className="md:ml-6 text-center md:text-left">
+          <h1 className="text-3xl md:text-4xl font-bold bg-teal-700 bg-clip-text text-transparent drop-shadow-sm">
             HRMS Dashboard
           </h1>
           <p className="text-muted-foreground font-medium mt-1">
@@ -48,7 +48,7 @@ export default function HRMSPage() {
         </div>
 
         {/* Professional Tab Switcher */}
-        <div className="flex flex-wrap justify-center gap-1.5 bg-card/40 backdrop-blur-xl p-1.5 rounded-2xl border border-border/40 shadow-xl shadow-teal-900/5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:flex flex-wrap justify-center gap-1.5 bg-card/40 backdrop-blur-xl p-1.5 rounded-2xl border border-border/40 shadow-xl shadow-teal-900/5 w-full md:w-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -56,13 +56,13 @@ export default function HRMSPage() {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${isActive
-                  ? "bg-teal-600 text-white shadow-lg shadow-teal-600/30 scale-105"
-                  : "text-muted-foreground hover:bg-teal-500/10 hover:text-teal-500"
+                className={`flex items-left justify-left gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${isActive
+                  ? "bg-teal-600 text-white shadow-lg shadow-teal-600/30 scale-105 cursor-pointer"
+                  : "text-muted-foreground hover:bg-teal-50 dark:hover:bg-teal-800/30 dark:hover:text-white cursor-pointer"
                   }`}
               >
                 <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-teal-500"}`} />
-                {tab.name}
+                <span className="truncate">{tab.name}</span>
               </button>
             );
           })}

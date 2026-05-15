@@ -137,10 +137,10 @@ export default function OurProspects() {
       return (
       <div className="space-y-4 pb-10">
 
-        <h1 className="text-3xl md:text-4xl font-bold bg-teal-600 bg-clip-text text-transparent">
-          Company Profile
-        </h1>
-        <p className="text-slate-500 mt-2 text-lg">Manage your company details and generate AI-driven Ideal Customer Profiles.</p>
+      <h1 className="text-3xl md:text-4xl font-bold bg-teal-600 dark:bg-teal-400 bg-clip-text text-transparent">
+        Company Profile
+      </h1>
+      <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">Manage your company details and generate AI-driven Ideal Customer Profiles.</p>
 
 
         <div className="w-full">

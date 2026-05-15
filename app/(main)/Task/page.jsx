@@ -80,6 +80,46 @@ export default function TaskPage() {
     client_name: "",
   });
 
+  // ── Mobile breakpoint tracker ─────────────────────────────────────────────────
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1024);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // ── Theme sync ────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const sync = () => {
+      const t = localStorage.getItem("theme");
+      if (t !== null) setDarkMode(t === "true");
+    };
+    sync();
+    const id = setInterval(sync, 200);
+    return () => clearInterval(id);
+  }, []);
+
+  // ── Get logged-in user email from Supabase Auth ───────────────────────────────
+  // This runs once on mount. It reads the active session and extracts the email.
+  // If no session exists we redirect to login (adjust the path as needed).
+  useEffect(() => {
+    const storedSession = localStorage.getItem("session");
+    if (storedSession) {
+      try {
+        const sessionJSON = JSON.parse(storedSession);
+        if (sessionJSON?.user?.email) {
+          setCurrentUserEmail(sessionJSON.user.email);
+          setAuthLoading(false);
+          return;
+        }
+      } catch (e) {
+        console.error("Error parsing session", e);
+      }
+    }
+    router.push("/");
+  }, [router]);
+
+  // ── Fetch tasks — scoped to current user's email ──────────────────────────────
   // 2. Fetch Hooks (Declared before any useEffect executions)
   const fetchLeads = async () => {
     try {
@@ -401,22 +441,18 @@ export default function TaskPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.push("/crm")}
-              className={`p-2 rounded-lg transition-colors ${dm ? "hover:bg-[#21262d]" : "hover:bg-slate-100"} ${txtSub}`}
+              className={`px-1 py-1 rounded-lg transition-colors ${dm ? "hover:bg-[#21262d]" : "hover:bg-slate-200"} ${txtSub}`}
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={20} className="flex flex-left justify-left cursor-pointer hover:text-slate-800" />
             </button>
             <div>
-              <p className={`text-[10px] font-bold uppercase tracking-[0.15em] ${txtMuted} mb-0.5`}>
-                Smart CRM
-              </p>
               <h1 className="text-xl sm:text-2xl font-bold leading-tight bg-gradient-to-r from-[#25C2A0] via-[#2d7d71] to-[#1f576f] bg-clip-text text-transparent">
                 Task Calendar
               </h1>
-              {/* ✅ Show logged-in user's email in the header */}
-              <p className={`text-xs ${txtMuted} mt-0.5`}>
+              {/* <p className={`text-xs ${txtMuted} mt-0.5`}>
                 Showing tasks for&nbsp;
                 <span className="font-semibold text-teal-500">{currentUserEmail}</span>
-              </p>
+              </p> */}
             </div>
           </div>
           <Button

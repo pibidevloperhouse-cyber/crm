@@ -371,26 +371,26 @@ export default function TemplateCreator() {
 
       <SheetContent
         side="right"
-        className="w-screen h-screen max-w-none overflow-y-auto p-10 bg-white"
+        className="w-full h-full sm:w-screen sm:h-screen max-w-none overflow-y-auto p-4 sm:p-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800"
       >
         <SheetHeader>
-          <SheetTitle className="text-2xl font-bold">
+          <SheetTitle className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
             Customize your Template
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex items-center justify-between mt-4 mb-0 gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-6 sm:mt-4 mb-0 gap-4">
           <div className="flex gap-2">
             <Dialog
               open={openPastTemplates}
               onOpenChange={setOpenPastTemplates}
             >
               <DialogTrigger asChild>
-                <Button className="bg-blue-200 text-black px-6">
+                <Button className="bg-blue-200 text-black dark:bg-slate-800 dark:text-slate-100 dark:border-slate-800 px-6">
                   Past Templates
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
+              <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl">
                 <DialogHeader>
                   <DialogTitle>Past Templates</DialogTitle>
                 </DialogHeader>
@@ -408,84 +408,52 @@ export default function TemplateCreator() {
                   {pastTemplates.map((t) => (
                     <div
                       key={t.id}
-                      className="border p-3 rounded cursor-pointer hover:bg-gray-100"
+                      className="border border-slate-200 dark:border-slate-800 p-4 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                       onClick={() => handleLoadTemplate(t)}
                     >
-                      <div className="flex gap-3">
-                        {/* DEBUG - shows what Supabase returned */}
-                        {/* DEBUG - show DB columns plus embedded template_data.headerImage presence */}
-                        {/* <pre className="text-[10px] break-all bg-gray-50 p-2 rounded mb-2">
-                          {JSON.stringify(
-                            {
-                              id: t.id,
-                              header_image_url: t.header_image_url,
-                              header_image_path: t.header_image_path,
-                              footer_image_url: t.footer_image_url,
-                              footer_image_path: t.footer_image_path,
-                              // safe check for embedded base64 saved inside template_data
-                              template_data_has_headerImage: Boolean(
-                                t.template_data && t.template_data.headerImage
-                              ),
-                              template_data_headerImage_sample:
-                                t.template_data && t.template_data.headerImage
-                                  ? String(t.template_data.headerImage).slice(
-                                      0,
-                                      80
-                                    ) + "..."
-                                  : null,
-                            },
-                            null,
-                            2
-                          )}
-                        </pre> */}
-
+                      <div className="flex flex-col sm:flex-row gap-4">
                         {t.header_image_url ? (
-                          <img
-                            src={t.header_image_url}
-                            alt="Header"
-                            className="w-32 h-20 object-cover rounded border"
-                            onError={(e) => {
-                              console.error(
-                                "IMAGE FAILED:",
-                                t.header_image_url,
-                              );
-                              e.currentTarget.style.opacity = 0.4;
-                            }}
-                          />
+                          <div className="relative w-full sm:w-40 h-24 sm:h-24 shrink-0 rounded-lg overflow-hidden border border-slate-100 dark:border-slate-700">
+                            <img
+                              src={t.header_image_url}
+                              alt="Header"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.error("IMAGE FAILED:", t.header_image_url);
+                                e.currentTarget.style.opacity = 0.4;
+                              }}
+                            />
+                          </div>
                         ) : (
-                          <div className="w-32 h-20 bg-gray-100 flex items-center justify-center text-xs text-gray-500">
-                            No header image URL
+                          <div className="w-full sm:w-40 h-24 sm:h-24 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] text-slate-500 rounded-lg shrink-0">
+                            No header image
                           </div>
                         )}
 
-                        {t.header_image_url && (
-                          <img
-                            src={t.header_image_url}
-                            alt="Header"
-                            className="w-32 h-20 object-cover rounded border"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <p className="font-semibold">{t.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(t.created_at).toLocaleString()}
-                          </p>
-                          {t.footer_image_url && (
-                            <img
-                              src={t.footer_image_url}
-                              alt="Footer"
-                              className="w-full h-16 object-cover rounded border mt-2"
-                            />
-                          )}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
+                          <div>
+                            <p className="font-bold text-slate-900 dark:text-slate-100 truncate">
+                              {t.name}
+                            </p>
+                            <p className="text-[10px] text-slate-500 mt-1">
+                              {new Date(t.created_at).toLocaleDateString()} at {new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-3 sm:mt-0">
+                            <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
+                              Template
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs px-2"
+                              onClick={(e) => handleDeleteTemplate(t.id, e)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 hover:text-red-800"
-                          onClick={(e) => handleDeleteTemplate(t.id, e)}
-                        >
-                          Delete
-                        </Button>
                       </div>
                     </div>
                   ))}
@@ -494,7 +462,7 @@ export default function TemplateCreator() {
             </Dialog>
 
             <Button
-              className="bg-green-200 text-black px-6"
+              className="bg-green-200 text-black px-6 dark:bg-slate-800 dark:text-slate-100"
               onClick={handleNewTemplate}
             >
               New Template
@@ -506,44 +474,48 @@ export default function TemplateCreator() {
               placeholder="Template Name"
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
-              className="w-64"
+              className="w-full sm:w-64 dark:bg-slate-900 dark:border-slate-700"
             />
           </div>
         </div>
 
-        <div className="mt-8 space-y-5 text-sm max-w-5xl ">
-          <section className="border rounded-md bg-blue-50 p-4 shadow-sm">
-            <h3 className="font-bold text-lg mb-2">HEADER (Brand Area)</h3>
+        <div className="mt-8 space-y-5 text-sm max-w-5xl">
+          <section className="border border-blue-100 dark:border-blue-900/30 rounded-2xl bg-blue-50/50 dark:bg-blue-900/10 p-6 shadow-sm">
+            <h3 className="font-bold text-lg mb-4 text-blue-900 dark:text-blue-300 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-blue-500 rounded-full" />
+              HEADER (Brand Area)
+            </h3>
             {!data.headerImage && (
               <>
                 <Input
                   placeholder="Header Title"
                   value={data.headerTitle}
                   onChange={(e) => update("headerTitle", e.target.value)}
+                  className="dark:bg-slate-900 dark:border-slate-700"
                 />
                 <Input
                   placeholder="Header Subtitle"
                   value={data.headerSubtitle}
                   onChange={(e) => update("headerSubtitle", e.target.value)}
-                  className="mt-2"
+                  className="mt-3 dark:bg-slate-900 dark:border-slate-700"
                 />
                 <Input
                   placeholder="Header Address"
                   value={data.headerAddress}
                   onChange={(e) => update("headerAddress", e.target.value)}
-                  className="mt-2"
+                  className="mt-3 dark:bg-slate-900 dark:border-slate-700"
                 />
                 <Input
                   placeholder="Header Phone"
                   value={data.headerPhone}
                   onChange={(e) => update("headerPhone", e.target.value)}
-                  className="mt-2"
+                  className="mt-3 dark:bg-slate-900 dark:border-slate-700"
                 />
                 <Input
                   placeholder="Header Email"
                   value={data.headerEmail}
                   onChange={(e) => update("headerEmail", e.target.value)}
-                  className="mt-2"
+                  className="mt-3 dark:bg-slate-900 dark:border-slate-700"
                 />
               </>
             )}
@@ -551,7 +523,7 @@ export default function TemplateCreator() {
               <label className="font-semibold block mb-2">
                 Header Image (banner)
               </label>
-              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium dark:bg-slate-800 dark:text-slate-100 text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
@@ -724,13 +696,16 @@ export default function TemplateCreator() {
             </div>
           </section> */}
 
-          <section className="border p-4 rounded-md bg-yellow-50">
-            <h3 className="font-semibold">FOOTER</h3>
+          <section className="border border-yellow-100 dark:border-yellow-900/30 p-6 rounded-2xl bg-yellow-50/50 dark:bg-yellow-900/10">
+            <h3 className="font-bold text-lg mb-4 text-yellow-900 dark:text-yellow-300 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-yellow-500 rounded-full" />
+              FOOTER
+            </h3>
             <div className="mt-3 space-y-2">
               <label className="font-semibold block mb-2">
                 Footer Image (optional)
               </label>
-              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors dark:bg-slate-800 dark:text-slate-100 shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
@@ -763,35 +738,36 @@ export default function TemplateCreator() {
                 placeholder="Footer Note"
                 value={data.footerNote}
                 onChange={(e) => update("footerNote", e.target.value)}
+                className="dark:bg-slate-900 dark:border-slate-700"
               />
               <Textarea
                 placeholder="Footer Disclaimer"
                 value={data.footerDisclaimer}
                 onChange={(e) => update("footerDisclaimer", e.target.value)}
-                className="h-20 mt-2"
+                className="h-20 mt-3 dark:bg-slate-900 dark:border-slate-700"
               />
             </div>
           </section>
         </div>
 
-        <SheetFooter className="mt-8">
-          <div className="flex justify-between w-full items-center">
-            <div className="text-sm text-gray-600">
+        <SheetFooter className="mt-8 pb-10 sm:pb-0">
+          <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-6">
+            <div className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md">
               Tip: Save templates to reuse later. You can update or delete saved
               templates from the "Past Templates" list.
             </div>
 
-            <div className="flex gap-2">
-              <Button onClick={handlePreview} className="bg-gray-200 px-4">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <Button onClick={handlePreview} className="flex-1 sm:flex-none bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 px-4">
                 Preview
               </Button>
-              <Button onClick={handlePDFDownload} className="bg-gray-300 px-4">
+              <Button onClick={handlePDFDownload} className="flex-1 sm:flex-none bg-slate-200 text-slate-900 dark:bg-slate-800 dark:text-slate-100 px-4">
                 Download PDF
               </Button>
               <Button
                 onClick={handleSaveTemplate}
                 disabled={isSaving}
-                className="bg-blue-600 text-white px-6"
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8"
               >
                 {isSaving ? "Saving..." : currentTemplateId ? "Update" : "Save"}
               </Button>

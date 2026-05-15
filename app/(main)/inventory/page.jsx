@@ -118,19 +118,39 @@ export default function ProductsPage() {
   }, []);
 
   // ── Inventory fetch ─────────────────────────────────────────────────────────
-  const fetchInventory = async () => {
-    if (!userEmail) return;
-    setInventoryLoading(true);
+    const fetchInventory = async () => {
+  if (!userEmail) return;
+
+  setInventoryLoading(true);
+
+  try {
     const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .eq("user_email", userEmail);
-    if (!error) {
-      setInventoryProducts(data);
-      setFiltered(data);
-    }
+      .from("Users")
+      .select("products, email")
+      .eq("email", userEmail)
+      .single();
+
+    if (error) throw error;
+
+    setCompanyData(data);
+
+    const parsedProducts =
+      typeof data.products === "string"
+        ? JSON.parse(data.products || "[]")
+        : data.products || [];
+
+    setProducts(parsedProducts);
+    setInventoryProducts(parsedProducts);
+
+    // if you also want filtered state
+    setFiltered(parsedProducts);
+
+  } catch (err) {
+    console.error("Error fetching configure data:", err);
+  } finally {
     setInventoryLoading(false);
-  };
+  }
+};
 
   useEffect(() => {
     if (userEmail) fetchInventory();
@@ -139,6 +159,7 @@ export default function ProductsPage() {
   // ── Inventory filters ────────────────────────────────────────────────────────
   useEffect(() => {
     let p = [...inventoryProducts];
+
     if (search.trim() !== "") {
       p = p.filter(
         (item) =>
@@ -146,15 +167,25 @@ export default function ProductsPage() {
           item.category?.toLowerCase().includes(search.toLowerCase())
       );
     }
+
     if (category !== "all") p = p.filter((item) => item.category === category);
+
+    // ── helper to resolve price regardless of field name ──
+    const getPrice = (item) =>
+      Number(item.base_price ?? item.basePrice ?? item.price ?? 0);
+
+    const getStock = (item) =>
+      Number(item.stock ?? 0);
+
     const sortFunctions = {
-      "name-asc": (a, b) => a.name.localeCompare(b.name),
-      "name-desc": (a, b) => b.name.localeCompare(a.name),
-      "price-asc": (a, b) => Number(a.base_price) - Number(b.base_price),
-      "price-desc": (a, b) => Number(b.base_price) - Number(a.base_price),
-      "stock-asc": (a, b) => a.stock - b.stock,
-      "stock-desc": (a, b) => b.stock - a.stock,
+      "name-asc":   (a, b) => a.name.localeCompare(b.name),
+      "name-desc":  (a, b) => b.name.localeCompare(a.name),
+      "price-asc":  (a, b) => getPrice(a) - getPrice(b),
+      "price-desc": (a, b) => getPrice(b) - getPrice(a),
+      "stock-asc":  (a, b) => getStock(a) - getStock(b),
+      "stock-desc": (a, b) => getStock(b) - getStock(a),
     };
+
     p.sort(sortFunctions[sort]);
     setFiltered(p);
   }, [search, category, sort, inventoryProducts]);
@@ -590,8 +621,6 @@ export default function ProductsPage() {
               {filtered.length} product{filtered.length !== 1 ? "s" : ""}
             </span>
           </div>
-
-          {/* Table */}
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
             <Table>
               <TableHeader>
@@ -628,22 +657,22 @@ export default function ProductsPage() {
                         </span>
                       </TableCell>
                       <TableCell className="font-semibold text-slate-800 dark:text-slate-100 text-sm">
-                        ₹{Number(item.base_price).toLocaleString("en-IN")}
+                         ₹{Number(item.base_price ?? item.basePrice ?? item.price ?? 0).toLocaleString("en-IN")}
                       </TableCell>
                       <TableCell className="text-sm text-slate-600 dark:text-slate-300 font-medium">{item.stock}</TableCell>
                       <TableCell>
                         {item.stock == 0 ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-red-50 dark:bg-transparent text-red-600 border border-red-200 px-2.5 py-1 rounded-full">
                             <span className="size-1.5 rounded-full bg-red-500 inline-block" />
                             Out of Stock
                           </span>
                         ) : item.stock < 10 ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-400 bg-red-400/10 hover:bg-red-400/20 border border-orange-200 px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-400 dark:bg-transparent bg-red-400/10 hover:bg-red-400/20 border border-orange-200 px-2.5 py-1 rounded-full">
                             <span className="size-1.5 rounded-full bg-orange-500 inline-block" />
                             Low Stock
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-50 dark:bg-transparent text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-full">
                             <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
                             In Stock
                           </span>
@@ -721,20 +750,22 @@ export default function ProductsPage() {
                       📦 {product.category || "Uncategorised"}
                     </span>
                     <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full font-medium">
-                      ₹ {product.basePrice || product.base_price || 0}
+                      ₹ {product.price ?? product.basePrice ?? product.base_price ?? 0}
                     </span>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${product.stock === 0 || product.stock === undefined
-                      ? "text-red-400 bg-red-400/10 hover:bg-red-400/20"
-                      : "text-red-400 bg-red-400/10 hover:bg-red-400/20"
-                      }`}>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                      product.stock === 0 || product.stock === undefined
+                        ? "text-red-400 bg-red-400/10 hover:bg-red-400/20"
+                        : "text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20"
+                    }`}>
                       {product.stock === 0 || product.stock === undefined
                         ? "⚠ Out of stock — update needed"
                         : `🗃 ${product.stock} units`}
                     </span>
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${product.isConfigurable
-                      ? "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
-                      : "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
-                      }`}>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                      product.isConfigurable
+                        ? "text-blue-400 bg-blue-400/10 hover:bg-blue-400/20"
+                        : "text-slate-400 bg-slate-100 dark:bg-slate-800"
+                    }`}>
                       {product.isConfigurable ? "⚙ Configurable" : "⚙ Not configurable"}
                     </span>
                   </div>

@@ -139,9 +139,8 @@ export default function Analytics() {
               </p>
               {change !== undefined && (
                 <div
-                  className={`flex items-center text-xs sm:text-sm mt-1 ${
-                    change > 0 ? "text-green-600" : "text-red-600"
-                  }`}
+                  className={`flex items-center text-xs sm:text-sm mt-1 ${change > 0 ? "text-green-600" : "text-red-600"
+                    }`}
                 >
                   {change > 0 ? (
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
@@ -255,7 +254,7 @@ export default function Analytics() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold text-teal-700 dark:text-white mb-3">
             Analytics Dashboard
           </h1>
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">

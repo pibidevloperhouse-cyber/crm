@@ -17,62 +17,30 @@ export async function GET(req) {
       process.env.GOOGLE_REDIRECT_URI
     );
 
-    const { tokens } = await oauth2Client.getToken(code);
+  const { tokens } = await oauth2Client.getToken(code);
+  const supabase = await createClient();
+  const session = await getServerSession(authOptions);
 
-    // Google only returns refresh_token on FIRST auth or when prompt=consent.
-    // We store both so we always have the latest valid token.
-    const updatePayload = {
-      access_token: tokens.access_token,
-      token_expiry: tokens.expiry_date,
-    };
-    // Only overwrite refresh_token when Google actually sends one
-    if (tokens.refresh_token) {
-      updatePayload.refresh_token = tokens.refresh_token;
-    }
+  if (!session?.user?.email) {
+    console.error("No user session found in callback");
+    return NextResponse.redirect(new URL("/", req.url).toString());
+  }
 
-    const supabase = await createClient();
-    const session = await getServerSession(authOptions);
-
-    const { error } = await supabase
+  // Only update if we actually got a refresh token
+  if (tokens.refresh_token) {
+    const { error: error } = await supabase
       .from("Users")
-      .update(updatePayload)
+      .update({
+        refresh_token: tokens.refresh_token,
+      })
       .eq("email", session.user.email);
 
     if (error) {
-      console.error("Supabase update error:", error);
-      errorMsg = error.message;
-    } else {
-      success = true;
+      console.error("Database update error:", error);
     }
-  } catch (err) {
-    console.error("OAuth callback error:", err);
-    errorMsg = err.message;
+  } else {
+    console.log("No refresh token returned (user may have already authorized)");
   }
 
-  // ── Close the popup and notify the opener via postMessage ────────────────
-  // Instead of redirecting (which keeps popup open), return HTML that
-  // calls window.close() so the polling timer in EmailTemplate triggers.
-  const html = `<!DOCTYPE html>
-<html>
-  <head><title>Gmail Auth</title></head>
-  <body>
-    <script>
-      try {
-        if (window.opener) {
-          window.opener.postMessage(
-            { type: 'GMAIL_AUTH_RESULT', success: ${success}, error: '${errorMsg}' },
-            window.location.origin
-          );
-        }
-      } catch(e) {}
-      window.close();
-    <\/script>
-    <p>Authorization ${success ? 'successful' : 'failed'}. This window will close automatically.</p>
-  </body>
-</html>`;
-
-  return new Response(html, {
-    status: 200,
-    headers: { "Content-Type": "text/html" },
-  });
+  return NextResponse.redirect(new URL("/", req.url).toString());
 }

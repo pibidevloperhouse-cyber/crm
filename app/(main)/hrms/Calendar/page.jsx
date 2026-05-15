@@ -190,7 +190,7 @@ export default function HRMSDashboard() {
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8 text-center md:text-left">
           {/* Title */}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#2ba08d] to-[#2b6781] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(37,200,160,0.3)]">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-teal-700 bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(37,200,160,0.3)]">
             Calendar
           </h1>
 
@@ -198,14 +198,14 @@ export default function HRMSDashboard() {
           {type === "admin" && (
             <Sheet onOpenChange={setOpen} open={open}>
               <SheetTrigger asChild>
-                <Button className="w-full sm:w-auto bg-gradient-to-r from-[#25C2A0] to-[#387e9d] text-white font-semibold px-6 py-2 cursor-pointer rounded-xl shadow-lg hover:scale-[1.03] hover:opacity-90 transition-all h-12">
+                <Button className="w-full sm:w-auto bg-teal-600 text-white font-semibold px-6 py-2 cursor-pointer rounded-xl hover:bg-teal-700 transition-all h-12">
                   Add Leave
                 </Button>
               </SheetTrigger>
 
               <SheetContent className="w-[95vw] sm:max-w-md bg-card/90 dark:bg-slate-950/90 backdrop-blur-xl border border-primary/30 dark:border-[#25C2A0]/20 shadow-2xl p-6 overflow-y-auto rounded-l-[2rem]">
                 <SheetHeader>
-                  <SheetTitle className="text-lg font-semibold bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] bg-clip-text text-transparent">
+                  <SheetTitle className="text-lg font-semibold bg-teal-700 bg-clip-text text-transparent">
                     Apply for Leave
                   </SheetTitle>
                 </SheetHeader>
@@ -241,7 +241,7 @@ export default function HRMSDashboard() {
                 <SheetFooter>
                   <Button
                     onClick={HandleLeave}
-                    className="mt-4 w-full bg-gradient-to-r from-[#25C2A0] to-[#38BDF8] text-white font-semibold rounded-md hover:scale-[1.02] hover:opacity-90 transition-all"
+                    className="mt-4 w-full bg-teal-600 text-white font-semibold rounded-md hover:bg-teal-700 hover:text-white transition-all"
                   >
                     Confirm
                   </Button>

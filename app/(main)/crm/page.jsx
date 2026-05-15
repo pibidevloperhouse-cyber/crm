@@ -66,7 +66,13 @@ const STATUS_DOT = {
 };
 
 // ── Kanban column ─────────────────────────────────────────────────────────
-const KanbanColumn = ({ title, count, children, collapsedCols, toggleCollapse }) => {
+const KanbanColumn = ({
+  title,
+  count,
+  children,
+  collapsedCols,
+  toggleCollapse,
+}) => {
   const isCollapsed = collapsedCols[title];
   return (
     <div
@@ -77,7 +83,9 @@ const KanbanColumn = ({ title, count, children, collapsedCols, toggleCollapse })
       <div className="flex items-center justify-between px-2 py-2 border-b border-slate-200 dark:border-slate-700/50 flex-shrink-0">
         {!isCollapsed && (
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
-            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT[title] || "bg-slate-400"}`} />
+            <span
+              className={`w-2 h-2 rounded-full flex-shrink-0 ${STATUS_DOT[title] || "bg-slate-400"}`}
+            />
             <span className="font-semibold text-xs text-slate-700 dark:text-slate-200 truncate">
               {title}
             </span>
@@ -352,7 +360,14 @@ export default function CRM() {
 
         {/* Scrollable cards */}
         {!isCollapsed && (
-          <div className="flex-1 overflow-y-auto p-1.5 space-y-1.5 min-h-[60px]">
+          <div
+            className="flex-1 overflow-y-auto p-1.5 space-y-1.5 min-h-[60px]
+            [&::-webkit-scrollbar]:w-1 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-700/50 
+            [&::-webkit-scrollbar-thumb]:rounded-full"
+          >
             <AnimatePresence>
               {count === 0 && (
                 <p className="text-center text-xs text-slate-400 dark:text-slate-600 py-6 select-none">
@@ -547,151 +562,241 @@ export default function CRM() {
         {/* Right: action buttons — desktop full, mobile condensed */}
         {/* ── Desktop buttons (hidden on mobile) ── */}
         {/* ── Desktop buttons (hidden on mobile) ── */}
-       <div className="hidden sm:flex items-center gap-2">
-  {/* ── Agent Workflow (Type 2: Diagonal Shimmer + Slide Up) ── */}
-  <Button
-    size="sm"
-    onClick={() => router.push("/crm/agent-workflow")}
-    className="
-      h-9 px-4 rounded-lg
-      bg-gradient-to-r from-sky-700 to-teal-500
-      text-white font-medium
-      shadow-sm
-      group relative overflow-hidden
-      transition-all duration-400
-      hover:scale-105
-      hover:-translate-y-1.5
-      hover:shadow-lg hover:shadow-cyan-500/40
-      active:translate-y-0 active:scale-100
-    "
-  >
-    <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-    <Users
-      size={14}
-      className="mr-1.5 relative z-10 transition-transform duration-300 group-hover:scale-110"
-    />
-    <span className="relative z-10">Agent Workflow</span>
-  </Button>
+        <div className="flex items-center gap-2">
+          {/* Mobile: Condensed buttons with tooltips or icons only */}
+          <div className="hidden sm:flex items-center gap-2">
+            {/* ── Agent Workflow (Type 2: Diagonal Shimmer + Slide Up) ── */}
+            <Button
+              size="sm"
+              onClick={() => router.push("/crm/agent-workflow")}
+              className="
+        h-9 px-4 rounded-lg
+        bg-gradient-to-r from-sky-700 to-teal-500
+        text-white font-medium
+        shadow-sm
+        group relative overflow-hidden
+        transition-all duration-400
+        hover:scale-105
+        hover:-translate-y-1.5
+        hover:shadow-lg hover:shadow-cyan-500/40
+        active:translate-y-0 active:scale-100
+      "
+            >
+              <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+              <Users
+                size={14}
+                className="mr-1.5 relative z-10 transition-transform duration-300 group-hover:scale-110"
+              />
+              <span className="relative z-10">Agent Workflow</span>
+            </Button>
 
-  {/* ── Task (Type 2: Diagonal Shimmer + Slide Up) ── */}
-  <Button
-    size="sm"
-    onClick={() => router.push("/Task")}
-    className="
-      h-9 px-4 rounded-lg
-      bg-gradient-to-r from-sky-700 to-teal-500
-      text-white font-medium
-      shadow-sm
-      group relative overflow-hidden
-      transition-all duration-400
-      hover:scale-105
-      hover:-translate-y-1.5
-      hover:shadow-lg hover:shadow-cyan-500/40
-      active:translate-y-0 active:scale-100
-    "
-  >
-    <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-    <TrendingUp
-      size={14}
-      className="mr-1.5 relative z-10 transition-transform duration-300 group-hover:rotate-12"
-    />
-    <span className="relative z-10">Task</span>
-  </Button>
+            {/* ── Task (Type 2: Diagonal Shimmer + Slide Up) ── */}
+            <Button
+              size="sm"
+              onClick={() => router.push("/Task")}
+              className="
+        h-9 px-4 rounded-lg
+        bg-gradient-to-r from-sky-700 to-teal-500
+        text-white font-medium
+        shadow-sm
+        group relative overflow-hidden
+        transition-all duration-400
+        hover:scale-105
+        hover:-translate-y-1.5
+        hover:shadow-lg hover:shadow-cyan-500/40
+        active:translate-y-0 active:scale-100
+      "
+            >
+              <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+              <TrendingUp
+                size={14}
+                className="mr-1.5 relative z-10 transition-transform duration-300 group-hover:rotate-12"
+              />
+              <span className="relative z-10">Task</span>
+            </Button>
 
-  {/* ── CSV (Same animation as Agent Workflow) ── */}
-  <Sheet>
-    <SheetTrigger asChild>
-      <Button
-        size="sm"
-        variant="outline"
-        className="
-          h-9 px-3 rounded-lg
-          bg-gradient-to-r from-sky-700 to-teal-500
-          text-white
-          border-0
-          shadow-sm
-          group relative overflow-hidden
-          transition-all duration-400
-          hover:scale-105
-          hover:-translate-y-1.5
-          hover:shadow-lg hover:shadow-cyan-500/40
-          active:translate-y-0 active:scale-100
-        "
-      >
-        <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-        <Upload className="w-4 h-4 mr-1.5 relative z-10 transition-transform duration-300 group-hover:scale-110" />
-        <span className="relative z-10">CSV</span>
-      </Button>
-    </SheetTrigger>
-    <SheetContent>
-      <SheetHeader>
-        <SheetTitle>Upload {activeTab} CSV</SheetTitle>
-        <SheetDescription asChild>
-          <div>
-            <CsvSheetContent />
+            {/* ── CSV (Same animation as Agent Workflow) ── */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="
+            h-9 px-3 rounded-lg
+            bg-gradient-to-r from-sky-700 to-teal-500
+            text-white
+            border-0
+            shadow-sm
+            group relative overflow-hidden
+            transition-all duration-400
+            hover:scale-105
+            hover:-translate-y-1.5
+            hover:shadow-lg hover:shadow-cyan-500/40
+            active:translate-y-0 active:scale-100
+          "
+                >
+                  <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                  <Upload className="w-4 h-4 mr-1.5 relative z-10 transition-transform duration-300 group-hover:scale-110" />
+                  <span className="relative z-10">CSV</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Upload {activeTab} CSV</SheetTitle>
+                  <SheetDescription asChild>
+                    <div>
+                      <CsvSheetContent />
+                    </div>
+                  </SheetDescription>
+                </SheetHeader>
+              </SheetContent>
+            </Sheet>
+
+            {/* ── Add Lead (Same animation as Agent Workflow) ── */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  size="sm"
+                  className="
+            h-9 px-3 rounded-lg
+            bg-gradient-to-r from-sky-700 to-teal-500
+            text-white
+            shadow-sm
+            group relative overflow-hidden
+            transition-all duration-400
+            hover:scale-105
+            hover:-translate-y-1.5
+            hover:shadow-lg hover:shadow-cyan-500/40
+            active:translate-y-0 active:scale-100
+          "
+                >
+                  <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                  <Plus className="w-4 h-4 mr-1 relative z-10 transition-transform duration-300 group-hover:scale-110" />
+                  <span className="relative z-10">Add {activeTab}</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Add New {activeTab}</SheetTitle>
+                  <SheetDescription asChild>
+                    <div>
+                      {activeTab === "Customers" && (
+                        <CustomerForm
+                          session={session}
+                          fetchCustomers={fetchCustomers}
+                          setCustomersData={setCustomersData}
+                        />
+                      )}
+                      {activeTab === "Leads" && (
+                        <LeadForm
+                          session={session}
+                          fetchDeals={fetchDeals}
+                          fetchLeads={fetchLeads}
+                          setLeadsData={setLeadsData}
+                        />
+                      )}
+                      {activeTab === "Deals" && (
+                        <DealForm
+                          fetchDeals={fetchDeals}
+                          session={session}
+                          products={products}
+                          setDealsData={setDealsData}
+                        />
+                      )}
+                    </div>
+                  </SheetDescription>
+                </SheetHeader>
+              </SheetContent>
+            </Sheet>
           </div>
-        </SheetDescription>
-      </SheetHeader>
-    </SheetContent>
-  </Sheet>
 
-  {/* ── Add Lead (Same animation as Agent Workflow) ── */}
-  <Sheet>
-    <SheetTrigger asChild>
-      <Button
-        size="sm"
-        className="
-          h-9 px-3 rounded-lg
-          bg-gradient-to-r from-sky-700 to-teal-500
-          text-white
-          shadow-sm
-          group relative overflow-hidden
-          transition-all duration-400
-          hover:scale-105
-          hover:-translate-y-1.5
-          hover:shadow-lg hover:shadow-cyan-500/40
-          active:translate-y-0 active:scale-100
-        "
-      >
-        <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-        <Plus className="w-4 h-4 mr-1 relative z-10 transition-transform duration-300 group-hover:scale-110" />
-        <span className="relative z-10">Add {activeTab}</span>
-      </Button>
-    </SheetTrigger>
-    <SheetContent>
-      <SheetHeader>
-        <SheetTitle>Add New {activeTab}</SheetTitle>
-        <SheetDescription asChild>
-          <div>
-            {activeTab === "Customers" && (
-              <CustomerForm
-                session={session}
-                fetchCustomers={fetchCustomers}
-                setCustomersData={setCustomersData}
-              />
-            )}
-            {activeTab === "Leads" && (
-              <LeadForm
-                session={session}
-                fetchDeals={fetchDeals}
-                fetchLeads={fetchLeads}
-                setLeadsData={setLeadsData}
-              />
-            )}
-            {activeTab === "Deals" && (
-              <DealForm
-                fetchDeals={fetchDeals}
-                session={session}
-                products={products}
-                setDealsData={setDealsData}
-              />
-            )}
+          {/* Mobile: Icon-only buttons that appear on small screens */}
+          <div className="flex sm:hidden items-center gap-1.5">
+            <Button
+              size="sm"
+              onClick={() => router.push("/crm/agent-workflow")}
+              className="h-9 w-9 p-0 rounded-lg bg-gradient-to-r from-sky-700 to-teal-500 text-white shadow-sm group relative overflow-hidden"
+            >
+              <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+              <Users size={16} className="relative z-10" />
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={() => router.push("/Task")}
+              className="h-9 w-9 p-0 rounded-lg bg-gradient-to-r from-sky-700 to-teal-500 text-white shadow-sm group relative overflow-hidden"
+            >
+              <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+              <TrendingUp size={16} className="relative z-10" />
+            </Button>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  size="sm"
+                  className="h-9 w-9 p-0 rounded-lg bg-gradient-to-r from-sky-700 to-teal-500 text-white shadow-sm group relative overflow-hidden"
+                >
+                  <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                  <Upload size={16} className="relative z-10" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Upload {activeTab} CSV</SheetTitle>
+                  <SheetDescription asChild>
+                    <div>
+                      <CsvSheetContent />
+                    </div>
+                  </SheetDescription>
+                </SheetHeader>
+              </SheetContent>
+            </Sheet>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  size="sm"
+                  className="h-9 w-9 p-0 rounded-lg bg-gradient-to-r from-sky-700 to-teal-500 text-white shadow-sm group relative overflow-hidden"
+                >
+                  <span className="absolute inset-0 -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                  <Plus size={16} className="relative z-10" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Add New {activeTab}</SheetTitle>
+                  <SheetDescription asChild>
+                    <div>
+                      {activeTab === "Customers" && (
+                        <CustomerForm
+                          session={session}
+                          fetchCustomers={fetchCustomers}
+                          setCustomersData={setCustomersData}
+                        />
+                      )}
+                      {activeTab === "Leads" && (
+                        <LeadForm
+                          session={session}
+                          fetchDeals={fetchDeals}
+                          fetchLeads={fetchLeads}
+                          setLeadsData={setLeadsData}
+                        />
+                      )}
+                      {activeTab === "Deals" && (
+                        <DealForm
+                          fetchDeals={fetchDeals}
+                          session={session}
+                          products={products}
+                          setDealsData={setDealsData}
+                        />
+                      )}
+                    </div>
+                  </SheetDescription>
+                </SheetHeader>
+              </SheetContent>
+            </Sheet>
           </div>
-        </SheetDescription>
-      </SheetHeader>
-    </SheetContent>
-  </Sheet>
-</div>
+        </div>
       </div>
 
       {/* ── Tabs + Kanban boards ── */}
@@ -729,7 +834,16 @@ export default function CRM() {
         </div>
 
         <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
-          <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
+          <div
+            className="flex gap-2 h-full pb-2 overflow-x-auto items-start
+            [&::-webkit-scrollbar]:h-1.5 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+            [&::-webkit-scrollbar-thumb]:rounded-full 
+            hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+            dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700"
+          >
             {getLeadStatuses().map((status) => {
               const items = leadsData.filter((l) => l.status === status);
               return (
@@ -761,11 +875,26 @@ export default function CRM() {
 
         {/* ── DEALS board ── */}
         <TabsContent value="Deals" className="flex-1 min-h-0 m-0">
-          <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
+          <div
+            className="flex gap-2 h-full pb-2 overflow-x-auto items-start
+            [&::-webkit-scrollbar]:h-1.5 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+            [&::-webkit-scrollbar-thumb]:rounded-full 
+            hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+            dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700"
+          >
             {getDealStatuses().map((status) => {
               const items = dealsData.filter((d) => d.status === status);
               return (
-                <KanbanColumn key={status} title={status} count={items.length} collapsedCols={collapsedCols} toggleCollapse={toggleCollapse}>
+                <KanbanColumn
+                  key={status}
+                  title={status}
+                  count={items.length}
+                  collapsedCols={collapsedCols}
+                  toggleCollapse={toggleCollapse}
+                >
                   {items.map((deal) => (
                     <AnimatedCard key={deal.id} id={deal.id}>
                       {isMobile ? (
@@ -806,11 +935,26 @@ export default function CRM() {
 
         {/* ── CUSTOMERS board ── */}
         <TabsContent value="Customers" className="flex-1 min-h-0 m-0">
-          <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
+          <div
+            className="flex gap-2 h-full pb-2 overflow-x-auto items-start
+            [&::-webkit-scrollbar]:h-1.5 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+            [&::-webkit-scrollbar-thumb]:rounded-full 
+            hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+            dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700"
+          >
             {getCustomerStatuses().map((status) => {
               const items = customersData.filter((c) => c.status === status);
               return (
-                <KanbanColumn key={status} title={status} count={items.length} collapsedCols={collapsedCols} toggleCollapse={toggleCollapse}>
+                <KanbanColumn
+                  key={status}
+                  title={status}
+                  count={items.length}
+                  collapsedCols={collapsedCols}
+                  toggleCollapse={toggleCollapse}
+                >
                   {items.map((customer) => (
                     <AnimatedCard key={customer.id} id={customer.id}>
                       {isMobile ? (
@@ -2902,7 +3046,7 @@ export default function CRM() {
           </SheetContent>
         </Sheet> */
 }
-// old button with first 2 look attractive but the csv one looks odd, maybe we can change it to a simple button with an upload icon and on click it opens a sheet with the csv upload instructions and file input, what do you think?  
+// old button with first 2 look attractive but the csv one looks odd, maybe we can change it to a simple button with an upload icon and on click it opens a sheet with the csv upload instructions and file input, what do you think?
 // {/* <div className="hidden sm:flex items-center gap-2">
 //           {/* ── Agent Workflow (Type 2: Diagonal Shimmer + Slide Up) ── */}
 //           <Button
@@ -2929,7 +3073,6 @@ export default function CRM() {
 //             <span className="relative z-10">Agent Workflow</span>
 //           </Button>
 
-          
 //           <Button
 //             size="sm"
 //             onClick={() => router.push("/Task")}

@@ -109,7 +109,7 @@ export default function PayrollPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-2">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
+            <h1 className="text-3xl md:text-4xl font-bold flex items-start  bg-teal-700 bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(70,200,248,0.25)]">
               {/* <Wallet className="w-8 h-8 text-transparent bg-gradient-to-r from-[#25C2A0] via-[#2AD4B7] to-[#38BDF8] bg-clip-text" /> */}
               Payroll Dashboard
             </h1>
@@ -159,7 +159,7 @@ export default function PayrollPage() {
                   <SheetTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full mt-2 bg-gradient-to-r from-[#25C2A0] to-[#2AD4B7] text-black/70 font-medium hover:opacity-90 cursor-pointer"
+                      className="w-full mt-2 bg-teal-600 text-white font-medium hover:bg-teal-700 hover:text-white cursor-pointer"
                       onClick={() => {
                         setEditing(emp);
                         setPayroll({
@@ -175,7 +175,7 @@ export default function PayrollPage() {
                   </SheetTrigger>
 
                   <SheetContent className="p-6 space-y-6 max-w-md bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border border-[#25C2A0]/30 dark:border-[#25C2A0]/40 shadow-lg rounded-lg">
-                    <SheetHeader className="-mx-6 -mt-6 bg-[#25C2A0] px-6 py-3 rounded-t-lg shadow-sm">
+                    <SheetHeader className="-mx-6 -mt-6 bg-teal-600 px-6 py-3 rounded-t-lg shadow-sm">
                       <SheetTitle className="text-white dark:text-black font-semibold">
                         Edit Payroll – {emp.name}
                       </SheetTitle>
@@ -270,7 +270,7 @@ export default function PayrollPage() {
 
                     <Button
                       onClick={handleUpdate}
-                      className="w-full bg-[#2AD4B7] text-white dark:text-black font-semibold hover:opacity-90 hover:scale-[1.02] transition-all"
+                      className="w-full bg-teal-600 text-white dark:text-black font-semibold hover:opacity-90 hover:scale-[1.02] transition-all"
                     >
                       Save Payroll
                     </Button>

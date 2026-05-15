@@ -367,7 +367,14 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
             />
           </div>
 
-          <div className="max-h-[500px] overflow-y-auto space-y-2 pr-2">
+          <div className="max-h-[500px] overflow-y-auto space-y-2 pr-2 
+            [&::-webkit-scrollbar]:w-1.5 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+            [&::-webkit-scrollbar-thumb]:rounded-full 
+            hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+            dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700">
             {isLoading ? (
               [1, 2, 3].map((i) => <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />)
             ) : dealsToShow.length > 0 ? (
@@ -476,7 +483,14 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                                         <Settings className="h-4 w-4" />
                                       </Button>
                                     </SheetTrigger>
-                                    <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-4 sm:p-6">
+                                    <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-4 sm:p-6
+                                      [&::-webkit-scrollbar]:w-1.5 
+                                      [&::-webkit-scrollbar-track]:bg-transparent 
+                                      [&::-webkit-scrollbar-thumb]:bg-slate-200 
+                                      dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+                                      [&::-webkit-scrollbar-thumb]:rounded-full 
+                                      hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+                                      dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700">
                                       <SheetHeader>
                                         <SheetTitle>Configure {productName}</SheetTitle>
                                       </SheetHeader>
@@ -515,7 +529,7 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
                         <div className="mt-8 flex justify-center">
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button className="rounded-xl px-6 py-3 cursor-pointer border-blue-600 bg-white text-blue-600 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-400 dark:hover:bg-blue-950/30">
+                              <Button className="rounded-xl px-6 py-3 cursor-pointer border-blue-600 bg-white text-blue-600 hover:bg-blue-50 dark:border-blue-900 dark:text-blue-400 dark:bg-transparent dark:hover:bg-blue-950/30">
                                 + Add/Remove Products
                               </Button>
                             </DialogTrigger>

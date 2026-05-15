@@ -176,7 +176,7 @@ export default function OurProspects() {
       <button
         onClick={handleClick}
         disabled={loading}
-        className={`px-5 py-2.5 rounded-lg font-bold text-white transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${loading ? 'bg-slate-400' : 'bg-gradient-to-r from-[#25C2A0] to-[#235d76] hover:from-[#2ecc71] hover:to-[#2980b9]'
+        className={`px-5 py-2.5 rounded-lg font-bold text-white transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${loading ? 'bg-slate-400' : 'bg-gradient-to-r from-[#25C2A0] to-[#235d76] hover:from-[#2ecc71] hover:to-[#2980b9] dark:from-teal-600 dark:to-teal-800'
           }`}
       >
         {loading ? (
@@ -194,9 +194,9 @@ export default function OurProspects() {
       <div className="space-y-6">
         {result ? (
           <div className="animate-in fade-in slide-in-from-right duration-700">
-            <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900/50 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 overflow-hidden">
               <div className="bg-gradient-to-r from-[#25C2A0] to-[#235d76] p-3 px-5 text-white">
-                <h2 className="text-lg font-bold flex items-center gap-2">
+                <h2 className="text-lg font-bold flex items-center gap-2 text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></svg>
                   Ideal Customer Profile
                 </h2>
@@ -206,27 +206,27 @@ export default function OurProspects() {
               <div className="p-4 space-y-4">
                 {/* Core ICP Info */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Designation</p>
-                    <p className="text-slate-700 font-bold text-sm truncate">{result.ICP?.designation || "N/A"}</p>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Designation</p>
+                    <p className="text-slate-700 dark:text-slate-200 font-bold text-sm truncate">{result.ICP?.designation || "N/A"}</p>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Industry</p>
-                    <p className="text-slate-700 font-bold text-sm truncate">{result.ICP?.industry || "N/A"}</p>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Industry</p>
+                    <p className="text-slate-700 dark:text-slate-200 font-bold text-sm truncate">{result.ICP?.industry || "N/A"}</p>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Region</p>
-                    <p className="text-slate-700 font-bold text-sm truncate">{result.ICP?.region || "N/A"}</p>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Region</p>
+                    <p className="text-slate-700 dark:text-slate-200 font-bold text-sm truncate">{result.ICP?.region || "N/A"}</p>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Age Group</p>
-                    <p className="text-slate-700 font-bold text-sm truncate">{result.ICP?.age_group || "N/A"}</p>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">Age Group</p>
+                    <p className="text-slate-700 dark:text-slate-200 font-bold text-sm truncate">{result.ICP?.age_group || "N/A"}</p>
                   </div>
                 </div>
 
                 {/* Prospect Groups */}
-                <div className="space-y-3 pt-3 border-t border-slate-100">
-                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                     Conversion Analysis
                   </h3>
@@ -237,21 +237,21 @@ export default function OurProspects() {
                       { label: 'Medium Potential', data: result.medium_prospect_group, color: 'amber' },
                       { label: 'Low Potential', data: result.low_prospect_group, color: 'slate' }
                     ].map((group, idx) => (
-                      <div key={idx} className={`p-3 rounded-xl border transition-all hover:shadow-md ${group.color === 'emerald' ? 'bg-emerald-50/50 border-emerald-100' :
-                        group.color === 'amber' ? 'bg-amber-50/50 border-amber-100' :
-                          'bg-slate-50 border-slate-100'
+                      <div key={idx} className={`p-3 rounded-xl border transition-all hover:shadow-md ${group.color === 'emerald' ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800/50' :
+                        group.color === 'amber' ? 'bg-amber-50/50 border-amber-100 dark:bg-amber-900/20 dark:border-amber-800/50' :
+                          'bg-slate-50 border-slate-100 dark:bg-slate-800/50 dark:border-slate-700'
                         }`}>
                         <div className="flex justify-between items-center mb-1.5">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider ${group.color === 'emerald' ? 'text-emerald-700' :
-                            group.color === 'amber' ? 'text-amber-700' :
-                              'text-slate-600'
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${group.color === 'emerald' ? 'text-emerald-700 dark:text-emerald-400' :
+                            group.color === 'amber' ? 'text-amber-700 dark:text-amber-400' :
+                              'text-slate-600 dark:text-slate-400'
                             }`}>{group.label}</span>
-                          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${group.color === 'emerald' ? 'bg-emerald-200 text-emerald-800' :
-                            group.color === 'amber' ? 'bg-amber-200 text-amber-800' :
-                              'bg-slate-200 text-slate-800'
+                          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${group.color === 'emerald' ? 'bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200' :
+                            group.color === 'amber' ? 'bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200' :
+                              'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200'
                             }`}>{group.data?.conversion_chance}%</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-2">"{group.data?.profile}"</p>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">"{group.data?.profile}"</p>
                       </div>
                     ))}
                   </div>
@@ -260,13 +260,13 @@ export default function OurProspects() {
             </div>
           </div>
         ) : (
-          <div className="bg-slate-50 rounded-2xl border border-dashed border-slate-300 p-12 text-center flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 p-12 text-center flex flex-col items-center gap-4">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-400 dark:text-slate-500">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h.01" /><path d="M12 16h.01" /><path d="M12 12h.01" /><path d="M12 8h.01" /><path d="M12 4h.01" /><path d="M8 20h.01" /><path d="M8 16h.01" /><path d="M8 12h.01" /><path d="M8 8h.01" /><path d="M8 4h.01" /><path d="M16 20h.01" /><path d="M16 16h.01" /><path d="M16 12h.01" /><path d="M16 8h.01" /><path d="M16 4h.01" /><path d="M4 20h.01" /><path d="M4 16h.01" /><path d="M4 12h.01" /><path d="M4 8h.01" /><path d="M4 4h.01" /><path d="M20 20h.01" /><path d="M20 16h.01" /><path d="M20 12h.01" /><path d="M20 8h.01" /><path d="M20 4h.01" /></svg>
             </div>
             <div>
-              <h3 className="font-bold text-slate-600">No Analysis Yet</h3>
-              <p className="text-slate-400 text-sm mt-1">Click the button above to generate your Ideal Customer Profile analysis.</p>
+              <h3 className="font-bold text-slate-600 dark:text-slate-400">No Analysis Yet</h3>
+              <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Click the button above to generate your Ideal Customer Profile analysis.</p>
             </div>
           </div>
         )}

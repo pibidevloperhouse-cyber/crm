@@ -501,15 +501,15 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
         <CardHeader className="border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50">
           <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
             <div className="flex-grow">
-              <div className="flex items-center gap-3 mb-1">
-                <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">
+              <div className="flex flex-wrap items-center gap-3 mb-1">
+                <CardTitle className="text-xl font-bold text-slate-900 dark:text-white break-words max-w-full">
                   {deal.name}
                 </CardTitle>
-                <div className="flex gap-2">
-                  <Badge className={`${deal.approved ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600"} border-none text-[10px] font-bold`}>
+                <div className="flex flex-wrap gap-2">
+                  <Badge className={`${deal.approved ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-600"} border-none text-[10px] font-bold shrink-0`}>
                     {deal.approved ? "APPROVED" : "DRAFT"}
                   </Badge>
-                  <Badge className={`${getLoyaltyInfo(deal.email).color} border-none px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-sm`}>
+                  <Badge className={`${getLoyaltyInfo(deal.email).color} border-none px-2 py-0.5 text-[9px] font-black uppercase tracking-wider shadow-sm shrink-0`}>
                     {getLoyaltyInfo(deal.email).level} CUSTOMER
                   </Badge>
                 </div>
@@ -702,7 +702,14 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
               </div>
 
               {/* Desktop View: Table */}
-              <div className="hidden md:block overflow-x-auto -mx-6 px-6">
+              <div className="hidden md:block overflow-x-auto -mx-6 px-6
+                [&::-webkit-scrollbar]:h-1.5 
+                [&::-webkit-scrollbar-track]:bg-transparent 
+                [&::-webkit-scrollbar-thumb]:bg-slate-200 
+                dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+                [&::-webkit-scrollbar-thumb]:rounded-full 
+                hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+                dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -954,9 +961,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
       </Card>
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-        <Button variant="outline" onClick={onBack} className="w-full sm:w-auto rounded-xl px-6 border-slate-200 dark:border-slate-800 font-bold hover:bg-slate-50 h-11">
-          Back to Configure
-        </Button>
+
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
