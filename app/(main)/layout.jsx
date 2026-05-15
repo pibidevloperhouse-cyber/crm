@@ -91,26 +91,21 @@ export default function Layout({ children }) {
           <div className="flex h-16 items-center justify-between">
             {/* Logo & Branding */}
             <div className="flex items-center gap-8">
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2.5 group"
-              >
-                {/* <div className="h-9 w-9 rounded-xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-600/20 group-hover:scale-105 transition-transform">
+              {/* <div className="h-9 w-9 rounded-xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-600/20 group-hover:scale-105 transition-transform">
                    <span className="text-white font-bold text-lg">S</span>
                 </div> */}
-                <div className="relative h-10 w-10 flex items-center justify-center overflow-hidden">
-                  <img
-                    src="/pibi_logo.webp"
-                    alt="Pibi Logo"
-                    className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-110"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent">
-                    Smart CRM
-                  </span>
-                </div>
-              </Link>
+              <div className="relative h-10 w-10 flex items-center justify-center overflow-hidden">
+                <img
+                  src="/pibi_logo.webp"
+                  alt="Pibi Logo"
+                  className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-110"
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold bg-gradient-to-r from-[#25C2A0] via-[#266d61] to-[#235d76] bg-clip-text text-transparent">
+                  Smart CRM
+                </span>
+              </div>
 
               {/* Desktop Menu */}
               <nav className="hidden lg:flex items-center gap-1">

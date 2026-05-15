@@ -9,14 +9,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, User, Sun, Moon } from "lucide-react";
+import {
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
+import TemplateCreator from "./TemplateCreator";
 import { Button } from "./ui/button";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function UserButton() {
+export default function UserButton({ darkMode, toggleTheme }) {
   const [user, setUser] = useState(null);
   const [type, setType] = useState(null);
   const router = useRouter();
@@ -85,6 +92,40 @@ export default function UserButton() {
         align="end"
         forceMount
       >
+        <div className="flex items-center justify-between p-2 mb-2 border-b border-slate-100 dark:border-slate-800 lg:hidden">
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md cursor-pointer">
+              <Settings className="h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent className="w-56 mt-2 rounded-xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 border-slate-200 dark:border-slate-800 shadow-2xl">
+                <DropdownMenuItem
+                  onClick={() => router.push("/company_details")}
+                  className="cursor-pointer"
+                >
+                  Company Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <TemplateCreator />
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-9 w-9 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
+          >
+            {darkMode ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user?.name}</p>
