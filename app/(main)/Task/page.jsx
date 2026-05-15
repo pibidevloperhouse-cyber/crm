@@ -70,10 +70,11 @@ export default function TaskPage() {
   const [submitting, setSubmitting] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(true);
+  const [leads, setLeads] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
   const [formData, setFormData] = useState({
     title: "", dueAt: "", description: "", category: "Task",
-    assigneeId: "", lead_id: "",
+    assigneeId: "", lead_id: "", client_name: "",
   });
 
   // ── Mobile breakpoint tracker ─────────────────────────────────────────────────
@@ -83,6 +84,20 @@ export default function TaskPage() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  // Fetch leads for the logged-in user
+  useEffect(() => {
+    const fetchLeads = async () => {
+      if (!currentUserEmail) return;
+      const { data, error } = await supabase
+        .from("Leads")
+        .select("id, name, company")
+        .eq("user_email", currentUserEmail);
+      if (error) { console.error("Error fetching leads:", error); return; }
+      setLeads(data || []);
+    };
+    fetchLeads();
+  }, [currentUserEmail]);
 
   // ── Theme sync ────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -98,30 +113,26 @@ export default function TaskPage() {
   // ── Get logged-in user email from Supabase Auth ───────────────────────────────
   // This runs once on mount. It reads the active session and extracts the email.
   // If no session exists we redirect to login (adjust the path as needed).
-  useEffect(() => {
-    const resolveUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        // No active session — redirect to your login page
-        router.push("/login");
-        return;
-      }
-      setCurrentUserEmail(user.email);
+ // REPLACE WITH:
+useEffect(() => {
+  try {
+    const rawSession = localStorage.getItem("session");
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      router.push("/");
+      return;
+    }
+    if (rawSession) {
+      const session = JSON.parse(rawSession);
+      const email = session?.user?.email || null;
+      setCurrentUserEmail(email);
       setAuthLoading(false);
-    };
-    resolveUser();
-
-    // Also listen for auth state changes (sign-in / sign-out)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        router.push("/login");
-      } else {
-        setCurrentUserEmail(session.user.email);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
+    }
+  } catch (err) {
+    console.error("Session parse error:", err);
+    router.push("/");
+  }
+}, []);
   // ── Fetch tasks — scoped to current user's email ──────────────────────────────
   const getCategoryColor = (cat) =>
     ({ Meeting: "#0ea5e9", Call: "#f59e0b", Task: "#8b5cf6", "Follow up": "#14b8a6" }[cat] || "#64748b");
@@ -134,7 +145,7 @@ export default function TaskPage() {
         .from("tasks")
         .select("*")
         // ✅ Only fetch rows that belong to this user's email
-        .eq("email", email)
+        .eq("user_email", email)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -153,7 +164,7 @@ export default function TaskPage() {
             lead_id: task.lead_id,
             dueAt: task.dueAt,
             metadata: task.metadata,
-            email: task.email,
+            email: task.user_email,
             color: getCategoryColor(task.metadata?.category || task.title || "Task"),
           }))
         );
@@ -185,8 +196,9 @@ export default function TaskPage() {
             : new Date().toISOString(),
           assigneeId: formData.assigneeId || null,
           lead_id: formData.lead_id || null,
+          client_name: formData.client_name || null,
           // ✅ Store the logged-in user's email
-          email: currentUserEmail,
+          user_email: currentUserEmail,
           metadata: {
             description: formData.description || "",
             status: "active",
@@ -235,8 +247,9 @@ export default function TaskPage() {
           dueAt: formData.dueAt ? new Date(formData.dueAt).toISOString() : null,
           assigneeId: formData.assigneeId || null,
           lead_id: formData.lead_id || null,
+          client_name: formData.client_name || null,
           // ✅ Re-stamp email on update (safety: ensure it stays consistent)
-          email: currentUserEmail,
+          user_email: currentUserEmail,
           metadata: {
             ...selectedTask.metadata,
             description: formData.description,
@@ -282,7 +295,7 @@ export default function TaskPage() {
         .delete()
         .eq("id", selectedTask.id)
         // ✅ Only delete if this user owns the row
-        .eq("email", currentUserEmail);
+        .eq("user_email", currentUserEmail);
 
       if (error) throw error;
       setTasks(tasks.filter((t) => t.id !== selectedTask.id));
@@ -308,7 +321,7 @@ export default function TaskPage() {
           metadata: { ...selectedTask.metadata, status: "closed" },
         })
         .eq("id", selectedTask.id)
-        .eq("email", currentUserEmail);
+        .eq("user_email", currentUserEmail);
 
       if (error) throw error;
       setTasks(tasks.map((t) =>
@@ -337,6 +350,7 @@ export default function TaskPage() {
         category: task.category,
         assigneeId: task.assigneeId || "",
         lead_id: task.lead_id || "",
+        client_name: task.client_name || "",
       });
     } else {
       resetForm();
@@ -347,7 +361,7 @@ export default function TaskPage() {
   const resetForm = () => {
     setFormData({
       title: "", dueAt: selectedDate, description: "",
-      category: "Task", assigneeId: "", lead_id: "",
+      category: "Task", assigneeId: "", lead_id: "", client_name: "",
     });
     setSelectedTask(null);
   };
@@ -853,14 +867,26 @@ export default function TaskPage() {
                     />
                   </div>
                   <div>
-                    <label className={`block text-sm font-semibold ${labelCls} mb-1`}>Lead ID (Optional)</label>
-                    <input
-                      type="text"
+                    <label className={`block text-sm font-semibold ${labelCls} mb-1`}>Client Name</label>
+                    <select
                       value={formData.lead_id}
-                      onChange={(e) => setFormData({ ...formData, lead_id: e.target.value })}
-                      placeholder="Lead ID"
-                      className={`w-full px-3 py-2 border rounded-lg text-sm outline-none transition ${inputCls}`}
-                    />
+                      onChange={(e) => {
+                        const lead = leads.find((l) => l.id === Number(e.target.value));
+                        setFormData({
+                          ...formData,
+                          lead_id: e.target.value,
+                          client_name: lead?.name || "",
+                        });
+                      }}
+                      className={`w-full px-3 py-2 border rounded-lg text-sm outline-none ${inputCls}`}
+                    >
+                      <option value="">— Select a client —</option>
+                      {leads.map((lead) => (
+                        <option key={lead.id} value={lead.id}>
+                          {lead.name} {lead.company ? `(${lead.company})` : ""}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </>
               ) : modalMode === "delete" ? (

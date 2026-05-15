@@ -71,18 +71,21 @@ export default function Home() {
   };
 
   const fetchTasks = async () => {
-    const { data } = await supabase
+    if (!userEmail) return;
+    const { data, error } = await supabase
       .from("tasks")
       .select("*")
-      .eq("user_email", !userEmail ? "undefined" : userEmail)
-      .gte("dueAt", new Date().toISOString())
-      .order("dueAt", { ascending: true })
-      .limit(5);
+      .eq("user_email", userEmail)
+      .eq("metadata->>category", "Meeting")
+      .order("dueAt", { ascending: true });
+    if (error) { console.error("Error fetching tasks:", error); return; }
     if (data) {
       setTasks(data.map(t => ({
-        time: new Date(t.dueAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        client: t.client_name || t.title,
-        type: t.metadata?.category || "Meeting"
+        title: t.title,
+        time: t.dueAt ? new Date(t.dueAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "No time",
+        date: t.dueAt ? new Date(t.dueAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "No date",
+        client: t.client_name || null,
+        type: t.metadata?.category || "Task",
       })));
     }
   };
@@ -477,13 +480,16 @@ export default function Home() {
               Upcoming Meetings
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 max-h-72 overflow-y-auto pr-1">
             {upcomingMeetings.length > 0 ? (
               upcomingMeetings.map((m, i) => (
                 <div key={i} className={rowClass}>
                   <div>
-                    <p className="font-medium text-slate-800 dark:text-slate-200">{m.client}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{m.type}</p>
+                    <p className="font-medium text-slate-800 dark:text-slate-200">{m.title}</p>
+                    {m.client && (
+                      <p className="text-xs text-teal-600 dark:text-teal-400">{m.client}</p>
+                    )}
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{m.date}</p>
                   </div>
                   <span className="text-sm text-slate-600 dark:text-slate-300">{m.time}</span>
                 </div>
@@ -503,7 +509,7 @@ export default function Home() {
               Active Deals
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 max-h-72 overflow-y-auto pr-1">
             {activeDeals.length > 0 ? (
               activeDeals.map((d, i) => (
                 <div key={i} className={rowClass}>
