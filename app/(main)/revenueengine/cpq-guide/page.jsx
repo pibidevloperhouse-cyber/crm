@@ -68,7 +68,7 @@ export default function CPQGuidePage() {
       {/* Header */}
       <div className="mb-8 md:mb-10 flex flex-col md:flex-row justify-between items-start gap-4">
         <div className="w-full md:w-auto text-center md:text-left">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-4xl font-bold bg-teal-700 bg-clip-text text-transparent">
             CPQ Guide
           </h1>
           <p className="text-slate-500 mt-2 text-sm md:text-base max-w-md mx-auto md:mx-0">
