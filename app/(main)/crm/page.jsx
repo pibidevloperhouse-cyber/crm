@@ -352,7 +352,12 @@ export default function CRM() {
 
         {/* Scrollable cards */}
         {!isCollapsed && (
-          <div className="flex-1 overflow-y-auto p-1.5 space-y-1.5 min-h-[60px]">
+          <div className="flex-1 overflow-y-auto p-1.5 space-y-1.5 min-h-[60px]
+            [&::-webkit-scrollbar]:w-1 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-700/50 
+            [&::-webkit-scrollbar-thumb]:rounded-full">
             <AnimatePresence>
               {count === 0 && (
                 <p className="text-center text-xs text-slate-400 dark:text-slate-600 py-6 select-none">
@@ -729,7 +734,14 @@ export default function CRM() {
         </div>
 
         <TabsContent value="Leads" className="flex-1 min-h-0 m-0">
-          <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
+          <div className="flex gap-2 h-full pb-2 overflow-x-auto items-start
+            [&::-webkit-scrollbar]:h-1.5 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+            [&::-webkit-scrollbar-thumb]:rounded-full 
+            hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+            dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700">
             {getLeadStatuses().map((status) => {
               const items = leadsData.filter((l) => l.status === status);
               return (
@@ -761,7 +773,14 @@ export default function CRM() {
 
         {/* ── DEALS board ── */}
         <TabsContent value="Deals" className="flex-1 min-h-0 m-0">
-          <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
+          <div className="flex gap-2 h-full pb-2 overflow-x-auto items-start
+            [&::-webkit-scrollbar]:h-1.5 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+            [&::-webkit-scrollbar-thumb]:rounded-full 
+            hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+            dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700">
             {getDealStatuses().map((status) => {
               const items = dealsData.filter((d) => d.status === status);
               return (
@@ -806,7 +825,14 @@ export default function CRM() {
 
         {/* ── CUSTOMERS board ── */}
         <TabsContent value="Customers" className="flex-1 min-h-0 m-0">
-          <div className="flex gap-2 h-full pb-2 overflow-x-auto custom-scrollbar items-start">
+          <div className="flex gap-2 h-full pb-2 overflow-x-auto items-start
+            [&::-webkit-scrollbar]:h-1.5 
+            [&::-webkit-scrollbar-track]:bg-transparent 
+            [&::-webkit-scrollbar-thumb]:bg-slate-200 
+            dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 
+            [&::-webkit-scrollbar-thumb]:rounded-full 
+            hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 
+            dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700">
             {getCustomerStatuses().map((status) => {
               const items = customersData.filter((c) => c.status === status);
               return (
