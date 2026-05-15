@@ -590,8 +590,6 @@ export default function ProductsPage() {
               {filtered.length} product{filtered.length !== 1 ? "s" : ""}
             </span>
           </div>
-
-          {/* Table */}
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
             <Table>
               <TableHeader>
@@ -633,17 +631,17 @@ export default function ProductsPage() {
                       <TableCell className="text-sm text-slate-600 dark:text-slate-300 font-medium">{item.stock}</TableCell>
                       <TableCell>
                         {item.stock == 0 ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-red-50 dark:bg-transparent text-red-600 border border-red-200 px-2.5 py-1 rounded-full">
                             <span className="size-1.5 rounded-full bg-red-500 inline-block" />
                             Out of Stock
                           </span>
                         ) : item.stock < 10 ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-400 bg-red-400/10 hover:bg-red-400/20 border border-orange-200 px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-400 dark:bg-transparent bg-red-400/10 hover:bg-red-400/20 border border-orange-200 px-2.5 py-1 rounded-full">
                             <span className="size-1.5 rounded-full bg-orange-500 inline-block" />
                             Low Stock
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-50 text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-full">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-50 dark:bg-transparent text-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-full">
                             <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
                             In Stock
                           </span>
