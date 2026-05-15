@@ -70,7 +70,7 @@ export default function TaskPage() {
   const [submitting, setSubmitting] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(true);
-  const [leads, setLeads] = useState([]);
+
   const [isMobile, setIsMobile] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -114,26 +114,26 @@ export default function TaskPage() {
   // ── Get logged-in user email from Supabase Auth ───────────────────────────────
   // This runs once on mount. It reads the active session and extracts the email.
   // If no session exists we redirect to login (adjust the path as needed).
- // REPLACE WITH:
-useEffect(() => {
-  try {
-    const rawSession = localStorage.getItem("session");
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) {
+  // REPLACE WITH:
+  useEffect(() => {
+    try {
+      const rawSession = localStorage.getItem("session");
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) {
+        router.push("/");
+        return;
+      }
+      if (rawSession) {
+        const session = JSON.parse(rawSession);
+        const email = session?.user?.email || null;
+        setCurrentUserEmail(email);
+        setAuthLoading(false);
+      }
+    } catch (err) {
+      console.error("Session parse error:", err);
       router.push("/");
-      return;
     }
-    if (rawSession) {
-      const session = JSON.parse(rawSession);
-      const email = session?.user?.email || null;
-      setCurrentUserEmail(email);
-      setAuthLoading(false);
-    }
-  } catch (err) {
-    console.error("Session parse error:", err);
-    router.push("/");
-  }
-}, []);
+  }, []);
   // ── Fetch tasks — scoped to current user's email ──────────────────────────────
   // 2. Fetch Hooks (Declared before any useEffect executions)
   const fetchLeads = async () => {

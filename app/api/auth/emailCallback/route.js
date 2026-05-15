@@ -17,30 +17,36 @@ export async function GET(req) {
       process.env.GOOGLE_REDIRECT_URI
     );
 
-  const { tokens } = await oauth2Client.getToken(code);
-  const supabase = await createClient();
-  const session = await getServerSession(authOptions);
+    const { tokens } = await oauth2Client.getToken(code);
+    const supabase = await createClient();
+    const session = await getServerSession(authOptions);
 
-  if (!session?.user?.email) {
-    console.error("No user session found in callback");
-    return NextResponse.redirect(new URL("/", req.url).toString());
-  }
-
-  // Only update if we actually got a refresh token
-  if (tokens.refresh_token) {
-    const { error: error } = await supabase
-      .from("Users")
-      .update({
-        refresh_token: tokens.refresh_token,
-      })
-      .eq("email", session.user.email);
-
-    if (error) {
-      console.error("Database update error:", error);
+    if (!session?.user?.email) {
+      console.error("No user session found in callback");
+      return NextResponse.redirect(new URL("/", req.url).toString());
     }
-  } else {
-    console.log("No refresh token returned (user may have already authorized)");
-  }
 
-  return NextResponse.redirect(new URL("/", req.url).toString());
+    // Only update if we actually got a refresh token
+    if (tokens.refresh_token) {
+      const { error: error } = await supabase
+        .from("Users")
+        .update({
+          refresh_token: tokens.refresh_token,
+        })
+        .eq("email", session.user.email);
+
+      if (error) {
+        console.error("Database update error:", error);
+      }
+    } else {
+      console.log("No refresh token returned (user may have already authorized)");
+    }
+
+    return NextResponse.redirect(new URL("/", req.url).toString());
+  } catch (error) {
+    // 
+    console.error("OAuth Callback Error:", error);
+    // Redirects to home page on failure, or you can return a 500 error response
+    return NextResponse.redirect(new URL("/?error=oauth_failed", req.url).toString());
+  }
 }
