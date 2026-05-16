@@ -23,10 +23,11 @@ const CustomerForm = ({ session, fetchCustomers, setCustomersData }) => {
     email: "",
     linkedIn: "",
     price: "",
-    location: "",
+    address: "",
     website: "",
     industry: "",
     status: "",
+    issues: "",
     created_at: today,
   });
   const [errors, setErrors] = useState({});
@@ -69,9 +70,9 @@ const CustomerForm = ({ session, fetchCustomers, setCustomersData }) => {
     }
 
     if (customerFormData.linkedIn) {
-      if (!customerFormData.linkedIn.includes("https://www.linkedin.com/")) {
-        newErrors.linkedIn = "LinkedIn Url Required";
-        toast.error("LinkedIn Url Required");
+      if (!customerFormData.linkedIn.toLowerCase().includes("linkedin.com")) {
+        newErrors.linkedIn = "Valid LinkedIn URL required";
+        toast.error("Please enter a valid LinkedIn URL");
         isValid = false;
       } else {
         newErrors.linkedIn = "";
@@ -116,10 +117,11 @@ const CustomerForm = ({ session, fetchCustomers, setCustomersData }) => {
           email: "",
           linkedIn: "",
           price: 0,
-          location: "",
+          address: "",
           website: "",
           industry: "",
           status: "",
+          issues: "",
           created_at: "",
         });
       } else {
@@ -279,14 +281,14 @@ const CustomerForm = ({ session, fetchCustomers, setCustomersData }) => {
           <Input
             id="address"
             type="text"
-            value={customerFormData.location}
-            onChange={(e) => updateCustomerFormData("location", e.target.value)}
+            value={customerFormData.address}
+            onChange={(e) => updateCustomerFormData("address", e.target.value)}
             className={`bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 ${
               errors.location ? "border-red-500" : ""
             }`}
             placeholder="Customer Address"
           />
-          <ErrorMessage error={errors.location} />
+          <ErrorMessage error={errors.address} />
         </div>
         <div>
           <Label
@@ -344,14 +346,14 @@ const CustomerForm = ({ session, fetchCustomers, setCustomersData }) => {
           <Input
             id="price"
             type="text"
-            value={customerFormData.issue}
-            onChange={(e) => updateCustomerFormData("issue", e.target.value)}
+            value={customerFormData.issues}
+            onChange={(e) => updateCustomerFormData("issues", e.target.value)}
             className={`bg-white/50 dark:bg-slate-800/50 border-white/20 dark:border-slate-700/50 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 ${
               errors.issue ? "border-red-500" : ""
             }`}
             placeholder="Customer issue"
           />
-          <ErrorMessage error={errors.issue} />
+          <ErrorMessage error={errors.issues} />
         </div>
         <div>
           <Label

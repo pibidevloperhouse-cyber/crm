@@ -69,8 +69,8 @@ const CurrencyDropDown = ({
                 <CommandItem
                   key={currency.code}
                   value={`${currency.code} ${currency.name} ${currency.symbol}`}
-                  onSelect={(currentValue) => {
-                    onValueChange(currentValue === value ? "" : currentValue);
+                  onSelect={() => {
+                    onValueChange(currency.code === value ? "" : currency.code);
                     setOpen(false);
                   }}
                 >
