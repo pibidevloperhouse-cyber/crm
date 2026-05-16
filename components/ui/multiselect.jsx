@@ -190,10 +190,11 @@ const MultipleSelector = ({
 
   useEffect(() => {
     /** If `onSearch` is provided, do not trigger options updated. */
-    if (!arrayOptions || onSearch) {
+    if (onSearch) {
       return;
     }
-    const newOption = transToGroupOption(arrayOptions || [], groupBy);
+    const targetOptions = arrayOptions || arrayDefaultOptions;
+    const newOption = transToGroupOption(targetOptions || [], groupBy);
     if (JSON.stringify(newOption) !== JSON.stringify(options)) {
       setOptions(newOption);
     }
@@ -370,15 +371,17 @@ const MultipleSelector = ({
               <div
                 key={option.value}
                 className={cn(
-                  "animate-fadeIn bg-background text-secondary-foreground hover:bg-background relative inline-flex h-7 cursor-default items-center rounded-md border ps-2 pe-7 pl-2 text-xs font-medium transition-all disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-fixed:pe-2",
+                  "bg-white text-slate-700 hover:bg-white relative inline-flex h-7 cursor-default items-center rounded-md border border-transparent px-2 gap-1 text-xs font-medium transition-all disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-fixed:pe-2",
                   badgeClassName
                 )}
                 data-fixed={option.fixed}
                 data-disabled={disabled || undefined}
               >
-                {option.label}
+                <span className="truncate max-w-[150px]">
+                  {typeof option === "string" ? option : (option.label || option.value || "")}
+                </span>
                 <button
-                  className="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 absolute -inset-y-px -end-px flex size-7 items-center justify-center rounded-e-md border border-transparent p-0 outline-hidden transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
+                  className="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex size-4 items-center justify-center rounded-full transition-[color,box-shadow] outline-none hover:bg-muted"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       handleUnselect(option);
@@ -391,7 +394,7 @@ const MultipleSelector = ({
                   onClick={() => handleUnselect(option)}
                   aria-label="Remove"
                 >
-                  <XIcon size={14} aria-hidden="true" />
+                  <XIcon size={12} aria-hidden="true" />
                 </button>
               </div>
             );
@@ -446,7 +449,7 @@ const MultipleSelector = ({
                 disabled ||
                 selected.length < 1 ||
                 selected.filter((s) => s.fixed).length === selected.length) &&
-                "hidden"
+              "hidden"
             )}
             aria-label="Clear all"
           >
@@ -515,10 +518,10 @@ const MultipleSelector = ({
                               className={cn(
                                 "cursor-pointer",
                                 option.disable &&
-                                  "pointer-events-none cursor-not-allowed opacity-50"
+                                "pointer-events-none cursor-not-allowed opacity-50"
                               )}
                             >
-                              {option.label}
+                              {typeof option === "string" ? option : (option.label || option.value || "")}
                             </CommandItem>
                           );
                         })}
