@@ -203,6 +203,8 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
   };
 
   const handleSave = async () => {
+    const { subtotalBeforeTax, totalTax, grandTotal } = getTotals();
+
     const legacyTaxRate =
       parseFloat(deal.tax_vat || 0) +
       parseFloat(deal.tax_gst || 0) +
@@ -217,7 +219,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
       manufacturing_cost: deal.manufacturing_cost || [],
       shipping_cost: deal.shipping_cost || [],
       additional_fees: deal.additional_fees || [],
-      tax: parseFloat(deal.tax_rate ?? legacyTaxRate),
+      // tax: parseFloat(deal.tax_rate ?? legacyTaxRate),
       tax_rate: parseFloat(deal.tax_rate ?? legacyTaxRate),
       tax_region_type: deal.tax_region_type || "None",
       tax_inclusion: deal.tax_inclusion || "Exclusive",
@@ -225,6 +227,10 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
       line_taxes: deal.line_taxes || [],
       auto_discount_status: deal.auto_discount_status || [],
       pricing_strategy: deal.pricing_strategy || [],
+      // ✅ Add these:
+      subtotal: subtotalBeforeTax,
+      total_tax: totalTax,
+      finalPrice: grandTotal,
     };
 
     const { error } = await supabase
@@ -233,6 +239,7 @@ export default function PricingDetailsSection({ selectedDealId, onNext, onBack }
       .eq("id", deal.id);
 
     if (error) {
+      console.log(error);
       toast.error("Failed to save pricing details.");
     } else {
       toast.success("Pricing details saved successfully!");
