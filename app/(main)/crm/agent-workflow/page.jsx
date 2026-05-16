@@ -141,6 +141,22 @@ export default function AgentWorkflowPage() {
       setIsRunning(nowRunning);
       setWakeMsg("");
       success(nowRunning ? "✅ Email automation started!" : "🛑 Email automation stopped.");
+      if (nowRunning) {
+        try {
+          const email = "kikuu737@gmail.com";
+          const usersRes = await fetch(`${API}/get-users`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+          if (!usersRes.ok) throw new Error(`HTTP ${usersRes.status}`);
+          const usersData = await usersRes.json();
+          success("✅ Users fetched successfully!");
+          console.log("Fetched users:", usersData.users);
+        } catch (usersErr) {
+          toastError(`❌ get-users failed: ${usersErr.message}`);
+        }
+      }
     } catch (err) {
       setWakeMsg("");
       toastError(`❌ ${err.message}`);
