@@ -15,6 +15,74 @@ import { toast } from "react-toastify";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+async function loadImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function drawTextHeader(pdf, deal, template, y, marginL, pageWidth) {
+  // Left side: logo placeholder + company name
+  pdf.setFillColor(173, 216, 230); // light blue logo box
+  pdf.rect(marginL, y, 10, 10, "F");
+  pdf.setFontSize(7);
+  pdf.setFont("helvetica", "bold");
+  pdf.setTextColor(30, 30, 30);
+  pdf.text("LOGO", marginL + 1.2, y + 6.5);
+
+  pdf.setFontSize(16);
+  pdf.setFont("helvetica", "bold");
+  pdf.setTextColor(30, 80, 140);
+  pdf.text(
+    template?.template_data?.headerTitle || deal.title || "Company Name",
+    marginL + 13, y + 7
+  );
+  y += 14;
+
+  pdf.setFontSize(10);
+  pdf.setFont("helvetica", "normal");
+  pdf.setTextColor(30, 80, 140);
+  pdf.text(
+    template?.template_data?.headerSubtitle || deal.subtitle || "",
+    marginL, y
+  );
+  y += 6;
+
+  pdf.setFontSize(8.5);
+  pdf.setTextColor(60, 60, 60);
+  const lines = [
+    template?.template_data?.headerAddress || deal.address || "",
+    template?.template_data?.headerPhone   || deal.number  || "",
+    template?.template_data?.headerEmail   || deal.email   || "",
+  ].filter(Boolean);
+  lines.forEach((line) => { pdf.text(line, marginL, y); y += 5; });
+
+  return y + 6;
+}
+
+function drawTextFooter(pdf, template, pageHeight, pageWidth) {
+  pdf.setFontSize(8);
+  pdf.setFont("helvetica", "normal");
+  pdf.setTextColor(100, 100, 100);
+  pdf.text(
+    template?.template_data?.footerNote || "If you have any questions about this price quote, please contact us.",
+    pageWidth / 2, pageHeight - 12, { align: "center" }
+  );
+  if (template?.template_data?.footerDisclaimer) {
+    pdf.text(
+      template.template_data.footerDisclaimer,
+      pageWidth / 2, pageHeight - 7, { align: "center" }
+    );
+  }
+  pdf.setFont("helvetica", "bolditalic");
+  pdf.text("Thank You For Your Business!", pageWidth / 2, pageHeight - 3, { align: "center" });
+}
+
 function QuotePreview({ dealId, children, onComplete }) {
   const [open, setOpen] = useState(false);
   const [deal, setDeal] = useState(null);
@@ -57,9 +125,16 @@ function QuotePreview({ dealId, children, onComplete }) {
       }
 
       // Fetch the latest template to get header/footer images
+      const storedSession = localStorage.getItem("session");
+      const currentUserEmail = storedSession 
+        ? JSON.parse(storedSession)?.user?.email 
+        : null;
+
+      // Fetch the latest template scoped to the logged-in user
       const { data: templateData, error: templateError } = await supabase
         .from("quote_templates")
         .select("*")
+        .eq("user_email", currentUserEmail)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -86,220 +161,389 @@ function QuotePreview({ dealId, children, onComplete }) {
     setGeneratingPDF(true);
 
     try {
-      const element = document.getElementById("quote-pdf-content");
-      if (!element) {
-        toast.error("PDF content not found");
-        setGeneratingPDF(false);
-        return;
-      }
-
       toast.info("Generating PDF, please wait...");
 
-      // Small delay for stability and DOM settling
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const canvas = await html2canvas(element, {
-        scale: 1.5, // Slightly lower for better memory reliability
-        useCORS: true,
-        allowTaint: false,
-        logging: true, // Keep logging enabled to catch errors in dev console
-        backgroundColor: "#ffffff",
-        scrollX: 0,
-        scrollY: 0,
-        // Optional onclone to ensure visibility
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById("quote-pdf-content");
-          if (clonedElement) {
-            clonedElement.style.visibility = "visible";
-            clonedElement.style.display = "block";
-          }
-        },
-      });
-
-      // Using JPEG with quality 0.8 can be more memory efficient than PNG for large canvases
-      const imgData = canvas.toDataURL("image/jpeg", 0.8);
       const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const marginL = 15;
+      const marginR = 15;
+      const contentWidth = pageWidth - marginL - marginR;
+      let y = 15;
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      // ── Helper: draw a filled blue banner ───────────────────────────────
+      const blueBanner = (label, yPos) => {
+        pdf.setFillColor(30, 80, 140);
+        pdf.rect(marginL, yPos, contentWidth, 8, "F");
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(label, marginL + 3, yPos + 5.5);
+        return yPos + 8;
+      };
 
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Add the first page
-      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      // Add extra pages if needed
-      let pageCount = 1;
-      while (heightLeft > 0 && pageCount < 10) {
-        // Limit to 10 pages for safety
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdfHeight;
-        pageCount++;
+      // ══════════════════════════════════════════════════════════════════════
+      // SECTION 1 — HEADER
+      // ══════════════════════════════════════════════════════════════════════
+      if (template?.header_image_url) {
+        try {
+          const img = await loadImageAsBase64(template.header_image_url);
+          pdf.addImage(img, "JPEG", 0, 0, pageWidth, 38);
+          y = 44;
+        } catch {
+          y = drawTextHeader(pdf, deal, template, y, marginL, pageWidth);
+        }
+      } else {
+        y = drawTextHeader(pdf, deal, template, y, marginL, pageWidth);
       }
 
-      pdf.save(`Quote-${dealId}-${new Date().getTime()}.pdf`);
+      // ══════════════════════════════════════════════════════════════════════
+      // SECTION 2 — QUOTE INFO TABLE (right-aligned, same row as header)
+      // Drawn OVER the header area, top-right corner
+      // ══════════════════════════════════════════════════════════════════════
+      const tableStartX = pageWidth - marginR - 65; // 65mm wide table
+      const tableRowH = 7;
+      const quoteRows = [
+        ["DATE",        deal.created_at   ? new Date(deal.created_at).toLocaleDateString()   : "N/A"],
+        ["QUOTE #",     String(deal.id)],
+        ["CUSTOMER ID", deal.customer_id  || "N/A"],
+        ["VALID UNTIL", deal.valid_until  ? new Date(deal.valid_until).toLocaleDateString()  : "N/A"],
+      ];
+
+      // "QUOTE" heading above the table
+      pdf.setFontSize(20);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(30, 80, 140);
+      pdf.text("QUOTE", pageWidth - marginR, 15, { align: "right" });
+
+      // Draw table outline + rows
+      let tY = 20;
+      pdf.setFontSize(8);
+      quoteRows.forEach(([label, value]) => {
+        // row background alternating (optional — keep it clean)
+        pdf.setDrawColor(120, 120, 120);
+        pdf.rect(tableStartX, tY, 65, tableRowH);
+
+        // Label cell (left half)
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(50, 50, 50);
+        pdf.text(label, tableStartX + 2, tY + 4.8);
+
+        // Divider
+        pdf.line(tableStartX + 28, tY, tableStartX + 28, tY + tableRowH);
+
+        // Value cell (right half)
+        pdf.setFont("helvetica", "normal");
+        pdf.text(value, tableStartX + 30, tY + 4.8);
+
+        tY += tableRowH;
+      });
+
+      // make sure y is below both header and quote table
+      y = Math.max(y, tY + 6);
+
+      // ══════════════════════════════════════════════════════════════════════
+      // SECTION 3 — CUSTOMER
+      // ══════════════════════════════════════════════════════════════════════
+      y = blueBanner("CUSTOMER", y);
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(50, 50, 50);
+      y += 5;
+      pdf.text(deal.name                              || "-", marginL + 2, y); y += 6;
+      pdf.text(deal.customer_company                  || "-", marginL + 2, y); y += 6;
+      pdf.text(deal.customer_address || deal.address  || "-", marginL + 2, y); y += 10;
+
+      // ══════════════════════════════════════════════════════════════════════
+      // SECTION 4 — ITEMS TABLE
+      // ══════════════════════════════════════════════════════════════════════
+      // Column x positions (mirroring preview: DESC | UNIT PRICE | QTY | TAXED | AMOUNT)
+      const col = {
+        desc:      marginL + 2,
+        unitPrice: marginL + contentWidth * 0.52,
+        qty:       marginL + contentWidth * 0.65,
+        taxed:     marginL + contentWidth * 0.78,
+        amount:    marginL + contentWidth + 2,   // right-aligned to margin
+      };
+
+      // Header row
+      pdf.setFillColor(30, 80, 140);
+      pdf.rect(marginL, y, contentWidth, 8, "F");
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("DESCRIPTION",  col.desc,      y + 5.5);
+      pdf.text("UNIT PRICE",   col.unitPrice, y + 5.5, { align: "right" });
+      pdf.text("QTY",          col.qty,       y + 5.5, { align: "right" });
+      pdf.text("TAXED",        col.taxed,     y + 5.5, { align: "right" });
+      pdf.text("AMOUNT",       col.amount,    y + 5.5, { align: "right" });
+      y += 8;
+
+      // Rows
+      let subtotal = 0;
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(50, 50, 50);
+
+      if (deal.products?.length > 0) {
+        deal.products.forEach((item, index) => {
+          if (y > pageHeight - 70) { pdf.addPage(); y = 20; }
+
+          const qty   = Number(deal.quantity?.[index] || 1);
+          const price = Number(deal.value?.[index]    || 0);
+          const amount = qty * price;
+          subtotal += amount;
+
+          // row border
+          pdf.setDrawColor(200, 200, 200);
+          pdf.rect(marginL, y, contentWidth, 8);
+
+          pdf.setFontSize(8.5);
+          pdf.text(String(item),           col.desc,      y + 5.5);
+          pdf.text(price.toFixed(2),       col.unitPrice, y + 5.5, { align: "right" });
+          pdf.text(String(qty),            col.qty,       y + 5.5, { align: "right" });
+          pdf.text("-",                    col.taxed,     y + 5.5, { align: "right" });
+          pdf.text(amount.toFixed(2),      col.amount,    y + 5.5, { align: "right" });
+          y += 8;
+        });
+      } else {
+        pdf.text("No items", col.desc, y + 5); y += 8;
+      }
+
+      y += 6;
+
+      // ══════════════════════════════════════════════════════════════════════
+      // SECTION 5 — TOTALS (right-aligned block, matching preview)
+      // ══════════════════════════════════════════════════════════════════════
+      const taxRate   = 0.0625;
+      const tax       = subtotal * taxRate;
+      const total     = subtotal + tax;
+
+      const totLabelX = pageWidth - marginR - 48;
+      const totValueX = pageWidth - marginR;
+
+      const totalsRows = [
+        ["Subtotal",  `₹${subtotal.toFixed(2)}`],
+        ["Taxable",   `₹${subtotal.toFixed(2)}`],
+        ["Tax rate",  `${(taxRate * 100).toFixed(2)}%`],
+        ["Tax due",   `₹${tax.toFixed(2)}`],
+        ["Other",     "-"],
+      ];
+
+      pdf.setFontSize(9);
+      totalsRows.forEach(([label, value]) => {
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(50, 50, 50);
+        pdf.text(label, totLabelX, y);
+        pdf.text(value, totValueX, y, { align: "right" });
+        y += 7;
+      });
+
+      // Divider + TOTAL bold row
+      pdf.setDrawColor(80, 80, 80);
+      pdf.line(totLabelX, y, totValueX, y);
+      y += 5;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(10);
+      pdf.setTextColor(30, 30, 30);
+      pdf.text("TOTAL",           totLabelX, y);
+      pdf.text(`₹${total.toFixed(2)}`, totValueX, y, { align: "right" });
+      y += 14;
+
+      // ══════════════════════════════════════════════════════════════════════
+      // SECTION 6 — TERMS AND CONDITIONS
+      // ══════════════════════════════════════════════════════════════════════
+      if (y > pageHeight - 65) { pdf.addPage(); y = 20; }
+
+      y = blueBanner("TERMS AND CONDITIONS", y);
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(50, 50, 50);
+      y += 5;
+      const terms = [
+        "1. Customer will be billed after indicating acceptance of this quote",
+        "2. Payment will be due prior to delivery of service and goods",
+        "3. Please fax or mail the signed price quote to the address above",
+      ];
+      terms.forEach((t) => { pdf.text(t, marginL + 2, y); y += 7; });
+
+      y += 6;
+      pdf.text("Customer Acceptance (sign below):", marginL + 2, y); y += 12;
+      pdf.setDrawColor(80, 80, 80);
+      pdf.line(marginL + 2, y, marginL + 85, y);                     y += 7;
+      pdf.text("Print Name:", marginL + 2, y);
+
+      // ══════════════════════════════════════════════════════════════════════
+      // SECTION 7 — FOOTER
+      // ══════════════════════════════════════════════════════════════════════
+      if (template?.footer_image_url) {
+        try {
+          const footerImg = await loadImageAsBase64(template.footer_image_url);
+          pdf.addImage(footerImg, "JPEG", 0, pageHeight - 28, pageWidth, 28);
+        } catch {
+          drawTextFooter(pdf, template, pageHeight, pageWidth);
+        }
+      } else {
+        drawTextFooter(pdf, template, pageHeight, pageWidth);
+      }
+
+      pdf.save(`Quote-${dealId}-${Date.now()}.pdf`);
       toast.success("PDF downloaded successfully!");
     } catch (error) {
-      console.error("PDF generation detailed error:", error);
-      toast.error(`PDF Error: ${error.message || "Unknown error"}. Try again.`);
+      console.error("PDF generation error:", error);
+      toast.error(`PDF Error: ${error.message || "Unknown error"}`);
     } finally {
       setGeneratingPDF(false);
     }
   };
 
   // Alternative PDF generation method as fallback
-  const handleDownloadPDFAlternative = async () => {
-    if (!deal) {
-      toast.error("No deal data available");
-      return;
-    }
+  // const handleDownloadPDFAlternative = async () => {
+  //   if (!deal) {
+  //     toast.error("No deal data available");
+  //     return;
+  //   }
 
-    setGeneratingPDF(true);
+  //   setGeneratingPDF(true);
 
-    try {
-      toast.info("Generating PDF using alternative method...");
+  //   try {
+  //     toast.info("Generating PDF using alternative method...");
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      let yPosition = 20;
+  //     const pdf = new jsPDF("p", "mm", "a4");
+  //     let yPosition = 20;
 
-      // Add company info
-      pdf.setFontSize(16);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("QUOTATION", 105, yPosition, { align: "center" });
-      yPosition += 20;
+  //     // Add company info
+  //     pdf.setFontSize(16);
+  //     pdf.setFont("helvetica", "bold");
+  //     pdf.text("QUOTATION", 105, yPosition, { align: "center" });
+  //     yPosition += 20;
 
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "normal");
+  //     pdf.setFontSize(10);
+  //     pdf.setFont("helvetica", "normal");
 
-      // Company details
-      pdf.text(`Company: ${deal.title || "[Company Name]"}`, 20, yPosition);
-      yPosition += 6;
-      pdf.text(`Address: ${deal.address || "[Street Address]"}`, 20, yPosition);
-      yPosition += 6;
-      pdf.text(`City: ${deal.city || "[City, ST ZIP]"}`, 20, yPosition);
-      yPosition += 6;
-      pdf.text(`Phone: ${deal.number || "(000) 000-0000"}`, 20, yPosition);
-      yPosition += 6;
-      pdf.text(`Email: ${deal.email || "company@email.com"}`, 20, yPosition);
-      yPosition += 15;
+  //     // Company details
+  //     pdf.text(`Company: ${deal.title || "[Company Name]"}`, 20, yPosition);
+  //     yPosition += 6;
+  //     pdf.text(`Address: ${deal.address || "[Street Address]"}`, 20, yPosition);
+  //     yPosition += 6;
+  //     pdf.text(`City: ${deal.city || "[City, ST ZIP]"}`, 20, yPosition);
+  //     yPosition += 6;
+  //     pdf.text(`Phone: ${deal.number || "(000) 000-0000"}`, 20, yPosition);
+  //     yPosition += 6;
+  //     pdf.text(`Email: ${deal.email || "company@email.com"}`, 20, yPosition);
+  //     yPosition += 15;
 
-      // Quote details table
-      pdf.text(`Quote #: ${deal.id}`, 150, yPosition - 15);
-      pdf.text(
-        `Date: ${new Date(deal.created_at).toLocaleDateString()}`,
-        150,
-        yPosition - 9,
-      );
-      pdf.text(`Valid Until: 2/15/2025`, 150, yPosition - 3);
+  //     // Quote details table
+  //     pdf.text(`Quote #: ${deal.id}`, 150, yPosition - 15);
+  //     pdf.text(
+  //       `Date: ${new Date(deal.created_at).toLocaleDateString()}`,
+  //       150,
+  //       yPosition - 9,
+  //     );
+  //     pdf.text(`Valid Until: 2/15/2025`, 150, yPosition - 3);
 
-      // Customer info
-      pdf.setFont("helvetica", "bold");
-      pdf.text("CUSTOMER INFO", 20, yPosition);
-      yPosition += 8;
-      pdf.setFont("helvetica", "normal");
-      pdf.text(`Name: ${deal.name || "[Customer Name]"}`, 20, yPosition);
-      yPosition += 6;
-      pdf.text(
-        `Address: ${deal.address || "[Customer Address]"}`,
-        20,
-        yPosition,
-      );
-      yPosition += 6;
-      pdf.text(
-        `Email: ${deal.user_email || "[Customer Email]"}`,
-        20,
-        yPosition,
-      );
-      yPosition += 15;
+  //     // Customer info
+  //     pdf.setFont("helvetica", "bold");
+  //     pdf.text("CUSTOMER INFO", 20, yPosition);
+  //     yPosition += 8;
+  //     pdf.setFont("helvetica", "normal");
+  //     pdf.text(`Name: ${deal.name || "[Customer Name]"}`, 20, yPosition);
+  //     yPosition += 6;
+  //     pdf.text(
+  //       `Address: ${deal.address || "[Customer Address]"}`,
+  //       20,
+  //       yPosition,
+  //     );
+  //     yPosition += 6;
+  //     pdf.text(
+  //       `Email: ${deal.user_email || "[Customer Email]"}`,
+  //       20,
+  //       yPosition,
+  //     );
+  //     yPosition += 15;
 
-      // Description
-      pdf.setFont("helvetica", "bold");
-      pdf.text("DESCRIPTION OF WORK", 20, yPosition);
-      yPosition += 8;
-      pdf.setFont("helvetica", "normal");
-      const description = deal.description || "Provide project details here...";
-      const splitDescription = pdf.splitTextToSize(description, 170);
-      pdf.text(splitDescription, 20, yPosition);
-      yPosition += splitDescription.length * 6 + 10;
+  //     // Description
+  //     pdf.setFont("helvetica", "bold");
+  //     pdf.text("DESCRIPTION OF WORK", 20, yPosition);
+  //     yPosition += 8;
+  //     pdf.setFont("helvetica", "normal");
+  //     const description = deal.description || "Provide project details here...";
+  //     const splitDescription = pdf.splitTextToSize(description, 170);
+  //     pdf.text(splitDescription, 20, yPosition);
+  //     yPosition += splitDescription.length * 6 + 10;
 
-      // Itemized costs table header
-      pdf.setFont("helvetica", "bold");
-      pdf.text("ITEMIZED COSTS", 20, yPosition);
-      yPosition += 10;
+  //     // Itemized costs table header
+  //     pdf.setFont("helvetica", "bold");
+  //     pdf.text("ITEMIZED COSTS", 20, yPosition);
+  //     yPosition += 10;
 
-      // Table headers
-      pdf.text("ITEM", 20, yPosition);
-      pdf.text("QTY", 120, yPosition);
-      pdf.text("UNIT PRICE", 140, yPosition);
-      pdf.text("AMOUNT", 170, yPosition);
-      yPosition += 6;
+  //     // Table headers
+  //     pdf.text("ITEM", 20, yPosition);
+  //     pdf.text("QTY", 120, yPosition);
+  //     pdf.text("UNIT PRICE", 140, yPosition);
+  //     pdf.text("AMOUNT", 170, yPosition);
+  //     yPosition += 6;
 
-      // Draw line
-      pdf.line(20, yPosition, 190, yPosition);
-      yPosition += 8;
+  //     // Draw line
+  //     pdf.line(20, yPosition, 190, yPosition);
+  //     yPosition += 8;
 
-      // Table rows
-      pdf.setFont("helvetica", "normal");
-      let subtotal = 0;
+  //     // Table rows
+  //     pdf.setFont("helvetica", "normal");
+  //     let subtotal = 0;
 
-      if (deal.products && deal.products.length > 0) {
-        deal.products.forEach((item, index) => {
-          if (yPosition > 250) {
-            pdf.addPage();
-            yPosition = 20;
-          }
+  //     if (deal.products && deal.products.length > 0) {
+  //       deal.products.forEach((item, index) => {
+  //         if (yPosition > 250) {
+  //           pdf.addPage();
+  //           yPosition = 20;
+  //         }
 
-          const quantity = deal.quantity?.[index] || 1;
-          const unitPrice = Number(deal.value?.[index]) || 0;
-          const amount = quantity * unitPrice;
-          subtotal += amount;
+  //         const quantity = deal.quantity?.[index] || 1;
+  //         const unitPrice = Number(deal.value?.[index]) || 0;
+  //         const amount = quantity * unitPrice;
+  //         subtotal += amount;
 
-          pdf.text(item, 20, yPosition);
-          pdf.text(quantity.toString(), 120, yPosition);
-          pdf.text(`$${unitPrice.toFixed(2)}`, 140, yPosition);
-          pdf.text(`$${amount.toFixed(2)}`, 170, yPosition);
-          yPosition += 8;
-        });
-      }
+  //         pdf.text(item, 20, yPosition);
+  //         pdf.text(quantity.toString(), 120, yPosition);
+  //         pdf.text(`$${unitPrice.toFixed(2)}`, 140, yPosition);
+  //         pdf.text(`$${amount.toFixed(2)}`, 170, yPosition);
+  //         yPosition += 8;
+  //       });
+  //     }
 
-      yPosition += 5;
-      pdf.line(20, yPosition, 190, yPosition);
-      yPosition += 8;
+  //     yPosition += 5;
+  //     pdf.line(20, yPosition, 190, yPosition);
+  //     yPosition += 8;
 
-      // Totals
-      pdf.text("SUBTOTAL:", 140, yPosition);
-      pdf.text(`$${subtotal.toFixed(2)}`, 170, yPosition);
-      yPosition += 8;
+  //     // Totals
+  //     pdf.text("SUBTOTAL:", 140, yPosition);
+  //     pdf.text(`$${subtotal.toFixed(2)}`, 170, yPosition);
+  //     yPosition += 8;
 
-      pdf.setFont("helvetica", "bold");
-      pdf.text("TOTAL QUOTE:", 140, yPosition);
-      pdf.text(`$${subtotal.toFixed(2)}`, 170, yPosition);
+  //     pdf.setFont("helvetica", "bold");
+  //     pdf.text("TOTAL QUOTE:", 140, yPosition);
+  //     pdf.text(`$${subtotal.toFixed(2)}`, 170, yPosition);
 
-      // Footer note
-      yPosition += 20;
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(8);
-      pdf.text(
-        "This quotation is an estimate. Payment is due prior to delivery of services.",
-        105,
-        yPosition,
-        { align: "center" },
-      );
+  //     // Footer note
+  //     yPosition += 20;
+  //     pdf.setFont("helvetica", "normal");
+  //     pdf.setFontSize(8);
+  //     pdf.text(
+  //       "This quotation is an estimate. Payment is due prior to delivery of services.",
+  //       105,
+  //       yPosition,
+  //       { align: "center" },
+  //     );
 
-      pdf.save(`Quote-${dealId}-simple.pdf`);
-      toast.success("PDF downloaded successfully!");
-    } catch (error) {
-      console.error("Error generating alternative PDF:", error);
-      toast.error("Failed to generate PDF. Please try again.");
-    } finally {
-      setGeneratingPDF(false);
-    }
-  };
+  //     pdf.save(`Quote-${dealId}-simple.pdf`);
+  //     toast.success("PDF downloaded successfully!");
+  //   } catch (error) {
+  //     console.error("Error generating alternative PDF:", error);
+  //     toast.error("Failed to generate PDF. Please try again.");
+  //   } finally {
+  //     setGeneratingPDF(false);
+  //   }
+  // };
 
   return (
     <div>
@@ -664,17 +908,17 @@ function QuotePreview({ dealId, children, onComplete }) {
                 </Button>
 
                 {/* PDF DOWNLOAD BUTTONS */}
-                <Button
+                <Button 
                   className="w-full bg-transparent hover:bg-blue-500/10 text-blue-700 border border-blue-700 hover:border-transparent dark:border-blue-200 dark:text-blue-100"
                   onClick={handleDownloadPDF}
                   disabled={generatingPDF}
                 >
                   {generatingPDF
                     ? "Generating PDF..."
-                    : "Download Quote as PDF (Image)"}
+                    : "Download Quote as PDF"}
                 </Button>
 
-                <Button
+                {/* <Button
                   className="w-full bg-transparent hover:bg-purple-500/10 text-purple-700 border border-purple-700 hover:border-transparent dark:border-purple-200 dark:text-purple-100"
                   onClick={handleDownloadPDFAlternative}
                   disabled={generatingPDF}
@@ -682,7 +926,7 @@ function QuotePreview({ dealId, children, onComplete }) {
                   {generatingPDF
                     ? "Generating PDF..."
                     : "Download Quote as PDF (Text)"}
-                </Button>
+                </Button> */}
               </div>
             </div>
           )}

@@ -304,7 +304,9 @@ export default function TaskPage() {
             category: formData.category,
           },
         })
-        .eq("id", selectedTask.id);
+        // ✅ Double-check: only update rows owned by this user
+        .eq("id", selectedTask.id)
+        .eq("email", currentUserEmail);
 
       if (error) throw error;
       setTasks(tasks.map((t) =>
@@ -361,6 +363,8 @@ export default function TaskPage() {
       const { error } = await supabase
         .from("tasks")
         .update({
+          // ✅ Re-stamp email; mark status closed
+          email: currentUserEmail,
           metadata: { ...selectedTask.metadata, status: "closed" },
         })
         .eq("id", selectedTask.id)
