@@ -258,7 +258,7 @@ useEffect(() => {
         })
         // ✅ Double-check: only update rows owned by this user
         .eq("id", selectedTask.id)
-        .eq("email", currentUserEmail);
+        .eq("user_email", currentUserEmail);
 
       if (error) throw error;
       setTasks(tasks.map((t) =>
@@ -310,18 +310,16 @@ useEffect(() => {
   };
 
   const handleCloseTask = async () => {
-    if (!currentUserEmail) { alert("Not logged in"); return; }
-    setSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from("tasks")
-        .update({
-          // ✅ Re-stamp email; mark status closed
-          email: currentUserEmail,
-          metadata: { ...selectedTask.metadata, status: "closed" },
-        })
-        .eq("id", selectedTask.id)
-        .eq("user_email", currentUserEmail);
+  if (!currentUserEmail) { alert("Not logged in"); return; }
+  setSubmitting(true);
+  try {
+    const { error } = await supabase
+      .from("tasks")
+      .update({
+        metadata: { ...selectedTask.metadata, status: "closed" },
+      })
+      .eq("id", selectedTask.id)
+      .eq("user_email", currentUserEmail);
 
       if (error) throw error;
       setTasks(tasks.map((t) =>
