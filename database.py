@@ -16,21 +16,21 @@ supabase = create_client(url, key)
 # ─────────────────────────────────────────────
 
 
-def get_users():
+def get_users(email=None):
     """
-    For testing: returns one hardcoded user.
-    For production: uncomment the supabase query.
+    Fetch users based on the provided email.
+    If no email is provided, fetch all users (production mode).
     """
-    # ── TESTING (one email) ──
-    return [get_user_by_email("arsha.tajdeen23@gmail.com")]
+    if email:
+        return [get_user_by_email(email)]
 
     # ── PRODUCTION (all users) ──
-    # try:
-    #     response = supabase.table("Users").select("*").execute()
-    #     return response.data or []
-    # except Exception as e:
-    #     print("Error fetching users:", e)
-    #     return []
+    try:
+        response = supabase.table("Users").select("*").execute()
+        return response.data or []
+    except Exception as e:
+        print("Error fetching users:", e)
+        return []
 
 
 def get_user_by_email(email: str):
