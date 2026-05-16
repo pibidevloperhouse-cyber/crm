@@ -28,7 +28,9 @@ import {
   ChevronRight,
   History,
   ArrowRight,
+  Package,
 } from "lucide-react";
+import { Input } from "../ui/input";
 import { supabase } from "@/utils/supabase/client";
 import { toast } from "react-toastify";
 import Updateleads from "../Updateleads";
@@ -72,11 +74,16 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
   const [emailOpen, setEmailOpen] = useState(false);
   const [confirmStage, setConfirmStage] = useState(null);
   const [description, setDescription] = useState("");
+  const [productName, setProductName] = useState("");
+  const [companyName, setCompanyName] = useState("");
 
   const handleStageClick = (stage) => {
     const stageIdx = LEAD_STAGES.indexOf(stage);
     if (stageIdx <= currentIdx) return;
     setConfirmStage(stage);
+    if (stage === "Qualified") {
+      setCompanyName(lead.company || "");
+    }
   };
 
   const handleStatusUpdate = async () => {
@@ -97,9 +104,15 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
     };
     stage_history.push(current_history);
 
+    const updatePayload = { stage_history, status: confirmStage };
+    if (confirmStage === "Qualified") {
+      if (productName) updatePayload.Productname = productName;
+      if (companyName) updatePayload.Companyname = companyName;
+    }
+
     const { data: LeadsData, error } = await supabase
       .from("Leads")
-      .update({ stage_history, status: confirmStage })
+      .update(updatePayload)
       .select("*")
       .eq("id", lead.id)
       .single();
@@ -123,6 +136,8 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
       await fetchLeads();
       setConfirmStage(null);
       setDescription("");
+      setProductName("");
+      setCompanyName("");
     }
   };
 
@@ -184,7 +199,10 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
 
       {/* ── Mobile Bottom Sheet Dialog ── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full w-full h-[92vh] rounded-t-2xl rounded-b-none flex flex-col p-0 gap-0 border-0 shadow-2xl data-[state=open]:slide-in-from-bottom-full data-[state=closed]:slide-out-to-bottom-full">
+        <DialogContent 
+          showCloseButton={false}
+          className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full w-full h-[92vh] rounded-t-2xl rounded-b-none flex flex-col p-0 gap-0 border-0 shadow-2xl data-[state=open]:slide-in-from-bottom-full data-[state=closed]:slide-out-to-bottom-full"
+        >
           {/* Drag Handle */}
           <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
             <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-700" />
@@ -207,12 +225,12 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
                 </Badge>
               </div>
             </div>
-            {/* <button
+            <button
               onClick={() => setOpen(false)}
               className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0"
             >
               <X className="w-4 h-4 text-slate-500" />
-            </button> */}
+            </button>
           </div>
 
           {/* Action Buttons Row */}
@@ -365,7 +383,10 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
 
       {/* Edit Modal */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full w-full h-[92vh] rounded-t-2xl rounded-b-none flex flex-col p-0 gap-0 border-0 shadow-2xl">
+        <DialogContent 
+          showCloseButton={false}
+          className="fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full w-full h-[92vh] rounded-t-2xl rounded-b-none flex flex-col p-0 gap-0 border-0 shadow-2xl"
+        >
           <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
             <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-700" />
           </div>
@@ -403,7 +424,7 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
 
       {/* Delete Confirmation */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="mx-4 max-w-sm rounded-2xl">
+        <DialogContent className="w-[92vw] max-w-[400px] rounded-2xl mx-auto">
           <DialogHeader>
             <DialogTitle>Delete Lead?</DialogTitle>
             <DialogDescription>
@@ -417,19 +438,59 @@ export default function LeadCardMobile({ lead, onChange, fetchLeads, fetchDeals 
         </DialogContent>
       </Dialog>
 
-      {/* Stage Update Note Modal */}
       <Dialog open={!!confirmStage} onOpenChange={() => setConfirmStage(null)}>
-        <DialogContent className="mx-4 max-w-sm rounded-2xl">
+        <DialogContent className="w-[92vw] max-w-[400px] rounded-2xl mx-auto">
           <DialogHeader>
             <DialogTitle>Move to: {confirmStage}</DialogTitle>
             <DialogDescription>Add a note about this status change.</DialogDescription>
           </DialogHeader>
-          <Textarea
-            placeholder="What happened? (e.g., 'Had a great call, they are interested')"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="min-h-[100px] bg-slate-50 dark:bg-slate-900 text-sm"
-          />
+          <div className="space-y-3">
+            {confirmStage === "Qualified" && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Package className="w-3.5 h-3.5 text-teal-500" />
+                    Product Name
+                  </label>
+                  <Input
+                    placeholder="e.g. Pro Plan, Enterprise Suite"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    className="h-9 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-teal-500" />
+                    Company Name
+                  </label>
+                  <Input
+                    placeholder="e.g. Acme Corp"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="h-9 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="space-y-1.5">
+              {confirmStage === "Qualified" && (
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-teal-500" />
+                  Stage Note
+                </label>
+              )}
+              <Textarea
+                placeholder={confirmStage === "Qualified" 
+                  ? "What happened in this stage? (e.g., 'Had a great call, they are interested in the Pro plan')"
+                  : "What happened? (e.g., 'Had a great call, they are interested')"}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="min-h-[100px] bg-slate-50 dark:bg-slate-900 text-sm"
+              />
+            </div>
+          </div>
           <DialogFooter className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={() => setConfirmStage(null)}>Cancel</Button>
             <Button
