@@ -3,7 +3,7 @@ from supabase import create_client
 from dotenv import load_dotenv
 from datetime import datetime
 from config import ENTITY_TABLES, DEFAULT_STATUS
-
+import time
 load_dotenv()
 
 url = os.environ.get("SUPABASE_URL")
@@ -16,21 +16,36 @@ supabase = create_client(url, key)
 # ─────────────────────────────────────────────
 
 
-def get_users(email=None):
-    """
-    Fetch users based on the provided email.
-    If no email is provided, fetch all users (production mode).
-    """
-    if email:
-        return [get_user_by_email(email)]
+# def get_users(email=None):
+#     """
+#     Fetch users based on the provided email.
+#     If no email is provided, fetch all users (production mode).
+#     """
+#     if email:
+#         return [get_user_by_email(email)]
 
-    # ── PRODUCTION (all users) ──
-    try:
-        response = supabase.table("Users").select("*").execute()
-        return response.data or []
-    except Exception as e:
-        print("Error fetching users:", e)
-        return []
+#     # ── PRODUCTION (all users) ──
+#     try:
+#         response = supabase.table("Users").select("*").execute()
+#         return response.data or []
+#     except Exception as e:
+#         print("Error fetching users:", e)
+#         return []
+
+DEFAULT_EMAIL = "kikuu737@gmail.com"
+
+def get_users(email=None, retries=10, delay=6):
+    email = email or DEFAULT_EMAIL  # use default if none came from frontend
+
+    for i in range(retries):
+        user = get_user_by_email(email)
+        if user:
+            return [user]
+        print(f"User not found yet for {email}, retrying ({i+1}/{retries})...")
+        time.sleep(delay)
+
+    print(f"User with email {email} not found after waiting.")
+    return []
 
 
 def get_user_by_email(email: str):
