@@ -27,8 +27,11 @@ export async function POST(req) {
 
     // Initialize Gemini model
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      systemInstruction: GTM_SYSTEM_PROMPT, // just pass string
+      model: "gemini-1.5-flash",
+      systemInstruction: {
+        role: "system",
+        parts: [{ text: GTM_SYSTEM_PROMPT }],
+      },
     });
 
     // Start chat WITHOUT history to avoid role errors
