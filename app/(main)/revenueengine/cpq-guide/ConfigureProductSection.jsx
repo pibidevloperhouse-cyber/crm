@@ -118,15 +118,16 @@ export default function ConfigureProductSection({ onDealSelect, onNext }) {
     setDealsToShow(activeDeals);
 
     const { data: productsData, error: productsError } = await supabase
-      .from("products")
-      .select("*")
-      .eq("user_email", email);
+      .from("Users")
+      .select("products")
+      .eq("email", email)
+      .single();
 
     if (productsError) {
       console.error("Error fetching products:", productsError);
       toast.error("Failed to fetch products.");
     } else if (productsData) {
-      setProducts(productsData || []);
+      setProducts(productsData.products || []);
     }
     setIsLoading(false);
   };
