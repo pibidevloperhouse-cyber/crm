@@ -21,7 +21,7 @@ export async function POST(req) {
 
     // 2. Initialize Model (Using 1.5-flash as 2.5 does not exist)
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-3.1-flash-lite",
       systemInstruction: GTM_SYSTEM_PROMPT, // Most stable as a direct string
     });
 
