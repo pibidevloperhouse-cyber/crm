@@ -71,7 +71,6 @@ export default function DealCard({
   onChange,
   fetchDeals,
   fetchCustomers,
-  session,
 }) {
   const [open, setOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -109,61 +108,81 @@ export default function DealCard({
       .eq("id", deal.id);
 
     if (error) {
-      toast.error("Error updating deal");
-    } else {
-      if (confirmStage === "Closed-won") {
-        const customerData = {
-          name: deal.name,
-          phone: deal.number,
-          email: deal.email,
-          price: deal.value,
-          address: deal.location,
-          purchase_history: {
-            product: deal.product,
-            price: deal.value,
-            purchase_date: today,
-          },
-          industry: deal.industry,
-          status: "Active",
-          created_at: today,
-          user_email: deal.user_email,
-        };
-        const { data: existing } = await supabase
-          .from("Customers")
-          .select("*")
-          .eq("email", deal.email)
-          .eq("user_email", deal.user_email)
-          .maybeSingle();
-
-        if (!existing) {
-          await fetch("/api/addCustomer", {
-            method: "POST",
-            body: JSON.stringify({ ...customerData, session }),
-          });
-        } else {
-          await supabase
-            .from("Customers")
-            .update({
-              ...customerData,
-              price: existing.price + deal.value,
-              status: "Active",
-              created_at: existing.created_at,
-              purchase_history: [
-                ...existing.purchase_history,
-                { product: deal.product, price: deal.value },
-              ],
-            })
-            .eq("email", deal.email)
-            .eq("user_email", deal.user_email);
-        }
-        onChange();
-      }
-      await fetchDeals();
-      await fetchCustomers();
-      toast.success("Deal updated successfully");
-      setConfirmStage(null);
-      setDescription("");
+      toast.error("Error updating deal: " + error.message);
+      return;
     }
+
+    if (confirmStage === "Closed-won") {
+      // Use correct field names from Deals table (product_name, company_name)
+      const newPurchase = {
+        product: deal.product_name || null,
+        price: deal.value || 0,
+        purchase_date: today,
+      };
+
+      // Check if customer already exists
+      const { data: existing } = await supabase
+        .from("Customers")
+        .select("*")
+        .eq("email", deal.email)
+        .eq("user_email", deal.user_email)
+        .maybeSingle();
+
+      if (!existing) {
+        // Create new customer directly via supabase
+        const { error: customerError } = await supabase
+          .from("Customers")
+          .insert({
+            name: deal.name,
+            number: deal.number,
+            email: deal.email || null,
+            industry: deal.industry || null,
+            address: deal.location || null,
+            status: "Active",
+            price: deal.value || 0,
+            purchase_history: [newPurchase],
+            created_at: today,
+            user_email: deal.user_email,
+          });
+
+        if (customerError) {
+          console.error("Customer insert error:", customerError);
+          toast.error("Deal updated but failed to create customer: " + customerError.message);
+        } else {
+          toast.success("Customer created!");
+        }
+      } else {
+        // Update existing customer
+        const existingHistory = Array.isArray(existing.purchase_history)
+          ? existing.purchase_history
+          : [];
+
+        const { error: updateError } = await supabase
+          .from("Customers")
+          .update({
+            price: (existing.price || 0) + (deal.value || 0),
+            status: "Active",
+            purchase_history: [...existingHistory, newPurchase],
+          })
+          .eq("email", deal.email)
+          .eq("user_email", deal.user_email);
+
+        if (updateError) {
+          console.error("Customer update error:", updateError);
+          toast.error("Deal updated but failed to update customer: " + updateError.message);
+        } else {
+          toast.success("Customer updated!");
+        }
+      }
+
+      onChange();
+    }
+
+    await fetchDeals();
+    await fetchCustomers();
+    toast.success("Deal updated successfully");
+    setConfirmStage(null);
+    setDescription("");
   };
 
   const handleDeleteDeal = async () => {
@@ -177,8 +196,6 @@ export default function DealCard({
       onChange();
     }
   };
-
-
 
   const InfoRow = ({ icon: Icon, label, value }) =>
     value ? (
@@ -214,10 +231,10 @@ export default function DealCard({
         {deal?.title && (
           <p className="text-xs text-slate-600 dark:text-slate-400 truncate mb-1 font-medium">{deal.title}</p>
         )}
-        {deal?.company && (
+        {deal?.company_name && (
           <p className="text-xs text-slate-500 flex items-center gap-1 mb-1">
             <Building2 className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{deal.company}</span>
+            <span className="truncate">{deal.company_name}</span>
           </p>
         )}
         <div className="flex items-center justify-between mt-1.5 gap-1">
@@ -230,10 +247,9 @@ export default function DealCard({
         </div>
       </div>
 
-      {/* ── Main Detail Dialog (80% Size) ── */}
+      {/* ── Main Detail Dialog ── */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0 gap-0 border-none shadow-2xl">
-
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b bg-slate-50 dark:bg-slate-900/80 flex-shrink-0 pr-12">
             <div className="flex items-center gap-3 min-w-0">
@@ -244,7 +260,7 @@ export default function DealCard({
               </Avatar>
               <div className="min-w-0">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">{deal?.name}</h2>
-                <p className="text-xs text-slate-500 truncate">{deal?.title || deal?.company}</p>
+                <p className="text-xs text-slate-500 truncate">{deal?.title || deal?.company_name}</p>
               </div>
               <Badge className={`ml-1 flex-shrink-0 ${STATUS_COLOR[deal.status] || "bg-slate-400"} text-white border-0 text-[10px] h-5`}>
                 {deal.status}
@@ -260,8 +276,6 @@ export default function DealCard({
               <Button size="sm" variant="outline" className="h-9 px-3" onClick={() => setEmailOpen(true)}>
                 <Mail className="w-4 h-4 mr-2" /> Email
               </Button>
-
-              {/* ── Edit: centered Dialog (same as LeadCard) ── */}
               <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="outline" className="h-9 px-3">
@@ -273,19 +287,12 @@ export default function DealCard({
                     <DialogTitle className="text-xl font-bold">Edit Deal Information</DialogTitle>
                   </DialogHeader>
                   <div className="flex-1 overflow-y-auto p-6">
-                    <UpdateDeals
-                      deal_id={deal.id}
-                      onChange={onChange}
-                      fetchCustomers={fetchCustomers}
-                      fetchDeals={fetchDeals}
-                    />
+                    <UpdateDeals deal_id={deal.id} onChange={onChange} fetchCustomers={fetchCustomers} fetchDeals={fetchDeals} />
                   </div>
                 </DialogContent>
               </Dialog>
-
               <Button
-                size="sm"
-                variant="outline"
+                size="sm" variant="outline"
                 className="h-9 px-3 text-red-500 border-red-200 hover:bg-red-50"
                 onClick={() => setDeleteOpen(true)}
               >
@@ -296,13 +303,13 @@ export default function DealCard({
 
           {/* Body */}
           <div className="flex flex-1 overflow-hidden">
-            {/* Left info */}
             <div className="w-1/3 border-r overflow-y-auto p-6 bg-white dark:bg-slate-900 custom-scrollbar">
               <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-4">General Information</h3>
               <div className="space-y-1">
                 <InfoRow icon={Mail} label="Email" value={deal.email} />
                 <InfoRow icon={Phone} label="Phone" value={deal.number} />
-                <InfoRow icon={Building2} label="Company" value={deal.company} />
+                <InfoRow icon={Building2} label="Company" value={deal.company_name} />
+                <InfoRow icon={Tag} label="Product" value={deal.product_name} />
                 <InfoRow icon={Tag} label="Industry" value={deal.industry} />
                 <InfoRow icon={Tag} label="Source" value={deal.source} />
                 <InfoRow icon={User} label="Owner" value={deal.owner} />
@@ -313,7 +320,6 @@ export default function DealCard({
               </div>
             </div>
 
-            {/* Right stage history */}
             <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50 dark:bg-slate-950/20 custom-scrollbar">
               <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-4">Stage History</h3>
               {deal.stage_history && deal.stage_history.length > 0 ? (
@@ -346,7 +352,7 @@ export default function DealCard({
             </div>
           </div>
 
-          {/* ── Deal Pipeline Footer ── */}
+          {/* Pipeline Footer */}
           <div className="border-t bg-slate-50/50 dark:bg-slate-900/50 p-4 flex-shrink-0">
             <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar py-2">
               <span className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mr-4">Deal Pipeline:</span>
@@ -356,7 +362,6 @@ export default function DealCard({
                   const isCurrent = idx === currentIdx;
                   const isFuture = idx > currentIdx;
                   const isNext = idx === currentIdx + 1;
-
                   return (
                     <div key={stage} className="flex items-center">
                       <button
@@ -378,17 +383,10 @@ export default function DealCard({
                           {idx + 1}
                         </div>
                         <span className="text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">{stage}</span>
-                        
-                        {/* Hover Pulse for Next Step */}
-                        {isNext && (
-                          <span className="absolute inset-0 rounded-xl bg-teal-400/10 animate-pulse" />
-                        )}
+                        {isNext && <span className="absolute inset-0 rounded-xl bg-teal-400/10 animate-pulse" />}
                       </button>
-
                       {idx < DEAL_STAGES.length - 1 && (
-                        <div className="mx-2">
-                          <ChevronRight className="w-4 h-4 text-teal-500" />
-                        </div>
+                        <div className="mx-2"><ChevronRight className="w-4 h-4 text-teal-500" /></div>
                       )}
                     </div>
                   );
@@ -399,21 +397,14 @@ export default function DealCard({
         </DialogContent>
       </Dialog>
 
-      {/* ── ALL MODALS ── */}
-
-      {/* Edit Modal (duplicate for outside main dialog context) */}
+      {/* Edit Modal */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
           <DialogHeader className="p-6 border-b bg-slate-50 dark:bg-slate-900">
             <DialogTitle className="text-xl font-bold">Edit Deal Information</DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-950">
-            <UpdateDeals
-              deal_id={deal.id}
-              onChange={onChange}
-              fetchCustomers={fetchCustomers}
-              fetchDeals={fetchDeals}
-            />
+            <UpdateDeals deal_id={deal.id} onChange={onChange} fetchCustomers={fetchCustomers} fetchDeals={fetchDeals} />
           </div>
         </DialogContent>
       </Dialog>
@@ -421,12 +412,7 @@ export default function DealCard({
       {/* Email Modal */}
       <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
         <DialogContent className="w-[95vw] sm:max-w-4xl h-[90vh] sm:h-[85vh] p-0 overflow-hidden border-0 shadow-2xl mx-auto">
-          <EmailTemplate
-            type="Deals"
-            id={deal.id}
-            email={deal.email}
-            onOpenChange={setEmailOpen}
-          />
+          <EmailTemplate type="Deals" id={deal.id} email={deal.email} onOpenChange={setEmailOpen} />
         </DialogContent>
       </Dialog>
 
@@ -478,6 +464,487 @@ export default function DealCard({
     </>
   );
 }
+// old version
+// "use client";
+
+// import { useState } from "react";
+// import { Avatar, AvatarFallback } from "../ui/avatar";
+// import { Badge } from "../ui/badge";
+// import { Button } from "../ui/button";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogTrigger,
+// } from "../ui/dialog";
+// import { Textarea } from "../ui/textarea";
+// import {
+//   Mail,
+//   Phone,
+//   Trash2,
+//   Edit,
+//   Building2,
+//   DollarSign,
+//   User,
+//   Tag,
+//   Calendar,
+//   TrendingUp,
+//   MapPin,
+//   ChevronRight,
+// } from "lucide-react";
+// import { supabase } from "@/utils/supabase/client";
+// import { toast } from "react-toastify";
+// import UpdateDeals from "../UpdateDeals";
+// import EmailTemplate from "../EmailTemplate";
+
+// const DEAL_STAGES = [
+//   "New",
+//   "Proposal Sent",
+//   "Negotiation",
+//   "Closed-won",
+//   "Closed-lost",
+//   "On-hold",
+//   "Abandoned",
+//   "Contract Sent",
+// ];
+
+// const STATUS_COLOR = {
+//   New: "bg-blue-500",
+//   "Proposal Sent": "bg-violet-500",
+//   Negotiation: "bg-orange-400",
+//   "Closed-won": "bg-emerald-500",
+//   "Closed-lost": "bg-red-500",
+//   "On-hold": "bg-yellow-500",
+//   Abandoned: "bg-slate-400",
+//   "Contract Sent": "bg-fuchsia-500",
+// };
+
+// const STATUS_DOT = {
+//   New: "bg-blue-400",
+//   "Proposal Sent": "bg-violet-400",
+//   Negotiation: "bg-orange-400",
+//   "Closed-won": "bg-emerald-500",
+//   "Closed-lost": "bg-red-500",
+//   "On-hold": "bg-yellow-400",
+//   Abandoned: "bg-slate-400",
+//   "Contract Sent": "bg-fuchsia-400",
+// };
+
+// export default function DealCard({
+//   deal,
+//   onChange,
+//   fetchDeals,
+//   fetchCustomers,
+//   session,
+// }) {
+//   const [open, setOpen] = useState(false);
+//   const [deleteOpen, setDeleteOpen] = useState(false);
+//   const [editOpen, setEditOpen] = useState(false);
+//   const [emailOpen, setEmailOpen] = useState(false);
+//   const [confirmStage, setConfirmStage] = useState(null);
+//   const [description, setDescription] = useState("");
+//   const today = new Date().toISOString().split("T")[0];
+
+//   const currentIdx = DEAL_STAGES.indexOf(deal.status);
+
+//   const handleStageClick = (stage) => {
+//     const stageIdx = DEAL_STAGES.indexOf(stage);
+//     if (stageIdx <= currentIdx) return;
+//     setConfirmStage(stage);
+//   };
+
+//   const handleStatusUpdate = async () => {
+//     const stage_history = deal.stage_history || [];
+//     const length = stage_history.length;
+//     const start_date =
+//       stage_history[length - 1]?.end_date || deal.created_at || today;
+//     const current_history = {
+//       old_status: deal.status,
+//       new_status: confirmStage,
+//       start_date: start_date?.split?.("T")[0] || today,
+//       end_date: today,
+//       state_description: description,
+//     };
+//     stage_history.push(current_history);
+
+//     const { error } = await supabase
+//       .from("Deals")
+//       .update({ stage_history, status: confirmStage })
+//       .eq("id", deal.id);
+
+//     if (error) {
+//       toast.error("Error updating deal");
+//     } else {
+//       if (confirmStage === "Closed-won") {
+//         const customerData = {
+//           name: deal.name,
+//           phone: deal.number,
+//           email: deal.email,
+//           price: deal.value,
+//           address: deal.location,
+//           purchase_history: {
+//             product: deal.product,
+//             price: deal.value,
+//             purchase_date: today,
+//           },
+//           industry: deal.industry,
+//           status: "Active",
+//           created_at: today,
+//           user_email: deal.user_email,
+//         };
+//         const { data: existing } = await supabase
+//           .from("Customers")
+//           .select("*")
+//           .eq("email", deal.email)
+//           .eq("user_email", deal.user_email)
+//           .maybeSingle();
+
+//         if (!existing) {
+//           await fetch("/api/addCustomer", {
+//             method: "POST",
+//             body: JSON.stringify({ ...customerData, session }),
+//           });
+//         } else {
+//           await supabase
+//             .from("Customers")
+//             .update({
+//               ...customerData,
+//               price: existing.price + deal.value,
+//               status: "Active",
+//               created_at: existing.created_at,
+//               purchase_history: [
+//                 ...existing.purchase_history,
+//                 { product: deal.product, price: deal.value },
+//               ],
+//             })
+//             .eq("email", deal.email)
+//             .eq("user_email", deal.user_email);
+//         }
+//         onChange();
+//       }
+//       await fetchDeals();
+//       await fetchCustomers();
+//       toast.success("Deal updated successfully");
+//       setConfirmStage(null);
+//       setDescription("");
+//     }
+//   };
+
+//   const handleDeleteDeal = async () => {
+//     const { error } = await supabase.from("Deals").delete().eq("id", deal.id);
+//     if (error) {
+//       toast.error("Error deleting deal");
+//     } else {
+//       toast.success("Deleted");
+//       setOpen(false);
+//       await fetchDeals();
+//       onChange();
+//     }
+//   };
+
+
+
+//   const InfoRow = ({ icon: Icon, label, value }) =>
+//     value ? (
+//       <div className="flex items-start gap-2 text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
+//         <Icon className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
+//         <div className="min-w-0">
+//           <p className="text-[11px] text-slate-400 uppercase tracking-wide">{label}</p>
+//           <p className="text-slate-800 dark:text-slate-200 font-medium text-sm break-words">{value}</p>
+//         </div>
+//       </div>
+//     ) : null;
+
+//   return (
+//     <>
+//       {/* ── Compact Kanban Card ── */}
+//       <div
+//         onClick={() => setOpen(true)}
+//         className="bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-lg p-3 cursor-pointer hover:shadow-md hover:border-teal-400 dark:hover:border-teal-500 transition-all duration-200 group"
+//       >
+//         <div className="flex items-start justify-between gap-2 mb-2">
+//           <div className="flex items-center gap-2 min-w-0">
+//             <Avatar className="h-6 w-6 flex-shrink-0">
+//               <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white text-[10px]">
+//                 {deal?.name?.[0]?.toUpperCase() || "?"}
+//               </AvatarFallback>
+//             </Avatar>
+//             <p className="font-semibold text-sm text-slate-800 dark:text-white truncate leading-tight">
+//               {deal?.name}
+//             </p>
+//           </div>
+//           <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${STATUS_DOT[deal.status] || "bg-slate-400"}`} />
+//         </div>
+//         {deal?.title && (
+//           <p className="text-xs text-slate-600 dark:text-slate-400 truncate mb-1 font-medium">{deal.title}</p>
+//         )}
+//         {deal?.company && (
+//           <p className="text-xs text-slate-500 flex items-center gap-1 mb-1">
+//             <Building2 className="w-3 h-3 flex-shrink-0" />
+//             <span className="truncate">{deal.company}</span>
+//           </p>
+//         )}
+//         <div className="flex items-center justify-between mt-1.5 gap-1">
+//           <span className="text-xs font-bold text-green-600 dark:text-green-400">
+//             {deal.value ? `$${deal.value}` : ""}
+//           </span>
+//           {deal?.closeDate && (
+//             <span className="text-[10px] text-slate-400">{deal.closeDate?.split("T")[0]}</span>
+//           )}
+//         </div>
+//       </div>
+
+//       {/* ── Main Detail Dialog (80% Size) ── */}
+//       <Dialog open={open} onOpenChange={setOpen}>
+//         <DialogContent className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0 gap-0 border-none shadow-2xl">
+
+//           {/* Header */}
+//           <div className="flex items-center justify-between px-6 py-4 border-b bg-slate-50 dark:bg-slate-900/80 flex-shrink-0 pr-12">
+//             <div className="flex items-center gap-3 min-w-0">
+//               <Avatar className="h-10 w-10 flex-shrink-0">
+//                 <AvatarFallback className="bg-gradient-to-r from-sky-700 to-teal-500 text-white">
+//                   {deal?.name?.[0]?.toUpperCase() || "?"}
+//                 </AvatarFallback>
+//               </Avatar>
+//               <div className="min-w-0">
+//                 <h2 className="text-lg font-bold text-slate-900 dark:text-white truncate">{deal?.name}</h2>
+//                 <p className="text-xs text-slate-500 truncate">{deal?.title || deal?.company}</p>
+//               </div>
+//               <Badge className={`ml-1 flex-shrink-0 ${STATUS_COLOR[deal.status] || "bg-slate-400"} text-white border-0 text-[10px] h-5`}>
+//                 {deal.status}
+//               </Badge>
+//               {deal.value && (
+//                 <span className="text-base font-bold text-green-600 dark:text-green-400 flex-shrink-0 ml-1">
+//                   — ${deal.value}
+//                 </span>
+//               )}
+//             </div>
+
+//             <div className="flex items-center gap-2 flex-shrink-0">
+//               <Button size="sm" variant="outline" className="h-9 px-3" onClick={() => setEmailOpen(true)}>
+//                 <Mail className="w-4 h-4 mr-2" /> Email
+//               </Button>
+
+//               {/* ── Edit: centered Dialog (same as LeadCard) ── */}
+//               <Dialog open={editOpen} onOpenChange={setEditOpen}>
+//                 <DialogTrigger asChild>
+//                   <Button size="sm" variant="outline" className="h-9 px-3">
+//                     <Edit className="w-4 h-4 mr-2" /> Edit
+//                   </Button>
+//                 </DialogTrigger>
+//                 <DialogContent className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0">
+//                   <DialogHeader className="p-6 border-b">
+//                     <DialogTitle className="text-xl font-bold">Edit Deal Information</DialogTitle>
+//                   </DialogHeader>
+//                   <div className="flex-1 overflow-y-auto p-6">
+//                     <UpdateDeals
+//                       deal_id={deal.id}
+//                       onChange={onChange}
+//                       fetchCustomers={fetchCustomers}
+//                       fetchDeals={fetchDeals}
+//                     />
+//                   </div>
+//                 </DialogContent>
+//               </Dialog>
+
+//               <Button
+//                 size="sm"
+//                 variant="outline"
+//                 className="h-9 px-3 text-red-500 border-red-200 hover:bg-red-50"
+//                 onClick={() => setDeleteOpen(true)}
+//               >
+//                 <Trash2 className="w-4 h-4" />
+//               </Button>
+//             </div>
+//           </div>
+
+//           {/* Body */}
+//           <div className="flex flex-1 overflow-hidden">
+//             {/* Left info */}
+//             <div className="w-1/3 border-r overflow-y-auto p-6 bg-white dark:bg-slate-900 custom-scrollbar">
+//               <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-4">General Information</h3>
+//               <div className="space-y-1">
+//                 <InfoRow icon={Mail} label="Email" value={deal.email} />
+//                 <InfoRow icon={Phone} label="Phone" value={deal.number} />
+//                 <InfoRow icon={Building2} label="Company" value={deal.company} />
+//                 <InfoRow icon={Tag} label="Industry" value={deal.industry} />
+//                 <InfoRow icon={Tag} label="Source" value={deal.source} />
+//                 <InfoRow icon={User} label="Owner" value={deal.owner} />
+//                 <InfoRow icon={TrendingUp} label="Priority" value={deal.priority} />
+//                 <InfoRow icon={Calendar} label="Close Date" value={deal.closeDate?.split("T")[0]} />
+//                 <InfoRow icon={DollarSign} label="Value" value={deal.value ? `$${deal.value}` : null} />
+//                 <InfoRow icon={MapPin} label="Location" value={deal.location} />
+//               </div>
+//             </div>
+
+//             {/* Right stage history */}
+//             <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50 dark:bg-slate-950/20 custom-scrollbar">
+//               <h3 className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mb-4">Stage History</h3>
+//               {deal.stage_history && deal.stage_history.length > 0 ? (
+//                 <div className="space-y-3">
+//                   {[...deal.stage_history].reverse().map((h, i) => (
+//                     <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-4 border shadow-sm">
+//                       <div className="flex items-center gap-3 mb-2">
+//                         <div className="w-2 h-2 rounded-full bg-teal-500" />
+//                         <p className="text-sm font-semibold">
+//                           <span className="text-slate-400">{h.old_status}</span>
+//                           <span className="mx-2 text-slate-300">→</span>
+//                           <span className="text-teal-600 dark:text-teal-400">{h.new_status}</span>
+//                         </p>
+//                       </div>
+//                       <p className="text-[11px] text-slate-400 ml-5">{h.start_date} to {h.end_date}</p>
+//                       {h.state_description && (
+//                         <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 ml-5 bg-slate-50 dark:bg-slate-900 p-3 rounded-lg italic">
+//                           "{h.state_description}"
+//                         </p>
+//                       )}
+//                     </div>
+//                   ))}
+//                 </div>
+//               ) : (
+//                 <div className="h-full flex flex-col items-center justify-center text-slate-400 pb-20">
+//                   <TrendingUp className="w-12 h-12 mb-2 opacity-20" />
+//                   <p className="text-sm">No stage history recorded yet.</p>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+
+//           {/* ── Deal Pipeline Footer ── */}
+//           <div className="border-t bg-slate-50/50 dark:bg-slate-900/50 p-4 flex-shrink-0">
+//             <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar py-2">
+//               <span className="text-[11px] font-bold uppercase text-slate-400 tracking-widest mr-4">Deal Pipeline:</span>
+//               <div className="flex items-center">
+//                 {DEAL_STAGES.map((stage, idx) => {
+//                   const isCompleted = idx < currentIdx;
+//                   const isCurrent = idx === currentIdx;
+//                   const isFuture = idx > currentIdx;
+//                   const isNext = idx === currentIdx + 1;
+
+//                   return (
+//                     <div key={stage} className="flex items-center">
+//                       <button
+//                         onClick={() => handleStageClick(stage)}
+//                         disabled={!isFuture}
+//                         className={`group relative flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${
+//                           isCurrent
+//                             ? "bg-teal-500 border-teal-500 text-white shadow-lg shadow-teal-500/25 scale-105 z-10"
+//                             : isCompleted
+//                             ? "bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800 text-teal-600 dark:text-teal-400 opacity-80"
+//                             : isFuture
+//                             ? "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-teal-400 hover:shadow-md hover:scale-105 hover:z-20 cursor-pointer"
+//                             : "bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 text-slate-400 opacity-40 cursor-not-allowed"
+//                         }`}
+//                       >
+//                         <div className={`flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold ${
+//                           isCurrent ? "bg-white text-teal-500" : isCompleted ? "bg-teal-100 dark:bg-teal-800 text-teal-600" : "bg-slate-100 dark:bg-slate-700 text-slate-400"
+//                         }`}>
+//                           {idx + 1}
+//                         </div>
+//                         <span className="text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">{stage}</span>
+                        
+//                         {/* Hover Pulse for Next Step */}
+//                         {isNext && (
+//                           <span className="absolute inset-0 rounded-xl bg-teal-400/10 animate-pulse" />
+//                         )}
+//                       </button>
+
+//                       {idx < DEAL_STAGES.length - 1 && (
+//                         <div className="mx-2">
+//                           <ChevronRight className="w-4 h-4 text-teal-500" />
+//                         </div>
+//                       )}
+//                     </div>
+//                   );
+//                 })}
+//               </div>
+//             </div>
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* ── ALL MODALS ── */}
+
+//       {/* Edit Modal (duplicate for outside main dialog context) */}
+//       <Dialog open={editOpen} onOpenChange={setEditOpen}>
+//         <DialogContent className="max-w-[80vw] w-[80vw] h-[85vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
+//           <DialogHeader className="p-6 border-b bg-slate-50 dark:bg-slate-900">
+//             <DialogTitle className="text-xl font-bold">Edit Deal Information</DialogTitle>
+//           </DialogHeader>
+//           <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-950">
+//             <UpdateDeals
+//               deal_id={deal.id}
+//               onChange={onChange}
+//               fetchCustomers={fetchCustomers}
+//               fetchDeals={fetchDeals}
+//             />
+//           </div>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Email Modal */}
+//       <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
+//         <DialogContent className="w-[95vw] sm:max-w-4xl h-[90vh] sm:h-[85vh] p-0 overflow-hidden border-0 shadow-2xl mx-auto">
+//           <EmailTemplate
+//             type="Deals"
+//             id={deal.id}
+//             email={deal.email}
+//             onOpenChange={setEmailOpen}
+//           />
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Delete Confirmation */}
+//       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+//         <DialogContent className="max-w-md">
+//           <DialogHeader>
+//             <DialogTitle>Delete Deal?</DialogTitle>
+//             <DialogDescription>
+//               Are you sure you want to delete <strong>{deal.name}</strong>? This cannot be undone.
+//             </DialogDescription>
+//           </DialogHeader>
+//           <DialogFooter className="gap-2 sm:gap-0">
+//             <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+//             <Button variant="destructive" onClick={handleDeleteDeal}>Confirm Delete</Button>
+//           </DialogFooter>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Stage Update Note Modal */}
+//       <Dialog open={!!confirmStage} onOpenChange={() => setConfirmStage(null)}>
+//         <DialogContent className="max-w-lg">
+//           <DialogHeader>
+//             <DialogTitle>Update Stage: {confirmStage}</DialogTitle>
+//             <DialogDescription>
+//               Moving <strong>{deal.name}</strong> from{" "}
+//               <span className="font-semibold text-slate-600">{deal.status}</span>
+//               {" → "}
+//               <span className="font-semibold text-teal-600">{confirmStage}</span>
+//             </DialogDescription>
+//           </DialogHeader>
+//           <Textarea
+//             placeholder="Describe what happened in this stage..."
+//             value={description}
+//             onChange={(e) => setDescription(e.target.value)}
+//             className="min-h-[120px] bg-slate-50 dark:bg-slate-900"
+//           />
+//           <DialogFooter>
+//             <Button variant="outline" onClick={() => setConfirmStage(null)}>Cancel</Button>
+//             <Button
+//               className="bg-gradient-to-r from-sky-700 to-teal-500 text-white"
+//               onClick={handleStatusUpdate}
+//             >
+//               Save Progress
+//             </Button>
+//           </DialogFooter>
+//         </DialogContent>
+//       </Dialog>
+//     </>
+//   );
+// }
 
 
 

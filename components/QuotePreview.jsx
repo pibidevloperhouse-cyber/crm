@@ -54,8 +54,8 @@ function drawTextHeader(pdf, deal, template, y, marginL, pageWidth) {
   pdf.setTextColor(60, 60, 60);
   const lines = [
     template?.template_data?.headerAddress || deal.address || "",
-    template?.template_data?.headerPhone   || deal.number  || "",
-    template?.template_data?.headerEmail   || deal.email   || "",
+    template?.template_data?.headerPhone || deal.number || "",
+    template?.template_data?.headerEmail || deal.email || "",
   ].filter(Boolean);
   lines.forEach((line) => { pdf.text(line, marginL, y); y += 5; });
 
@@ -105,9 +105,9 @@ function QuotePreview({ dealId, children, onComplete }) {
 
   // ✅ FIX: Use saved totals from PricingDetailsSection (subtotal, total_tax, finalPrice)
   const finalSubtotal = deal?.subtotal ?? 0;
-  const finalTax      = deal?.total_tax ?? 0;
-  const finalTotal    = deal?.finalPrice ?? finalSubtotal + finalTax;
-  const taxRate       = finalSubtotal > 0 ? finalTax / finalSubtotal : 0;
+  const finalTax = deal?.total_tax ?? 0;
+  const finalTotal = deal?.finalPrice ?? finalSubtotal + finalTax;
+  const taxRate = finalSubtotal > 0 ? finalTax / finalSubtotal : 0;
 
   const handlePreview = async () => {
     setOpen(true);
@@ -151,13 +151,31 @@ function QuotePreview({ dealId, children, onComplete }) {
         }
       }
 
-      const { data: templateData, error: templateError } = await supabase
-        .from("quote_templates")
-        .select("*")
-        .eq("user_email", currentUserEmail)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      let templateData = null;
+      let templateError = null;
+
+      if (currentUserEmail) {
+        const { data, error } = await supabase
+          .from("quote_templates")
+          .select("*")
+          .eq("user_email", currentUserEmail)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        templateData = data;
+        templateError = error;
+      }
+
+      if (!templateData) {
+        const { data, error } = await supabase
+          .from("quote_templates")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        templateData = data;
+        if (error) templateError = error;
+      }
 
       if (templateError) {
         console.error("Error fetching template:", templateError);
@@ -217,18 +235,26 @@ function QuotePreview({ dealId, children, onComplete }) {
       const tableStartX = pageWidth - marginR - 65;
       const tableRowH = 7;
       const quoteRows = [
-        ["DATE",        deal.created_at   ? new Date(deal.created_at).toLocaleDateString()   : "N/A"],
-        ["QUOTE #",     String(deal.id)],
-        ["CUSTOMER ID", deal.customer_id  || "N/A"],
-        ["VALID UNTIL", deal.valid_until  ? new Date(deal.valid_until).toLocaleDateString()  : "N/A"],
+        ["DATE", deal.created_at ? new Date(deal.created_at).toLocaleDateString() : "N/A"],
+        ["QUOTE #", String(deal.id)],
+        ["CUSTOMER ID", deal.customer_id || "N/A"],
+        ["VALID UNTIL", deal.valid_until ? new Date(deal.valid_until).toLocaleDateString() : "N/A"],
       ];
 
       pdf.setFontSize(20);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(30, 80, 140);
-      pdf.text("QUOTE", pageWidth - marginR, 15, { align: "right" });
 
+      let quoteTitleY = 15;
       let tY = 20;
+
+      if (template?.header_image_url) {
+        quoteTitleY = y + 6;
+        tY = y + 11;
+      }
+
+      pdf.text("QUOTE", pageWidth - marginR, quoteTitleY, { align: "right" });
+
       pdf.setFontSize(8);
       quoteRows.forEach(([label, value]) => {
         pdf.setDrawColor(120, 120, 120);
@@ -250,17 +276,17 @@ function QuotePreview({ dealId, children, onComplete }) {
       pdf.setFont("helvetica", "normal");
       pdf.setTextColor(50, 50, 50);
       y += 5;
-      pdf.text(deal.name                              || "-", marginL + 2, y); y += 6;
-      pdf.text(deal.customer_company                  || "-", marginL + 2, y); y += 6;
-      pdf.text(deal.customer_address || deal.address  || "-", marginL + 2, y); y += 10;
+      pdf.text(deal.name || "-", marginL + 2, y); y += 6;
+      pdf.text(deal.customer_company || "-", marginL + 2, y); y += 6;
+      pdf.text(deal.customer_address || deal.address || "-", marginL + 2, y); y += 10;
 
       // ITEMS TABLE
       const col = {
-        desc:      marginL + 2,
+        desc: marginL + 2,
         unitPrice: marginL + contentWidth * 0.52,
-        qty:       marginL + contentWidth * 0.65,
-        taxed:     marginL + contentWidth * 0.78,
-        amount:    marginL + contentWidth + 2,
+        qty: marginL + contentWidth * 0.65,
+        taxed: marginL + contentWidth * 0.78,
+        amount: marginL + contentWidth + 2,
       };
 
       pdf.setFillColor(30, 80, 140);
@@ -268,11 +294,11 @@ function QuotePreview({ dealId, children, onComplete }) {
       pdf.setFontSize(8.5);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(255, 255, 255);
-      pdf.text("DESCRIPTION",  col.desc,      y + 5.5);
-      pdf.text("UNIT PRICE",   col.unitPrice, y + 5.5, { align: "right" });
-      pdf.text("QTY",          col.qty,       y + 5.5, { align: "right" });
-      pdf.text("TAXED",        col.taxed,     y + 5.5, { align: "right" });
-      pdf.text("AMOUNT",       col.amount,    y + 5.5, { align: "right" });
+      pdf.text("DESCRIPTION", col.desc, y + 5.5);
+      pdf.text("UNIT PRICE", col.unitPrice, y + 5.5, { align: "right" });
+      pdf.text("QTY", col.qty, y + 5.5, { align: "right" });
+      pdf.text("TAXED", col.taxed, y + 5.5, { align: "right" });
+      pdf.text("AMOUNT", col.amount, y + 5.5, { align: "right" });
       y += 8;
 
       pdf.setFont("helvetica", "normal");
@@ -282,19 +308,19 @@ function QuotePreview({ dealId, children, onComplete }) {
         deal.products.forEach((item, index) => {
           if (y > pageHeight - 70) { pdf.addPage(); y = 20; }
 
-          const qty    = Number(deal.quantity?.[index] || 1);
+          const qty = Number(deal.quantity?.[index] || 1);
           // ✅ FIX: Use getProductPrice instead of deal.value?.[index]
-          const price  = getProductPrice(item, index);
+          const price = getProductPrice(item, index);
           const amount = qty * price;
 
           pdf.setDrawColor(200, 200, 200);
           pdf.rect(marginL, y, contentWidth, 8);
           pdf.setFontSize(8.5);
-          pdf.text(String(item),           col.desc,      y + 5.5);
-          pdf.text(price.toFixed(2),       col.unitPrice, y + 5.5, { align: "right" });
-          pdf.text(String(qty),            col.qty,       y + 5.5, { align: "right" });
-          pdf.text("-",                    col.taxed,     y + 5.5, { align: "right" });
-          pdf.text(amount.toFixed(2),      col.amount,    y + 5.5, { align: "right" });
+          pdf.text(String(item), col.desc, y + 5.5);
+          pdf.text(price.toFixed(2), col.unitPrice, y + 5.5, { align: "right" });
+          pdf.text(String(qty), col.qty, y + 5.5, { align: "right" });
+          pdf.text("-", col.taxed, y + 5.5, { align: "right" });
+          pdf.text(amount.toFixed(2), col.amount, y + 5.5, { align: "right" });
           y += 8;
         });
       } else {
@@ -304,20 +330,20 @@ function QuotePreview({ dealId, children, onComplete }) {
       y += 6;
 
       // TOTALS — ✅ FIX: Use saved deal values from PricingDetailsSection
-      const pdfSubtotal = deal.subtotal     ?? 0;
-      const pdfTax      = deal.total_tax    ?? 0;
-      const pdfTotal    = deal.finalPrice   ?? pdfSubtotal + pdfTax;
-      const pdfTaxRate  = pdfSubtotal > 0 ? pdfTax / pdfSubtotal : 0;
+      const pdfSubtotal = deal.subtotal ?? 0;
+      const pdfTax = deal.total_tax ?? 0;
+      const pdfTotal = deal.finalPrice ?? pdfSubtotal + pdfTax;
+      const pdfTaxRate = pdfSubtotal > 0 ? pdfTax / pdfSubtotal : 0;
 
       const totLabelX = pageWidth - marginR - 48;
       const totValueX = pageWidth - marginR;
 
       const totalsRows = [
-        ["Subtotal",  `₹${pdfSubtotal.toFixed(2)}`],
-        ["Taxable",   `₹${pdfSubtotal.toFixed(2)}`],
-        ["Tax rate",  `${(pdfTaxRate * 100).toFixed(2)}%`],
-        ["Tax due",   `₹${pdfTax.toFixed(2)}`],
-        ["Other",     "-"],
+        ["Subtotal", `₹${pdfSubtotal.toFixed(2)}`],
+        ["Taxable", `₹${pdfSubtotal.toFixed(2)}`],
+        ["Tax rate", `${(pdfTaxRate * 100).toFixed(2)}%`],
+        ["Tax due", `₹${pdfTax.toFixed(2)}`],
+        ["Other", "-"],
       ];
 
       pdf.setFontSize(9);
@@ -335,8 +361,8 @@ function QuotePreview({ dealId, children, onComplete }) {
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(10);
       pdf.setTextColor(30, 30, 30);
-      pdf.text("TOTAL",                        totLabelX, y);
-      pdf.text(`₹${pdfTotal.toFixed(2)}`,      totValueX, y, { align: "right" });
+      pdf.text("TOTAL", totLabelX, y);
+      pdf.text(`₹${pdfTotal.toFixed(2)}`, totValueX, y, { align: "right" });
       y += 14;
 
       // TERMS
@@ -535,9 +561,9 @@ function QuotePreview({ dealId, children, onComplete }) {
                     <tbody>
                       {deal.products?.length > 0 ? (
                         deal.products.map((item, index) => {
-                          const qty    = deal.quantity?.[index] || 1;
+                          const qty = deal.quantity?.[index] || 1;
                           // ✅ FIX: Real price from products table
-                          const price  = getProductPrice(item, index);
+                          const price = getProductPrice(item, index);
                           const amount = qty * price;
 
                           return (
@@ -609,11 +635,11 @@ function QuotePreview({ dealId, children, onComplete }) {
 
                   {/* Footer */}
                   {template?.footer_image_url ? (
-                    <div className="w-full mt-8 h-[120px] overflow-hidden">
+                    <div className="w-full mt-8">
                       <img
                         src={template.footer_image_url}
                         alt="Company Footer"
-                        className="w-full h-full object-cover"
+                        className="w-full h-auto object-contain"
                         crossOrigin="anonymous"
                       />
                     </div>

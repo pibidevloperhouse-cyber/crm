@@ -406,11 +406,11 @@ export default function InvoicePreview({ dealId, children, onComplete }) {
 
                 {/* Footer Image or Default Footer */}
                 {template?.footer_image_url ? (
-                  <div className="w-full mt-8 h-[120px] overflow-hidden">
+                  <div className="w-full mt-8">
                     <img
                       src={template.footer_image_url}
                       alt="Company Footer"
-                      className="w-full h-full object-cover"
+                      className="w-full h-auto object-contain"
                       crossOrigin="anonymous"
                     />
                   </div>
