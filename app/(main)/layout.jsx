@@ -197,7 +197,7 @@ export default function Layout({ children }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="gap-2 text-slate-500 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                      className="gap-2 text-slate-500 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                     >
                       <Settings className="h-4 w-4" />
                       <span className="text-md font-medium">Settings</span>

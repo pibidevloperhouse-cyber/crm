@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import jsPDF from "jspdf";
@@ -358,15 +359,13 @@ export default function TemplateCreator() {
 
   return (
     <Sheet>
-      {/* <SheetTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+      <SheetTrigger asChild>
+        <DropdownMenuItem
+          onSelect={(e) => e.preventDefault()}
+          className="cursor-pointer"
+        >
           Create Template
         </DropdownMenuItem>
-      </SheetTrigger> */}
-      <SheetTrigger asChild>
-        <Button className="bg-gradient-to-r from-sky-700 to-teal-500 text-white px-6">
-          Create Template
-        </Button>
       </SheetTrigger>
 
       <SheetContent
