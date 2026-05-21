@@ -21,18 +21,37 @@ export default function InvoicePreview({ dealId, children, onComplete }) {
   const [template, setTemplate] = useState(null);
   const [loading, setLoading] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [products, setProducts] = useState([]);
 
-  // Calculate totals from deal data
-  const subtotal =
-    deal?.products?.reduce((sum, _, i) => {
-      return (
-        sum + Number(deal.value?.[i] || 0) * Number(deal.quantity?.[i] || 1)
-      );
-    }, 0) || 0;
+  // // Calculate totals from deal data
+  // const subtotal =
+  //   deal?.products?.reduce((sum, _, i) => {
+  //     return (
+  //       sum + Number(deal.value?.[i] || 0) * Number(deal.quantity?.[i] || 1)
+  //     );
+  //   }, 0) || 0;
 
-  const taxRate = 0.0625;
-  const tax = subtotal * taxRate;
-  const total = subtotal + tax;
+  // const taxRate = 0.0625;
+  // const tax = subtotal * taxRate;
+  // const total = subtotal + tax;
+
+  // Use saved totals from pricing page
+  const getProductPrice = (productName, index) => {
+    const product = products.find((p) => p.name === productName);
+    let price = parseFloat(product?.base_price || product?.price || 0);
+    if (deal?.configuration?.[index]) {
+      const config = deal.configuration[index];
+      for (const cat in config) {
+        price += parseFloat(config[cat]?.price || 0);
+      }
+    }
+    return price;
+  };
+
+  const subtotal = deal?.subtotal ?? 0;
+  const tax = deal?.total_tax ?? 0;
+  const total = deal?.finalPrice ?? subtotal + tax;
+  const taxRate = subtotal > 0 ? tax / subtotal : 0;
 
   const handlePreview = () => {
     setIsOpen(true);
@@ -56,6 +75,20 @@ export default function InvoicePreview({ dealId, children, onComplete }) {
         setDeal(dealData);
       }
 
+      // ✅ Fetch products for real unit prices
+      const storedSession = localStorage.getItem("session");
+      const currentUserEmail = storedSession
+        ? JSON.parse(storedSession)?.user?.email
+        : null;
+
+      if (currentUserEmail) {
+        const { data: productsData, error: productsError } = await supabase
+          .from("products")
+          .select("*")
+          .eq("user_email", currentUserEmail);
+        if (!productsError) setProducts(productsData || []);
+      }
+
       // Fetch template data
       const { data: templateData, error: templateError } = await supabase
         .from("quote_templates")
@@ -76,6 +109,21 @@ export default function InvoicePreview({ dealId, children, onComplete }) {
     }
   };
 
+  const loadImageAsBase64 = (url) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.getContext("2d").drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/jpeg"));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+
   const handleDownloadPDF = async () => {
     if (!deal) {
       toast.error("No deal data available");
@@ -85,61 +133,289 @@ export default function InvoicePreview({ dealId, children, onComplete }) {
     setGeneratingPDF(true);
 
     try {
-      const element = document.getElementById("invoice-pdf-content");
-      if (!element) {
-        toast.error("Invoice content not found");
-        setGeneratingPDF(false);
-        return;
-      }
-
       toast.info("Generating PDF, please wait...");
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const canvas = await html2canvas(element, {
-        scale: 1.5,
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        backgroundColor: "#ffffff",
-        scrollX: 0,
-        scrollY: 0,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById("invoice-pdf-content");
-          if (clonedElement) {
-            clonedElement.style.visibility = "visible";
-            clonedElement.style.display = "block";
-          }
-        },
-      });
-
-      const imgData = canvas.toDataURL("image/jpeg", 0.8);
       const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const marginL = 15;
+      const marginR = 15;
+      const contentWidth = pageWidth - marginL - marginR;
+      let y = 15;
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      // ── Helper: blue banner ──────────────────────────────────────
+      const blueBanner = (label, yPos) => {
+        pdf.setFillColor(30, 58, 138); // blue-900
+        pdf.rect(marginL, yPos, contentWidth, 8, "F");
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(label, marginL + 3, yPos + 5.5);
+        return yPos + 8;
+      };
 
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      let pageCount = 1;
-      while (heightLeft > 0 && pageCount < 10) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdfHeight;
-        pageCount++;
+      // ── HEADER ───────────────────────────────────────────────────
+      if (template?.header_image_url) {
+        try {
+          const img = await loadImageAsBase64(template.header_image_url);
+          pdf.addImage(img, "JPEG", 0, 0, pageWidth, 38);
+          y = 44;
+        } catch {
+          // fallback: plain text header
+          pdf.setFontSize(18);
+          pdf.setFont("helvetica", "bold");
+          pdf.setTextColor(30, 30, 30);
+          pdf.text("My Company name", marginL, y);
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "normal");
+          pdf.setTextColor(120, 120, 120);
+          pdf.text("My company slogan", marginL, y + 7);
+          y += 20;
+        }
+      } else {
+        pdf.setFontSize(18);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(30, 30, 30);
+        pdf.text("My Company name", marginL, y);
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(120, 120, 120);
+        pdf.text("My company slogan", marginL, y + 7);
+        y += 20;
       }
 
-      pdf.save(`Invoice-${dealId}-${new Date().getTime()}.pdf`);
+      // ── INVOICE title + info table (top-right) ───────────────────
+      pdf.setFontSize(22);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(30, 58, 138);
+      pdf.text("INVOICE", pageWidth - marginR, 20, { align: "right" });
+
+      const tableStartX = pageWidth - marginR - 65;
+      const tableRowH = 7;
+      const infoRows = [
+        ["DATE",         deal.created_at   ? new Date(deal.created_at).toLocaleDateString()   : "N/A"],
+        ["INVOICE #",    `INV-${String(dealId).slice(-6)}`],
+        ["CUSTOMER ID",  deal.customer_id  || "N/A"],
+        ["PAYMENT DUE",  deal.valid_until  ? new Date(deal.valid_until).toLocaleDateString()  : "N/A"],
+      ];
+
+      let tY = 26;
+      pdf.setFontSize(8);
+      infoRows.forEach(([label, value]) => {
+        pdf.setDrawColor(120, 120, 120);
+        pdf.rect(tableStartX, tY, 65, tableRowH);
+        pdf.line(tableStartX + 28, tY, tableStartX + 28, tY + tableRowH);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(50, 50, 50);
+        pdf.text(label, tableStartX + 2, tY + 4.8);
+        pdf.setFont("helvetica", "normal");
+        pdf.text(value, tableStartX + 30, tY + 4.8);
+        tY += tableRowH;
+      });
+
+      y = Math.max(y, tY + 6);
+
+      // ── BILL TO & SHIP TO (2 columns) ────────────────────────────
+      const colMid = marginL + contentWidth / 2 + 3;
+
+      // Bill To header
+      pdf.setFillColor(30, 58, 138);
+      pdf.rect(marginL, y, contentWidth / 2 - 3, 8, "F");
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("Bill To:", marginL + 3, y + 5.5);
+
+      // Ship To header
+      pdf.setFillColor(30, 58, 138);
+      pdf.rect(colMid, y, contentWidth / 2 - 3, 8, "F");
+      pdf.text("Ship To (If Different):", colMid + 3, y + 5.5);
+      y += 8;
+
+      // Bill To content
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(55, 65, 81); // gray-700
+      const billLines = [
+        deal.name             || "[Customer Name]",
+        deal.customer_company || "[Company Name]",
+        deal.address          || "[Street Address]",
+        deal.city             || "[City, ST ZIP Code]",
+        deal.number           || "[Phone]",
+      ];
+      const shipLines = [
+        deal.ship_to_name    || deal.name             || "[Name]",
+        deal.ship_to_company || deal.customer_company || "[Company Name]",
+        deal.ship_to_address || deal.address          || "[Street Address]",
+        deal.ship_to_city    || deal.city             || "[City, ST ZIP Code]",
+        deal.ship_to_phone   || deal.number           || "[Phone]",
+      ];
+
+      const addrStartY = y + 5;
+      billLines.forEach((line, i) => {
+        pdf.text(line, marginL + 2, addrStartY + i * 6);
+      });
+      shipLines.forEach((line, i) => {
+        pdf.text(line, colMid + 2, addrStartY + i * 6);
+      });
+
+      y = addrStartY + billLines.length * 6 + 6;
+
+      // ── PRODUCTS TABLE ───────────────────────────────────────────
+      const col = {
+        desc:      marginL + 2,
+        unitPrice: marginL + contentWidth * 0.52,
+        qty:       marginL + contentWidth * 0.65,
+        lineTotal: marginL + contentWidth + 2,
+      };
+
+      // Table header
+      pdf.setFillColor(30, 58, 138);
+      pdf.rect(marginL, y, contentWidth, 8, "F");
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("Description",  col.desc, y + 5.5);
+      pdf.text("Unit Price",   col.unitPrice, y + 5.5, { align: "right" });
+      pdf.text("Qty",          col.qty,       y + 5.5, { align: "right" });
+      pdf.text("Line Total",   col.lineTotal, y + 5.5, { align: "right" });
+      y += 8;
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(30, 30, 30);
+      pdf.setDrawColor(0, 0, 0);
+
+      if (deal.products?.length > 0) {
+        deal.products.forEach((item, index) => {
+          if (y > pageHeight - 80) { pdf.addPage(); y = 20; }
+          // const qty   = Number(deal.quantity?.[index] || 1);
+          // const price = Number(deal.value?.[index] || 0);
+          // const lineTotal = qty * price;
+
+          const qty   = Number(deal.quantity?.[index] || 1);
+          const price = getProductPrice(item, index);
+          const lineTotal = qty * price;
+
+          pdf.rect(marginL, y, contentWidth, 8);
+          pdf.setFontSize(8.5);
+          pdf.text(String(item),          col.desc,      y + 5.5);
+          pdf.text(`Rs.${price.toFixed(2)}`,  col.unitPrice, y + 5.5, { align: "right" });
+          pdf.text(String(qty),           col.qty,       y + 5.5, { align: "right" });
+          pdf.text(`Rs.${lineTotal.toFixed(2)}`, col.lineTotal, y + 5.5, { align: "right" });
+          y += 8;
+        });
+      } else {
+        // 8 empty rows
+        for (let i = 0; i < 8; i++) {
+          pdf.rect(marginL, y, contentWidth, 8);
+          y += 8;
+        }
+      }
+
+      y += 6;
+
+      // ── NOTES + TOTALS (2 columns) ───────────────────────────────
+      const notesWidth  = contentWidth * 0.52;
+      const totalsX     = marginL + notesWidth + 6;
+      const totalsWidth = contentWidth - notesWidth - 6;
+      const notesStartY = y;
+
+      // Notes banner
+      pdf.setFillColor(30, 58, 138);
+      pdf.rect(marginL, y, notesWidth, 8, "F");
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("Special Notes and Instructions", marginL + 3, y + 5.5);
+      y += 8;
+
+      // Notes box
+      pdf.setDrawColor(0, 0, 0);
+      pdf.rect(marginL, y, notesWidth, 32);
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(75, 85, 99);
+      const notesText = deal.description || "Add special notes here";
+      const wrappedNotes = pdf.splitTextToSize(notesText, notesWidth - 4);
+      pdf.text(wrappedNotes, marginL + 2, y + 6);
+
+      // Totals (right side)
+      const totalsStartY = notesStartY;
+      const totRows = [
+        ["Subtotal",       `Rs.${subtotal.toFixed(2)}`],
+        ["Sales Tax Rate", `${(taxRate * 100).toFixed(2)}%`],
+        ["Sales Tax",      `Rs.${tax.toFixed(2)}`],
+        ["S&H",            "-"],
+        ["Discount",       "-"],
+      ];
+
+      let tRowY = totalsStartY + 4;
+      pdf.setFontSize(9);
+      totRows.forEach(([label, value]) => {
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(30, 30, 30);
+        pdf.text(label, totalsX, tRowY);
+        pdf.text(value, marginL + contentWidth, tRowY, { align: "right" });
+        tRowY += 7;
+      });
+
+      // Total row
+      pdf.setDrawColor(80, 80, 80);
+      pdf.line(totalsX, tRowY, marginL + contentWidth, tRowY);
+      tRowY += 5;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(10);
+      pdf.setTextColor(30, 30, 30);
+      pdf.text("Total", totalsX, tRowY);
+      pdf.text(`Rs.${total.toFixed(2)}`, marginL + contentWidth, tRowY, { align: "right" });
+
+      y = Math.max(y + 32, tRowY) + 10;
+
+      // ── FOOTER ───────────────────────────────────────────────────
+      if (template?.footer_image_url) {
+        try {
+          const footerImg = await loadImageAsBase64(template.footer_image_url);
+          pdf.addImage(footerImg, "JPEG", 0, pageHeight - 28, pageWidth, 28);
+        } catch {
+          // text footer fallback
+          pdf.setFontSize(8.5);
+          pdf.setFont("helvetica", "normal");
+          pdf.setTextColor(100, 100, 100);
+          pdf.text(
+            `Make all checks payable to ${deal.title || "My Company name"}`,
+            pageWidth / 2, pageHeight - 20, { align: "center" }
+          );
+          pdf.setFont("helvetica", "bold");
+          pdf.text("Thank you for your business!", pageWidth / 2, pageHeight - 14, { align: "center" });
+          pdf.setFont("helvetica", "normal");
+          pdf.text(
+            `Contact: ${deal.salesperson || "John Doe"} | ${deal.email || "email@company.com"}`,
+            pageWidth / 2, pageHeight - 8, { align: "center" }
+          );
+        }
+      } else {
+        pdf.setFontSize(8.5);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(
+          `Make all checks payable to ${deal.title || "My Company name"}`,
+          pageWidth / 2, pageHeight - 20, { align: "center" }
+        );
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Thank you for your business!", pageWidth / 2, pageHeight - 14, { align: "center" });
+        pdf.setFont("helvetica", "normal");
+        pdf.text(
+          `Contact: ${deal.salesperson || "John Doe"} | ${deal.email || "email@company.com"}`,
+          pageWidth / 2, pageHeight - 8, { align: "center" }
+        );
+      }
+
+      pdf.save(`Invoice-${dealId}-${Date.now()}.pdf`);
       toast.success("PDF downloaded successfully!");
+
     } catch (error) {
       console.error("PDF generation error:", error);
-      toast.error(`PDF Error: ${error.message || "Unknown error"}. Try again.`);
+      toast.error(`PDF Error: ${error.message || "Unknown error"}`);
     } finally {
       setGeneratingPDF(false);
     }
@@ -336,8 +612,11 @@ export default function InvoicePreview({ dealId, children, onComplete }) {
                   <tbody className="text-black border-black">
                     {deal?.products?.length > 0
                       ? deal.products.map((item, index) => {
-                          const qty = deal.quantity?.[index] || 1;
-                          const price = Number(deal.value?.[index]) || 0;
+                          // const qty = deal.quantity?.[index] || 1;
+                          // const price = Number(deal.value?.[index]) || 0;
+                          // const lineTotal = qty * price;
+                          const qty   = Number(deal.quantity?.[index] || 1);
+                          const price = getProductPrice(item, index);
                           const lineTotal = qty * price;
                           return (
                             <tr key={index} className="border-t border-black">
