@@ -188,7 +188,18 @@ export default function InvoicePreview({ dealId, children, onComplete }) {
       pdf.setFontSize(22);
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(30, 58, 138);
-      pdf.text("INVOICE", pageWidth - marginR, 20, { align: "right" });
+
+      // If a header image was rendered we moved `y` down. Position the
+      // invoice title and info table relative to `y` so they don't overlap
+      // the header image (matches QuotePreview behaviour).
+      let invoiceTitleY = 20;
+      let tY = 26;
+      if (template?.header_image_url) {
+        invoiceTitleY = y + 6;
+        tY = y + 11;
+      }
+
+      pdf.text("INVOICE", pageWidth - marginR, invoiceTitleY, { align: "right" });
 
       const tableStartX = pageWidth - marginR - 65;
       const tableRowH = 7;
@@ -199,7 +210,6 @@ export default function InvoicePreview({ dealId, children, onComplete }) {
         ["PAYMENT DUE",  deal.valid_until  ? new Date(deal.valid_until).toLocaleDateString()  : "N/A"],
       ];
 
-      let tY = 26;
       pdf.setFontSize(8);
       infoRows.forEach(([label, value]) => {
         pdf.setDrawColor(120, 120, 120);
